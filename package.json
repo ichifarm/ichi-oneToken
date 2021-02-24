@@ -1,0 +1,24 @@
+{
+  "name": "onetoken",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ichifarm/ichi-oneToken.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ichifarm/ichi-oneToken/issues"
+  },
+  "homepage": "https://github.com/ichifarm/ichi-oneToken#readme",
+  "devDependencies": {
+    "@openzeppelin/contracts": "^3.4.0",
+    "ganache-cli": "^6.12.2",
+    "truffle": "^5.1.65"
+  }
+}
