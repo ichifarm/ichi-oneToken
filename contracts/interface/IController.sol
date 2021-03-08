@@ -2,13 +2,10 @@
 
 pragma solidity 0.7.6;
 
-import "./IModule.sol";
+interface IController {
 
-interface IController is IModule {
-
-    /**
-     @notice OneTokenBase calls this on mint and redeem. The controller can perform arbitary 
-     actions such as transferring funds to/from a strategy and executing strategy methods.
-     */
+    function MODULE_TYPE() external view returns(bytes32);
+    function init() external;
     function periodic() external;
+
 }

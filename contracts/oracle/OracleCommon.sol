@@ -4,15 +4,23 @@ pragma solidity 0.7.6;
 
 import "../interface/IOracle.sol";
 import "../ICHIModuleCommon.sol";
+import "../_openzeppelin/proxy/Initializable.sol";
 
-abstract contract OracleCommon is IOracle, ICHIModuleCommon {
+abstract contract OracleCommon is IOracle, ICHIModuleCommon, Initializable {
 
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Oracle Implementation"));
+    address immutable public baseToken;
+    address immutable public indexToken;
+
+    event OracleDeployed(address sender, address oneToken, address pair0, address pair1);
+    event OracleInitialized(address sender, address oneToken, address baseToken, address indexToken);
     
-    // TODO: this seems out of place ... it is always the same but it won't always be relevant
-    address constant USDC_ADDR = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    
-    constructor(address oneToken_) 
-        ICHIModuleCommon(ModuleType.Oracle, oneToken_, NULL_ADDRESS) // TODO: consider using foreign token field to specify <SYMBOL>/USD in oracle context.
-    { }
+    constructor(address oneToken_, address foreignToken_, address indexToken_) 
+        ICHIModuleCommon(ModuleType.Oracle, oneToken_, foreignToken_) 
+    { 
+        baseToken = foreignToken_;
+        indexToken = indexToken_;
+        emit OracleDeployed(msg.sender, oneToken_, foreignToken_, indexToken_);
+    }
+
 }

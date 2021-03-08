@@ -6,7 +6,7 @@ import "./IModule.sol";
 
 interface IMintMaster is IModule {
 
-    function getMintingRatio(uint volatility) external view returns(uint ratio, uint maxOrderVolume);
-    function updateMintingRatio(uint volatility) external returns(uint ratio, uint maxOrderVolume);
+    function getMintingRatio() external view returns(uint ratio, uint maxOrderVolume);
+    function updateMintingRatio() external returns(uint ratio, uint maxOrderVolume);
 
 }
