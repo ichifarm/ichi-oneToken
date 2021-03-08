@@ -10,4 +10,5 @@ interface IOracle is IModule {
 
     function update() external;
     function read(uint amount) external view returns(uint amountOut, uint volatility);
+    function amountRequired(uint amountUsd) external view returns(uint tokens, uint volatility);
 }

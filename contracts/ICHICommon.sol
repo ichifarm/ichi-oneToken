@@ -2,8 +2,15 @@
 
 pragma solidity 0.7.6;
 
-contract ICHICommon {
+import "./ICHIOwnable.sol";
+import "./interface/IERC20Extended.sol";
+import "./interface/IICHICommon.sol";
 
+contract ICHICommon is IICHICommon, ICHIOwnable {
+
+    uint constant internal PRECISION = 10 ** 18;
+    uint constant internal INFINITE = uint(0-1);
+    
     // @dev internal fingerprints help prevent deployment-time governance errors
 
     bytes32 constant COMPONENT_CONTROLLER = keccak256(abi.encodePacked("ICHI Controller"));

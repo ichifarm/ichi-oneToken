@@ -7,17 +7,19 @@ import "./IOneTokenV1Base.sol";
 
 interface IOneTokenV1 is IOneTokenV1Base {
 
-    function mint(address collateral, uint oneTokens, uint memberTokens) external;
-    function redeem(uint amount) external;
-    function setStrategyAllowance(address token, uint amount) external;
-
-    /**
-     * View functions 
-     */
-
-    function mintingRatio() external view returns(uint ratio, uint maxOrderVolume);
-    function collateralValue() external view returns(uint);
-    function treasuryValue() external view returns(uint);  
-    function getRate(address token) external view returns(uint);
-    function holdings(address token) external view returns(uint vaultBalance, uint strategyBalance);
+    function withdraw(address token, uint amount) external;
+    function mint(address collateral, uint oneTokens) external;
+    function redeem(address collateral, uint amount) external;
+    function updateMintingRatio() external returns(uint ratio, uint maxOrderVolume);
+    /*
+    function updateCollateralValue() external returns(uint);
+    function updateTreasuryValue() external returns(uint);
+    function updateHoldings(address token) external returns(uint vaultBalance, uint strategyBalance);
+    */
+    function userBalances(address, address) external view returns(uint);
+    function userCreditBlocks(address, address) external view returns(uint);
+    function getMintingRatio() external view returns(uint ratio, uint maxOrderVolume);
+    function getCollateralValue() external view  returns(uint vaultUsd, uint strategyUsd);
+    function getTreasuryValue() external view  returns(uint vaultUsd, uint strategyUsd);
+    function getHoldings(address token) external view returns(uint vaultBalance, uint strategyBalance);
 }

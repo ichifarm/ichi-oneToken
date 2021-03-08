@@ -12,7 +12,7 @@ import "./interface/IOneTokenV1.sol";
 import "./interface/IModule.sol";
 import "./_openzeppelin/access/Ownable.sol";
 
-contract OneTokenFactory is IOneTokenFactory, ICHICommon, Ownable {
+contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     using AddressSet for AddressSet.Set;
     bytes constant NULL = "";
@@ -78,11 +78,12 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon, Ownable {
      */
 
     function deployOneTokenProxy(
+        string memory name,
+        string memory symbol,
         address governance,
         address controller,
         address strategy, 
-        address mintMaster, 
-        /*address voterRoll,*/               
+        address mintMaster,              
         address memberToken, 
         address collateral,
         address version
@@ -110,19 +111,14 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon, Ownable {
         
         OneTokenProxy _proxy = new OneTokenProxy(version, address(admin), NULL);
         IOneTokenV1 _newOneToken = IOneTokenV1(address(_proxy));
-        _newOneToken.init(controller, mintMaster, /*voterRoll,*/ memberToken, collateral); 
+        _newOneToken.init(name, symbol, controller, mintMaster, memberToken, collateral); 
+        _newOneToken.transferOwnership(governance);
         newOneToken = address(_newOneToken);
-
-        // Transfer oneToken ownership to governance
-
-        // use RBAC ... newOneToken.transferOwnership(governance);   
 
         // record token creation
 
         oneTokenSet.insert(newOneToken, "OneTokenFactory: Internal error registering new proxy.");
         oneTokens[newOneToken].version = version;
-
-        // emit an event
 
         emit OneTokenDeployed(msg.sender, newOneToken, admin, governance, controller, strategy, mintMaster, /*voterRoll,*/ memberToken, collateral, version);
     }

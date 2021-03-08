@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: GNU
 
+/**
+ * @dev this contract is renamed to prevent conflict with oz while avoiding significant changes 
+ */
+
 pragma solidity 0.7.6;
 
 // a library for performing overflow-safe math, courtesy of DappHub (https://github.com/dapphub/ds-math)
 
-library SafeMath {
+library UniswapSafeMath {
     function add(uint x, uint y) internal pure returns (uint z) {
         require((z = x + y) >= x, 'ds-math-add-overflow');
     }

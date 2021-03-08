@@ -8,19 +8,18 @@ import "./InterfaceCommon.sol";
 interface IOneTokenFactory is InterfaceCommon {
     
     function deployOneTokenProxy(
+        string memory name,
+        string memory symbol,
         address governance,
         address controller,
         address strategy, 
-        address mintMaster, 
-        /*address voterRoll, // has no internal impact here */               
+        address mintMaster,             
         address memberToken, 
         address collateral,
         address version
     ) 
         external 
         returns(address newOneToken, address admin);
-
-    // TODO: Consider dropping module storage in the hub
 
     function setOneTokenModuleParam(address oneToken, address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external;
     function setOneTokenModuleParam(address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external;
