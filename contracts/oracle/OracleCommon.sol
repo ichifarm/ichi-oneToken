@@ -3,24 +3,30 @@
 pragma solidity 0.7.6;
 
 import "../interface/IOracle.sol";
-import "../ICHIModuleCommon.sol";
-import "../_openzeppelin/proxy/Initializable.sol";
+import "../common/ICHIModuleCommon.sol";
 
-abstract contract OracleCommon is IOracle, ICHIModuleCommon, Initializable {
+abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Oracle Implementation"));
-    address immutable public baseToken;
-    address immutable public indexToken;
+    address public override indexToken;
+    string description;
 
-    event OracleDeployed(address sender, address oneToken, address pair0, address pair1);
+    event OracleDeployed(address sender, string description, address indexToken);
     event OracleInitialized(address sender, address oneToken, address baseToken, address indexToken);
     
-    constructor(address oneToken_, address foreignToken_, address indexToken_) 
-        ICHIModuleCommon(ModuleType.Oracle, oneToken_, foreignToken_) 
+    constructor(string memory description_, address indexToken_) 
+        ICHIModuleCommon(ModuleType.Oracle, description_) 
     { 
-        baseToken = foreignToken_;
+        description = description_;
         indexToken = indexToken_;
-        emit OracleDeployed(msg.sender, oneToken_, foreignToken_, indexToken_);
+        emit OracleDeployed(msg.sender, description_, indexToken_);
+    }
+
+    function _initOracle(address baseToken_) internal {}
+
+    // @dev We use internally-generated token pair keys to avoid external dependency
+    function getPairKey(address baseToken, address client) public pure returns(bytes32) {
+        return keccak256(abi.encodePacked(baseToken, client));
     }
 
 }

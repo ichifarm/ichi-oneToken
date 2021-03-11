@@ -9,8 +9,8 @@
 
 pragma solidity >=0.6.0 <0.8.0;
 
-import "./_openzeppelin/utils/Context.sol";
-import "./interface/IICHIOwnable.sol";
+import "../_openzeppelin/utils/Context.sol";
+import "../interface/IICHIOwnable.sol";
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
