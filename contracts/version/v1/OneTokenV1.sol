@@ -58,7 +58,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     /// @notice Will take the lessor of memberTokens allowance or maximum allowed by the minting ration, balance in collateral.
 
-    function mint(address collateralToken, uint oneTokens) external override {
+    function mint(address collateralToken, uint oneTokens) external initialized override {
         require(collateralTokenSet.exists(collateralToken), "OneTokenV1: offer a collateral token");
         require(oneTokens > 0, "OneTokenV1: request oneTokens quantity");
         // require(memberTokens > 0, "OneTokenV1: pledge member tokens quantity");
@@ -75,7 +75,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         uint memberTokensUSDValue = totalCost.sub(collateralUSDValue);
 
         // compute the member tokens required
-        (uint memberTokensReq, /* volatility */) = IOracle(memberToken).amountRequired(memberTokensUSDValue);
+        (uint memberTokensReq, /* volatility */) = IOracle(memberToken).amountRequired(memberToken, memberTokensUSDValue);
 
         // tolerate over-collateralized minting - memberToken allowance is too low
         uint memberTokenAllowance = IERC20(memberToken).allowance(msg.sender, address(this));
@@ -88,7 +88,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         }
 
         // compute actual collateral tokens required in case of imperfect pegs
-        (uint collateralTokensReq, /* volatility */) = IOracle(collateralToken).amountRequired(collateralUSDValue);
+        (uint collateralTokensReq, /* volatility */) = IOracle(collateralToken).amountRequired(collateralToken, collateralUSDValue);
 
         // draw from available user balance if possible
         uint userCollateralBalance = availableBalance(collateralToken, msg.sender);
@@ -169,8 +169,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             Asset storage a = assets[token];
             address oracle = a.oracle;
             (uint vaultBal, uint strategyBal) = getHoldings(token);
-            (uint vaultInUsd, /* uint volatility */) = IOracle(oracle).read(vaultBal);
-            (uint strategyInUsd, /* uint volatility */) = IOracle(oracle).read(strategyBal);
+            (uint vaultInUsd, /* uint volatility */) = IOracle(oracle).read(token, vaultBal);
+            (uint strategyInUsd, /* uint volatility */) = IOracle(oracle).read(token, strategyBal);
             vaultUsd += vaultInUsd;
             strategyUsd += strategyInUsd;
         }
@@ -183,8 +183,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             Asset storage a = assets[token];
             address oracle = a.oracle;
             (uint vaultBal, uint strategyBal) = getHoldings(token);
-            (uint vaultInUsd, /* uint volatility */) = IOracle(oracle).read(vaultBal);
-            (uint strategyInUsd, /* uint volatility */) = IOracle(oracle).read(strategyBal);
+            (uint vaultInUsd, /* uint volatility */) = IOracle(oracle).read(token, vaultBal);
+            (uint strategyInUsd, /* uint volatility */) = IOracle(oracle).read(token, strategyBal);
             vaultUsd += vaultInUsd;
             strategyUsd += strategyInUsd;
         }

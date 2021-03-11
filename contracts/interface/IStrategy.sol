@@ -5,6 +5,8 @@ pragma solidity 0.7.6;
 import "./IModule.sol";
 
 interface IStrategy is IModule {
+    function init() external;
+    function oneToken() external view returns(address);
     function setAllowance(address token, uint amount) external;
     function fromVault(address token, uint amount) external;
     function toVault(address token, uint amount) external;

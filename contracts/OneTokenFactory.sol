@@ -3,7 +3,7 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "./ICHICommon.sol";
+import "./common/ICHICommon.sol";
 import "./OneTokenProxy.sol";
 import "./OneTokenProxyAdmin.sol";
 import "./lib/AddressSet.sol";
@@ -62,7 +62,8 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      * Events
      */
     
-    event OneTokenDeployed(address sender, address newOneToken, address admin, address governance, address controller, address strategy, address mintMaster, /*address voterRoll,*/ address memberToken, address collateral, address version);
+    event OneTokenProxyDeployed(address sender, address governance, address version, address newOneTokenProxy, address proxyAdmin);
+    event OneTokenInitialized(address sender, address oneToken, address governance, address controller, address mintMaster, address memberToken, address collateral, address version);
     event SetOneTokenModuleParam(address sender, address oneToken, address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value);    
     event ModuleAdmitted(address sender, address module, ModuleType moduleType, string name, string url);
     event ModuleUpdated(address sender, address module, string name, string url);
@@ -77,64 +78,46 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      * Deploy a oneToken instance
      */
 
-    function deployOneTokenProxy(
+    function deployOneTokenProxy(address governance, address version) external onlyOwner override returns(address newOneTokenProxy, address proxyAdmin) {
+        OneTokenProxyAdmin _admin = new OneTokenProxyAdmin();
+        _admin.transferOwnership(governance);
+        proxyAdmin = address(_admin);
+        OneTokenProxy _proxy = new OneTokenProxy(version, address(proxyAdmin), NULL);
+        newOneTokenProxy = address(_proxy);
+        emit OneTokenProxyDeployed(msg.sender, governance, version, newOneTokenProxy, proxyAdmin);
+    }
+
+    function initOneTokenProxy(
         string memory name,
         string memory symbol,
+        address oneToken,
         address governance,
         address controller,
-        address strategy, 
         address mintMaster,              
         address memberToken, 
         address collateral,
+        address oneTokenOracle,
         address version
     ) 
         external 
         onlyOwner 
         override
-        returns(address newOneToken, address admin)
     {
-        require(isValidModuleType(controller, InterfaceCommon.ModuleType.Controller), "unknown controller");
-        require(isValidModuleType(strategy, InterfaceCommon.ModuleType.Strategy), "unknown strategy");
-        require(isValidModuleType(mintMaster, InterfaceCommon.ModuleType.MintMaster), "unknown mint master");
-        require(isValidModuleType(version, ModuleType.Version), "OneTokenFactory, Set: unknown version");        
+        require(!oneTokenSet.exists(oneToken), "OneTokenFactory: oneToken already initialized");
+        require(isValidModuleType(controller, InterfaceCommon.ModuleType.Controller), "OneTokenFactory: unknown controller");
+        require(isValidModuleType(mintMaster, InterfaceCommon.ModuleType.MintMaster), "OneTokenFactory: unknown mint master");
+        require(isValidModuleType(version, ModuleType.Version), "OneTokenFactory: unknown version");  
+        require(isValidModuleType(oneTokenOracle, ModuleType.Oracle), "OneTokenFactory: unknown oneTokenOracle");
         require(foreignTokenSet.exists(memberToken), "OneTokenFactory: unknown member token");
         require(foreignTokenSet.exists(collateral), "OneTokenFactory: unknown collateral");
         require(foreignTokens[collateral].isCollateral, "OneTokenFactory: specified token is not recognized as collateral");
 
-        // deploy a proxy admin and transfer ownership to governance
-
-        OneTokenProxyAdmin _admin = new OneTokenProxyAdmin();
-        _admin.transferOwnership(governance);
-        admin = address(_admin);
-
-        // deploy a oneTokenProxy with a minimal initial configuration, contolled by the new proxy admin.
-        
-        OneTokenProxy _proxy = new OneTokenProxy(version, address(admin), NULL);
-        IOneTokenV1 _newOneToken = IOneTokenV1(address(_proxy));
-        _newOneToken.init(name, symbol, controller, mintMaster, memberToken, collateral); 
-        _newOneToken.transferOwnership(governance);
-        newOneToken = address(_newOneToken);
-
-        // record token creation
-
-        oneTokenSet.insert(newOneToken, "OneTokenFactory: Internal error registering new proxy.");
-        oneTokens[newOneToken].version = version;
-
-        emit OneTokenDeployed(msg.sender, newOneToken, admin, governance, controller, strategy, mintMaster, /*voterRoll,*/ memberToken, collateral, version);
-    }
-
-    /**
-     * OneToken Module Persistent Storage
-     */
-    
-    function setOneTokenModuleParam(address oneToken, address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external onlyOwner override {
-        oneTokens[oneToken].moduleParams[foreignToken][moduleType][key] = value;
-        emit SetOneTokenModuleParam(msg.sender, oneToken, foreignToken, moduleType, key, value);
-    }
-  
-    function setOneTokenModuleParam(address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external onlyOneToken override {
-        oneTokens[msg.sender].moduleParams[foreignToken][moduleType][key] = value;
-        emit SetOneTokenModuleParam(msg.sender, msg.sender, foreignToken, moduleType, key, value);
+        IOneTokenV1 oneTokenProxy = IOneTokenV1(oneToken);
+        oneTokenProxy.init(name, symbol, oneTokenOracle, controller, mintMaster, memberToken, collateral); 
+        oneTokenProxy.transferOwnership(governance);
+        oneTokenSet.insert(oneToken, "OneTokenFactory: Internal error registering initialized oneToken.");
+        oneTokens[oneToken].version = version;
+        emit OneTokenInitialized(msg.sender, oneToken, governance, controller, mintMaster, memberToken, collateral, version);
     }
 
     /**
@@ -224,9 +207,6 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     }
     function isOneToken(address oneToken) external view override returns(bool) {
         return oneTokenSet.exists(oneToken);
-    }
-    function oneTokenModuleParam(address oneToken, address foreignToken, ModuleType moduleType, bytes32 key) external view override returns(bytes32) {
-        return oneTokens[oneToken].moduleParams[foreignToken][moduleType][key];
     }
 
     // modules

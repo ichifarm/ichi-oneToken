@@ -2,14 +2,16 @@
 
 pragma solidity 0.7.6;
 
-import "./ICHIOwnable.sol";
-import "./interface/IERC20Extended.sol";
-import "./interface/IICHICommon.sol";
+import "../oz_modified/ICHIOwnable.sol";
+import "../oz_modified/ICHIInitializable.sol";
+import "../interface/IERC20Extended.sol";
+import "../interface/IICHICommon.sol";
 
-contract ICHICommon is IICHICommon, ICHIOwnable {
+contract ICHICommon is IICHICommon, ICHIOwnable, ICHIInitializable {
 
     uint constant internal PRECISION = 10 ** 18;
     uint constant internal INFINITE = uint(0-1);
+    address constant internal NULL_ADDRESS = address(0);
     
     // @dev internal fingerprints help prevent deployment-time governance errors
 

@@ -6,23 +6,22 @@ pragma abicoder v2;
 import "./InterfaceCommon.sol";
 
 interface IOneTokenFactory is InterfaceCommon {
+
+    function deployOneTokenProxy(address governance, address version) external returns(address newOneTokenProxy, address proxyAdmin);
     
-    function deployOneTokenProxy(
+    function initOneTokenProxy(
         string memory name,
         string memory symbol,
+        address oneToken,
         address governance,
         address controller,
-        address strategy, 
-        address mintMaster,             
+        address mintMaster,              
         address memberToken, 
         address collateral,
+        address oneTokenOracle,
         address version
     ) 
-        external 
-        returns(address newOneToken, address admin);
-
-    function setOneTokenModuleParam(address oneToken, address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external;
-    function setOneTokenModuleParam(address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value) external;
+        external;
 
     function admitModule(address module, ModuleType moduleType, string memory name, string memory url) external;
     function updateModule(address module, string memory name, string memory url) external;
@@ -43,8 +42,7 @@ interface IOneTokenFactory is InterfaceCommon {
     function oneTokenAtIndex(uint index) external view returns(address);
     function oneTokenInfo(address oneToken) external view returns(address);
     function isOneToken(address oneToken) external view returns(bool);
-    function oneTokenModuleParam(address oneToken, address foreignToken, ModuleType moduleType, bytes32 key) external view returns(bytes32);
-
+ 
     // modules
 
     function moduleCount() external view returns(uint);

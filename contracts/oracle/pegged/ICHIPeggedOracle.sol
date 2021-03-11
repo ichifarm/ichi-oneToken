@@ -3,6 +3,7 @@
 pragma solidity 0.7.6;
 
 import "../OracleCommon.sol";
+import "../../interface/IERC20Extended.sol";
 
 /**
  * @notice Separate ownable instances can be managed by separate governing authorities.
@@ -11,35 +12,44 @@ import "../OracleCommon.sol";
 
 contract ICHIPeggedOracle is IOracle, OracleCommon {
 
-    uint constant ONE_USD = 10 ** 18;
-
-    event Deployed(address sender, address oneToken);
+    event Deployed(address sender);
+    event Initialized(address sender, address baseToken, address indexToken);
     
-    constructor(address oneToken_, address pair0_, address pair1_) 
-        OracleCommon(oneToken_, pair0_, pair1_) 
+    constructor(string memory description, address indexToken_) 
+        OracleCommon(description, indexToken_) 
     {
-        require(oneToken_ != NULL_ADDRESS, "ICHIPeggedOracle: oneToken address cannot be null");
-        emit Deployed(msg.sender, oneToken_);
+        emit Deployed(msg.sender);
+    }
+
+    /**
+     * Support the normal initialization process and inspectable properties. 
+     */
+    function init(address baseToken) external override {
+        require(IERC20Extended(baseToken).decimals() == IERC20Extended(indexToken).decimals(), "ICHIPeggedOracle: base and index tokens have different decimal precision.");
+        _initOracle(baseToken);
+        emit Initialized(msg.sender, baseToken, indexToken);
     }
 
     // record observation
-    function update() external override {
+    function update(address token) external override {
         /// @notice there is nothing to do
     }
 
     // observe 
-    function read(uint amount) public view override returns(uint amountOut, uint volatility) {
+    function read(address /* token */, uint amount) public view override returns(uint amountOut, uint volatility) {
         /// @notice it is always 1:1 with no volatility
         this; // silence mutability warning
         amountOut = amount;
         volatility = 0;
     }
 
-    function amountRequired(uint amountUsd) external view override returns(uint tokens, uint volatility) {
+    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint tokens, uint volatility) {
         /// @notice it is always 1:1 with no volatility
-        this; // silence mutability warning
+        this; // silence visbility warning
         tokens = amountUsd;
-        volatility = 0;        
+        volatility = 0;      
     }
+
+
 
 }

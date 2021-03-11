@@ -3,8 +3,8 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "../../ICHICommon.sol";
-import "../../ICHIERC20Burnable.sol";
+import "../../common/ICHICommon.sol";
+import "../../oz_modified/ICHIERC20Burnable.sol";
 import "../../lib/AddressSet.sol";
 import "../../interface/IOneTokenFactory.sol";
 import "../../interface/IOneTokenV1Base.sol";
@@ -12,12 +12,10 @@ import "../../interface/IController.sol";
 import "../../interface/IStrategy.sol";
 import "../../interface/IMintMaster.sol";
 import "../../interface/IOracle.sol";
-import "../../_openzeppelin/proxy/Initializable.sol";
 
 contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     using AddressSet for AddressSet.Set;
-    address constant NULL_ADDRESS = address(0);
     uint public constant override DEFAULT_ORACLE_FREQUENCY = 40; // blocks
 
     bytes32 public constant override MODULE_TYPE = keccak256(abi.encodePacked("ICHI OneToken Implementation"));
@@ -74,16 +72,10 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         _;
     }
 
-    /**
-     * @notice Constructor setup is ineffective for proxied deployments. Call init().
-     */
-    /*
-    constructor(string memory name_, string memory symbol_ ) ERC20( name_, symbol_) {}
-    */
-
     function init(
         string memory name_,
         string memory symbol_,
+        address oneTokenOracle_,
         address controller_, 
         address mintMaster_, 
         address memberToken_, 
@@ -122,11 +114,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         // let the modules initialize if they need to
 
         IController(controller_).init();
-        IModule(mintMaster_).init();
-        IModule(mt.oracle).init();
-        IModule(ct.oracle).init();
-        IOracle(mt.oracle).update();
-        IOracle(ct.oracle).update();
+        IMintMaster(mintMaster_).init(oneTokenOracle_);
+
+        IOracle(oneTokenOracle_).init(address(this));
+        IOracle(mt.oracle).init(memberToken_);
+        IOracle(ct.oracle).init(collateral_);
+        IOracle(oneTokenOracle_).update(address(this));
+        IOracle(mt.oracle).update(memberToken);
+        IOracle(ct.oracle).update(collateral_);
 
         // transfer governance to the deployer
         
@@ -141,7 +136,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     function changeController(address controller_) external onlyOwner override {
         require(IOneTokenFactory(factory).isValidModuleType(controller, ModuleType.Controller), "OneTokenV1Base, Set: unknown controller");
-        /// @notice run the module init function
         IController(controller_).init();
         controller = controller_;
         emit ControllerChanged(msg.sender, controller_);
@@ -156,9 +150,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(IOneTokenFactory(factory).isOracle(token, oracle), "OneTokenV1Base, Set: unknown oracle");
         Asset storage a = assets[token];
         a.oracle = oracle;
-        /// @notice run the module init function
-        IModule(oracle).init();
-        IOracle(oracle).update();
+        IOracle(oracle).init(token);
+        IOracle(oracle).update(token);
         emit OracleChanged(msg.sender, token, oracle);
     }
 
@@ -171,8 +164,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         (/*string memory name*/, /*string memory symbol*/, bool isCollateral_, /*uint oracleCount*/) = IOneTokenFactory(factory).foreignTokenInfo(token);
         Asset storage a = assets[token];
         a.oracle = oracle;
-        IModule(oracle).init();
-        IOracle(oracle).update();
+        IOracle(oracle).init(token);
+        IOracle(oracle).update(token);
         if(isCollateral_) {
             collateralTokenSet.insert(token, "OneTokenV1Base, Set: internal error inserting collateral");
         } else {
@@ -195,7 +188,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     * Strategy
+     * Strategies
      */
 
     function setStrategy(address token, address strategy) external onlyOwner override {
@@ -223,7 +216,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         Asset storage a = assets[token];
         if(a.strategy != NULL_ADDRESS) require(_closeStrategy(token), "OneTokenV1Base: failed to close current strategy");
         a.strategy = strategy;
-        IModule(strategy).init();
+        IStrategy(strategy).init();
         emit StrategySet(msg.sender, token, strategy);
     }
 
@@ -271,24 +264,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }    
 
     /**
-     * Parameters
-     */
-
-    /// @notice set a persistent parameter for ModuleType.Version in the factory
-
-    function setParam(bytes32 key, bytes32 value) external onlyOwner override {
-        IOneTokenFactory(factory).setOneTokenModuleParam(address(0), ModuleType.Version, key, value);
-        emit ParamSet(key, value);
-    }
-
-    /// @notice set a persistent parameter for a foreignToken/moduleType in the factory
-
-    function setModuleParam(address token, ModuleType moduleType, bytes32 key, bytes32 value) external onlyOwnerOrModule(assets[token], moduleType) override {
-        IOneTokenFactory(factory).setOneTokenModuleParam(token, moduleType, key, value);
-        emit ModuleParamSet(token, moduleType, key, value);
-    }
-
-    /**
      * View functions
      */
 
@@ -325,10 +300,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     } 
     function isAsset(address token) external view override returns(bool) {
         return otherTokenSet.exists(token);
-    }
-
-    function getParam(bytes32 key) external view override returns(bytes32) {
-        return IOneTokenFactory(factory).oneTokenModuleParam(address(0), address(this), ModuleType.Version, key);
     }
 
 }

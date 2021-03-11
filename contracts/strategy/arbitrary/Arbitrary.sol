@@ -6,9 +6,13 @@ import "../StrategyCommon.sol";
 
 contract Arbitrary is StrategyCommon {
 
-    constructor(address oneToken_) 
-        StrategyCommon(oneToken_)
+    constructor(string memory description) 
+        StrategyCommon(description)
     {}
+
+    function init() external override {
+        _initStrategy();
+    }
 
     /**
     @notice Governance can work with collateral and treasury assets. Can swap assets. 

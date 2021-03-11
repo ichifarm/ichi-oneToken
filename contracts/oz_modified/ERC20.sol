@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-/**
- * @dev Constructor has been converted into 
- */
+/// @dev removed constructor visibility and relocated the file. 
 
 pragma solidity >=0.6.0 <0.8.0;
 
-import "./_openzeppelin/utils/Context.sol";
-import "./_openzeppelin/token/ERC20/IERC20.sol";
-import "./_openzeppelin/math/SafeMath.sol";
-import "./_openzeppelin/proxy/Initializable.sol";
+import "../_openzeppelin/utils/Context.sol";
+import "../_openzeppelin/token/ERC20/IERC20.sol";
+import "../_openzeppelin/math/SafeMath.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -35,7 +32,7 @@ import "./_openzeppelin/proxy/Initializable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract ICHIERC20 is IERC20, Context, Initializable {
+contract ERC20 is Context, IERC20 {
     using SafeMath for uint256;
 
     mapping (address => uint256) private _balances;
@@ -57,20 +54,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-
-    /**
-     * @dev this constructor is ineffective in proxy deployment. Use init().
-     */
-    
-    /*
     constructor (string memory name_, string memory symbol_) {
-        _name = name_;
-        _symbol = symbol_;
-        _decimals = 18;
-    }
-    */
-
-    function initERC20(string memory name_, string memory symbol_) internal initializer {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
@@ -79,7 +63,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view virtual returns (string memory) {
+    function name() public view returns (string memory) {
         return _name;
     }
 
@@ -87,7 +71,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual returns (string memory) {
+    function symbol() public view returns (string memory) {
         return _symbol;
     }
 
@@ -104,21 +88,21 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual returns (uint8) {
+    function decimals() public view returns (uint8) {
         return _decimals;
     }
 
     /**
      * @dev See {IERC20-totalSupply}.
      */
-    function totalSupply() public view virtual override returns (uint256) {
+    function totalSupply() public view override virtual returns (uint256) {
         return _totalSupply;
     }
 
     /**
      * @dev See {IERC20-balanceOf}.
      */
-    function balanceOf(address account) public view virtual override returns (uint256) {
+    function balanceOf(address account) public view override virtual returns (uint256) {
         return _balances[account];
     }
 
@@ -169,7 +153,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      */
     function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
         _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ICHIERC20: transfer amount exceeds allowance"));
+        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
     }
 
@@ -205,7 +189,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ICHIERC20: decreased allowance below zero"));
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
         return true;
     }
 
@@ -224,12 +208,12 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * - `sender` must have a balance of at least `amount`.
      */
     function _transfer(address sender, address recipient, uint256 amount) internal virtual {
-        require(sender != address(0), "ICHIERC20: transfer from the zero address");
-        require(recipient != address(0), "ICHIERC20: transfer to the zero address");
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
 
         _beforeTokenTransfer(sender, recipient, amount);
 
-        _balances[sender] = _balances[sender].sub(amount, "ICHIERC20: transfer amount exceeds balance");
+        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -244,7 +228,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * - `to` cannot be the zero address.
      */
     function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ICHIERC20: mint to the zero address");
+        require(account != address(0), "ERC20: mint to the zero address");
 
         _beforeTokenTransfer(address(0), account, amount);
 
@@ -265,11 +249,11 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * - `account` must have at least `amount` tokens.
      */
     function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ICHIERC20: burn from the zero address");
+        require(account != address(0), "ERC20: burn from the zero address");
 
         _beforeTokenTransfer(account, address(0), amount);
 
-        _balances[account] = _balances[account].sub(amount, "ICHIERC20: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
@@ -288,8 +272,8 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * - `spender` cannot be the zero address.
      */
     function _approve(address owner, address spender, uint256 amount) internal virtual {
-        require(owner != address(0), "ICHIERC20: approve from the zero address");
-        require(spender != address(0), "ICHIERC20: approve to the zero address");
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
@@ -302,7 +286,7 @@ contract ICHIERC20 is IERC20, Context, Initializable {
      * applications that interact with token contracts will not expect
      * {decimals} to ever change, and may work incorrectly if it does.
      */
-    function _setupDecimals(uint8 decimals_) internal virtual {
+    function _setupDecimals(uint8 decimals_) internal {
         _decimals = decimals_;
     }
 
