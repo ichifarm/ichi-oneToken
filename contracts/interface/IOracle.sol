@@ -8,9 +8,9 @@ interface IOracle is IModule {
 
     /// @notice returns usd conversion rate with 18 decimal precision
 
-    function indexToken() external view returns(address);
     function init(address baseToken) external;
     function update(address token) external;
+    function indexToken() external view returns(address);
     function read(address token, uint amount) external view returns(uint amountOut, uint volatility);
     function amountRequired(address token, uint amountUsd) external view returns(uint tokens, uint volatility);
 }

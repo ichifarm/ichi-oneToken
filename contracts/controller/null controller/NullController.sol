@@ -8,8 +8,8 @@ contract NullController is ControllerCommon {
 
 
     /**
-     * @notice this controller implementation supports the interface but does not intervene in any way.
-     * the controller implementation can be extended.
+     @notice this controller implementation supports the interface but does not intervene in any way
+     @dev the controller implementation can be extended but must implement the minimum interface
      */
 
 }

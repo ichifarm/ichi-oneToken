@@ -15,17 +15,9 @@ import "./_openzeppelin/access/Ownable.sol";
 contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     using AddressSet for AddressSet.Set;
-    bytes constant NULL = "";
-
-    /// @dev (token => moduleType => key) : value
-
-    struct OneToken {
-        address version;
-        mapping(address => mapping(ModuleType => mapping(bytes32 => bytes32))) moduleParams;
-    }
+    bytes constant NULL_DATA = "";
 
     AddressSet.Set oneTokenSet;
-    mapping(address => OneToken) oneTokens;
     
     struct Module {
         string name;
@@ -37,15 +29,15 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     mapping(address => Module) public modules;
 
     /**
-     * @dev a foreign token can be a collateral token, member token or other, e.g. LP token.
-     * This whitelist ensures that no unapproved token contracts are interacted with. Only recognized
-     * foreign tokens are included in internal treasury valuations. Foreign tokens must 
-     * have at least one oracle and each oneToken instance must select exactly one approved oracle.    
+     @dev a foreign token can be a collateral token, member token or other, e.g. LP token.
+     This whitelist ensures that no unapproved token contracts are interacted with. Only recognized
+     foreign tokens are included in internal treasury valuations. Foreign tokens must 
+     have at least one oracle and each oneToken instance must select exactly one approved oracle.    
      */
     
     struct ForeignToken {
-        string name;
-        string symbol;
+        // string name;
+        // string symbol;
         bool isCollateral;
         AddressSet.Set oracleSet;
     }
@@ -53,84 +45,124 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     AddressSet.Set foreignTokenSet;
     mapping(address => ForeignToken) foreignTokens;
 
-    modifier onlyOneToken {
-        require(oneTokenSet.exists(msg.sender), "OneTokenFactory: sender is not a oneToken");
-        _;
-    }
-
     /**
      * Events
      */
     
-    event OneTokenProxyDeployed(address sender, address governance, address version, address newOneTokenProxy, address proxyAdmin);
-    event OneTokenInitialized(address sender, address oneToken, address governance, address controller, address mintMaster, address memberToken, address collateral, address version);
+    event OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address memberToken, address collateral);
     event SetOneTokenModuleParam(address sender, address oneToken, address foreignToken, ModuleType moduleType, bytes32 key, bytes32 value);    
     event ModuleAdmitted(address sender, address module, ModuleType moduleType, string name, string url);
     event ModuleUpdated(address sender, address module, string name, string url);
     event ModuleRemoved(address sender, address module);
-    event ForeignTokenAdmitted(address sender, address foreignToken, string name, string symbol, bool isCollateral, address oracle);
-    event ForeignTokenUpdated(address sender, address foreignToken, string name, string symbol, bool collateral);
+    event ForeignTokenAdmitted(address sender, address foreignToken, bool isCollateral, address oracle);
+    event ForeignTokenUpdated(address sender, address foreignToken, bool isCollateral);
     event ForeignTokenRemoved(address sender, address foreignToken);
     event AddOracle(address sender, address foreignToken, address oracle);
     event RemoveOracle(address sender, address foreignToken, address oracle);
 
     /**
-     * Deploy a oneToken instance
+     @notice factory governance can deploy a oneToken instance via new proxy using existing deployed implementation
+     @dev the new uninitialized instance has a finalized deployment address and is owned by the factory
+     @param name ERC20 token name
+     @param symbol ERC20 token symbol
+     @param governance address that will control admin functions in the oneToken instance
+     @param version address of a oneToken deployed implementation that emits the expected fingerprint
+     @param controller deployed controller must be registered
+     @param mintMaster deployed mintMaster must be registered
+     @param memberToken deployed ERC20 contract must be registered with at least one associated oracle
+     @param collateral deployed ERC20 contract must be registered with at least one associated oracle
+     @param oneTokenOracle deployed oracle must be registered and will be used to check the oneToken peg     
      */
-
-    function deployOneTokenProxy(address governance, address version) external onlyOwner override returns(address newOneTokenProxy, address proxyAdmin) {
-        OneTokenProxyAdmin _admin = new OneTokenProxyAdmin();
-        _admin.transferOwnership(governance);
-        proxyAdmin = address(_admin);
-        OneTokenProxy _proxy = new OneTokenProxy(version, address(proxyAdmin), NULL);
-        newOneTokenProxy = address(_proxy);
-        emit OneTokenProxyDeployed(msg.sender, governance, version, newOneTokenProxy, proxyAdmin);
-    }
-
-    function initOneTokenProxy(
+    function deployOneTokenProxy(
         string memory name,
         string memory symbol,
-        address oneToken,
-        address governance,
+        address governance, 
+        address version,
         address controller,
-        address mintMaster,              
+        address mintMaster,
+        address oneTokenOracle,                     
         address memberToken, 
-        address collateral,
-        address oneTokenOracle,
-        address version
+        address collateral
     ) 
         external 
         onlyOwner 
-        override
+        override 
+        returns(address newOneTokenProxy, address proxyAdmin) 
     {
-        require(!oneTokenSet.exists(oneToken), "OneTokenFactory: oneToken already initialized");
-        require(isValidModuleType(controller, InterfaceCommon.ModuleType.Controller), "OneTokenFactory: unknown controller");
-        require(isValidModuleType(mintMaster, InterfaceCommon.ModuleType.MintMaster), "OneTokenFactory: unknown mint master");
-        require(isValidModuleType(version, ModuleType.Version), "OneTokenFactory: unknown version");  
-        require(isValidModuleType(oneTokenOracle, ModuleType.Oracle), "OneTokenFactory: unknown oneTokenOracle");
+        // no null values
+        require(bytes(name).length > 0, "OneTokenFactory: token name is required");
+        require(bytes(symbol).length > 0, "OneTokenfactory: token symbol is required");
+        require(governance != NULL_ADDRESS, "OneTokenFactory: governance address is required");
+
+        // confirm the modules are compatible and approved
+        require(isModule(version), "OneTokenFactory: version is not approved");
+        require(isModule(controller), "OneTokenFactory: controller is not approved");
+        require(isModule(mintMaster), "OneTokenFactory: mintMaster is not approved");
+        require(isModule(oneTokenOracle), "OneTokenFactory: oneTokenOracle is not approved");
+        require(isValidModuleType(version, ModuleType.Version), "OneTokenFactory: version, wrong MODULE_TYPE");
+        require(isValidModuleType(controller, InterfaceCommon.ModuleType.Controller), "OneTokenFactory: controller, wrong MODULE_TYPE");
+        require(isValidModuleType(mintMaster, InterfaceCommon.ModuleType.MintMaster), "OneTokenFactory: mintMaster, wrong MODULE_TYPE");
+        require(isValidModuleType(oneTokenOracle, ModuleType.Oracle), "OneTokenFactory: oneTokenOracle, wrong MODULE_TYPE"); 
+
+        // confirm the tokens are compatible and approved
         require(foreignTokenSet.exists(memberToken), "OneTokenFactory: unknown member token");
         require(foreignTokenSet.exists(collateral), "OneTokenFactory: unknown collateral");
-        require(foreignTokens[collateral].isCollateral, "OneTokenFactory: specified token is not recognized as collateral");
+        require(foreignTokens[collateral].isCollateral, "OneTokenFactory: specified token is not recognized as collateral");       
+        
+        // deploy a proxy admin and assign ownership to governance
+        OneTokenProxyAdmin _admin = new OneTokenProxyAdmin();
+        _admin.transferOwnership(governance);
+        proxyAdmin = address(_admin);
 
-        IOneTokenV1 oneTokenProxy = IOneTokenV1(oneToken);
-        oneTokenProxy.init(name, symbol, oneTokenOracle, controller, mintMaster, memberToken, collateral); 
-        oneTokenProxy.transferOwnership(governance);
-        oneTokenSet.insert(oneToken, "OneTokenFactory: Internal error registering initialized oneToken.");
-        oneTokens[oneToken].version = version;
-        emit OneTokenInitialized(msg.sender, oneToken, governance, controller, mintMaster, memberToken, collateral, version);
+        // deploy a proxy that delgates to the version
+        OneTokenProxy _proxy = new OneTokenProxy(version, address(_admin), NULL_DATA);
+        newOneTokenProxy = address(_proxy);
+
+        // initialize the implementation 
+        IOneTokenV1 oneToken = IOneTokenV1(newOneTokenProxy);
+        oneToken.init(name, symbol, oneTokenOracle, controller, mintMaster, memberToken, collateral); 
+
+        // transfer oneToken ownership to governance
+        oneToken.transferOwnership(governance);
+
+        // coordinate admission of the new oneToken as collateral with an oracle
+        admitForeignToken(newOneTokenProxy, true, oneTokenOracle);
+
+        oneTokenSet.insert(newOneTokenProxy, "OneTokenFactory: Internal error registering initialized oneToken.");
+        emitDeploymentEvent(newOneTokenProxy, name, symbol, governance, version, controller, mintMaster, memberToken, collateral);
+    }
+
+    function emitDeploymentEvent(
+        address proxy, string memory name, string memory symbol, address governance, address version, address controller, address mintMaster, address memberToken, address collateral) private {
+        emit OneTokenDeployed(msg.sender, proxy, name, symbol, governance, version, controller, mintMaster, memberToken, collateral);
+        // emit OneTokenInitialized(controller, mintMaster, memberToken, collateral);
     }
 
     /**
      * Govern Modules
      */
 
+    /**
+     @notice factory governance can register a module
+     @param module deployed module must not be registered and must emit the expected fingerprint
+     @param moduleType the type number of the module type
+     @param name descriptive module information has no bearing on logic
+     @param url optionally point to human-readable operational description
+     */
     function admitModule(address module, ModuleType moduleType, string memory name, string memory url) external onlyOwner override {  
+        require(isValidModuleType(module, moduleType), "OneTokenFactory: invalid fingerprint for module type");
         moduleSet.insert(module, "OneTokenFactory, Set: module is already admitted.");
-        emit ModuleAdmitted(msg.sender, module, moduleType, name, url);
         updateModule(module, name, url);
         modules[module].moduleType = moduleType;
+        emit ModuleAdmitted(msg.sender, module, moduleType, name, url);
     }
 
+    /**
+     @notice factory governance can update module metadata
+     @param module deployed module must be registered. moduleType cannot be changed
+     @param name descriptive module information has no bearing on logic
+     @param url optionally point to human-readable operational description
+     */
     function updateModule(address module, string memory name, string memory url) public onlyOwner override {
         require(moduleSet.exists(module), "OneTokenFactory, Set: unknown module");
         modules[module].name = name;
@@ -138,6 +170,11 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         emit ModuleUpdated(msg.sender, module, name, url);    
     }
 
+    /**
+     @notice factory governance can de-register a module
+     @dev de-registering has no effect on oneTokens that use the module
+     @param module deployed module must be registered
+     */    
     function removeModule(address module) external onlyOwner override  {
         require(moduleSet.exists(module), "OneTokenFactory, Set: unknown module");
         delete modules[module];
@@ -149,30 +186,41 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      * Govern foreign tokens
      */
 
-    function admitForeignToken(address foreignToken, string memory name, string memory symbol, bool collateral, address oracle) external onlyOwner override {
-        require(bytes(name).length > 0, "OneTokenFactory: name cannot be null");
-        require(bytes(symbol).length > 0, "OneTokenFactory: symbol cannot be null");
+    /**
+     @notice factory governance can add a foreign token to the inventory
+     @param foreignToken ERC20 contract must not be registered
+     @param collateral set true if the asset is considered a collateral token
+     @param oracle must be at least one oracle for every asset so supply the first one for the new asset
+     */
+    function admitForeignToken(address foreignToken, bool collateral, address oracle) public onlyOwner override {
+        require(isModule(oracle), "OneTokenFactory: oracle is not registered.");
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory, Set: unknown oracle");
         foreignTokenSet.insert(foreignToken, "OneTokenFactory: foreign token is already admitted");
         ForeignToken storage f = foreignTokens[foreignToken];
-        f.name = name;
-        f.symbol = symbol;
         f.isCollateral = collateral;
         f.oracleSet.insert(oracle, "OneTokenFactory, Set: Internal error inserting oracle.");
-        emit ForeignTokenAdmitted(msg.sender, foreignToken, name, symbol, collateral, oracle);
+        emit ForeignTokenAdmitted(msg.sender, foreignToken, collateral, oracle);
     }
 
-    function updateForeignToken(address foreignToken, string memory name, string memory symbol, bool collateral) external onlyOwner override {
-        require(bytes(name).length > 0, "OneTokenFactory: name cannot be null");
-        require(bytes(symbol).length > 0, "OneTokenFactory: name cannot be null");
+    /**
+     @notice factory governance can update asset metadata
+     @dev changes do not affect classification in existing oneToken instances
+     @param foreignToken ERC20 address, asset to update
+     @param collateral set to true to include in collateral
+     */
+    function updateForeignToken(address foreignToken, bool collateral) external onlyOwner override {
         require(foreignTokenSet.exists(foreignToken), "OneTokenFactory, Set: unknown foreign token");
         ForeignToken storage f = foreignTokens[foreignToken];
-        f.name = name;
-        f.symbol = symbol;
         f.isCollateral = collateral; 
-        emit ForeignTokenUpdated(msg.sender, foreignToken, name, symbol, collateral);      
+        emit ForeignTokenUpdated(msg.sender, foreignToken, collateral);      
     }
 
+    /**
+     @notice factory governance can de-register a foreignToken
+     @dev de-registering prevents future assignment but has no effect on existing oneToken 
+       instances that rely on the foreignToken
+    @param foreignToken the ERC20 contract address to de-register
+     */
     function removeForeignToken(address foreignToken) external onlyOwner override {
         require(foreignTokenSet.exists(foreignToken), "OneTokenFactory, Set: unknown foreign token");
         delete foreignTokens[foreignToken];
@@ -180,6 +228,12 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         emit ForeignTokenRemoved(msg.sender, foreignToken);
     } 
 
+    /**
+     @notice factory governance can assign an oracle to foreign token
+     @dev foreign tokens have 1-n registered oracle options which are selectd by oneToken instance governance
+     @param foreignToken ERC20 contract address must be registered already
+     @param oracle oracle must be registered
+     */
     function assignOracle(address foreignToken, address oracle) external onlyOwner override {
         require(foreignTokenSet.exists(foreignToken), "OneTokenFactory: unknown foreign token");
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory: Internal error checking oracle");
@@ -187,6 +241,12 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         emit AddOracle(msg.sender, foreignToken, oracle);
     }
 
+    /**
+     @notice factory can decommission an oracle associated with a particular asset 
+     @dev unassociating the oracle with a given asset prevents assignment but does not affect oneToken instances that use it
+     @param foreignToken the ERC20 contract to disassociate with the oracle
+     @param oracle the oracle to remove from the foreignToken
+     */
     function removeOracle(address foreignToken, address oracle) external onlyOwner override {
         foreignTokens[foreignToken].oracleSet.remove(oracle, "OneTokenFactory, Set: oracle is not assigned to foreign token or unknown foreign token.");
         emit RemoveOracle(msg.sender, foreignToken, oracle);
@@ -196,94 +256,148 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      * View functions
      */
 
+    /**
+     @notice returns the count of deployed and initialized oneToken instances
+     */
     function oneTokenCount() external view override returns(uint) { 
         return oneTokenSet.count(); 
     }
+
+    /**
+     @notice returns the address of the deployed/initialized oneToken instance at the index
+     */
     function oneTokenAtIndex(uint index) external view override returns(address) { 
         return oneTokenSet.keyAtIndex(index); 
     }
-    function oneTokenInfo(address oneToken) external view override returns(address) {
-        return oneTokens[oneToken].version;
-    }
+
+    /**
+     @notice return true if given address is a deployed and initialized oneToken instance
+     */
     function isOneToken(address oneToken) external view override returns(bool) {
         return oneTokenSet.exists(oneToken);
     }
 
     // modules
 
+    /**
+     @notice returns the count of the registered modules
+     */
     function moduleCount() external view override returns(uint) { 
         return moduleSet.count(); 
     }
+
+    /**
+     @notice returns the address of the registered module at the index
+     */
     function moduleAtIndex(uint index) external view override returns(address module) { 
         return moduleSet.keyAtIndex(index); 
     }
+
+    /**
+     @notice returns metadata about the module at the given address
+     @dev returns null values if the given address is not a registered module
+     */
     function moduleInfo(address module) external view override returns(string memory name, string memory url, ModuleType moduleType) {
         Module storage m = modules[module];
         name = m.name;
         url = m.url;
         moduleType = m.moduleType;
     }
+
+    /**
+     @notice returns true the given address is a registered module
+     */
     function isModule(address module) public view override returns(bool) {
         return moduleSet.exists(module);
     }
+
+    /**
+     @notice returns true the address given is a registered module of the expected type
+     */
     function isValidModuleType(address module, ModuleType moduleType) public view override returns(bool) {
         IModule m = IModule(module);
         bytes32 candidateSelfDeclaredType = m.MODULE_TYPE();
 
-        // Was it admitted?
-        
-        require(isModule(module), "OneTokenFactory, Set: unknown module");
-
         // Does the implementation claim to match the expected type? 
-
-        if(moduleType == ModuleType.Controller) {
-            require(candidateSelfDeclaredType == COMPONENT_CONTROLLER, "OneTokenFactory: candidate is not a version.");
-        }        
+       
         if(moduleType == ModuleType.Version) {
-            require(candidateSelfDeclaredType == COMPONENT_VERSION, "OneTokenFactory: candidate is not a version.");
+            if(candidateSelfDeclaredType == COMPONENT_VERSION) return true;
         }
+        if(moduleType == ModuleType.Controller) {
+            if(candidateSelfDeclaredType == COMPONENT_CONTROLLER) return true;
+        } 
         if(moduleType == ModuleType.Strategy) {
-            require(candidateSelfDeclaredType == COMPONENT_STRATEGY, "OneTokenFactory: candidate is not a strategy.");
+            if(candidateSelfDeclaredType == COMPONENT_STRATEGY) return true;
         }
         if(moduleType == ModuleType.MintMaster) {
-            require(candidateSelfDeclaredType == COMPONENT_MINTMASTER, "OneTokenFactory: candidate is not a mintmaster.");
+            if(candidateSelfDeclaredType == COMPONENT_MINTMASTER) return true;
         }
         if(moduleType == ModuleType.Oracle) {
-            require(candidateSelfDeclaredType == COMPONENT_ORACLE, "OneTokenFactory: candidate is not an oracle.");
+            if(candidateSelfDeclaredType == COMPONENT_ORACLE) return true;
         }
         if(moduleType == ModuleType.VoterRoll) {
-            require(candidateSelfDeclaredType == COMPONENT_VOTERROLL, "OneTokenFactory: candidate is not a voterroll.");
+            if(candidateSelfDeclaredType == COMPONENT_VOTERROLL) return true;
         }
-        return true;
+        return false;
     }    
 
     // foreign tokens
 
+    /**
+     @notice returns count of foreignTokens registered with the factory
+     @dev includes memberTokens, otherTokens and collateral tokens but not oneTokens
+     */
     function foreignTokenCount() external view override returns(uint) {
         return foreignTokenSet.count();
     }
+
+    /**
+     @notice returns the address of the foreignToken at the index
+     */
     function foreignTokenAtIndex(uint index) external view override returns(address) {
         return foreignTokenSet.keyAtIndex(index);
     }
-    function foreignTokenInfo(address foreignToken) external view override returns(string memory name, string memory symbol, bool collateral, uint oracleCount) {
+
+    /**
+     @notice returns foreignToken metadata for the given foreignToken
+     */
+    function foreignTokenInfo(address foreignToken) external view override returns(bool collateral, uint oracleCount) {
         ForeignToken storage f = foreignTokens[foreignToken];
-        name = f.name;
-        symbol = f.symbol;
         collateral = f.isCollateral;
         oracleCount = f.oracleSet.count();
     }
+
+    /**
+     @notice returns the count of oracles registered for the given foreignToken
+     */
     function foreignTokenOracleCount(address foreignToken) external view override returns(uint) {
         return foreignTokens[foreignToken].oracleSet.count();
     }
+
+    /**
+     @notice returns the foreignToken oracle address at the index
+     */
     function foreignTokenOracleAtIndex(address foreignToken, uint index) external view override returns(address) {
         return foreignTokens[foreignToken].oracleSet.keyAtIndex(index);
     }
+
+    /**
+     @notice returns true if the given oracle address is associated with the foreignToken
+     */
     function isOracle(address foreignToken, address oracle) external view override returns(bool) {
         return foreignTokens[foreignToken].oracleSet.exists(oracle);
     }
+
+    /**
+     @notice returns true if the given foreignToken is registered in the factory
+     */
     function isForeignToken(address foreignToken) external view override returns(bool) {
         return foreignTokenSet.exists(foreignToken);
     }
+
+    /**
+     @notice returns true if the given foreignToken is marked collateral
+     */
     function isCollateral(address foreignToken) external view override returns(bool) {
         return foreignTokens[foreignToken].isCollateral;
     }

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-/**
- * @dev Constructor has been converted into 
- */
+/// @dev removed constructor visibility and relocated the file
+/// @dev added initERC20 for proxied deployments
 
 pragma solidity >=0.6.0 <0.8.0;
 

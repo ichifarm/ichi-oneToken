@@ -10,12 +10,7 @@ contract NullStrategy is StrategyCommon {
      * @notice Supports the minimum interface but does nothing with funds committed to the strategy
      */
     
-    constructor(string memory description) 
-        StrategyCommon(description)
+    constructor(address oneToken, string memory description) 
+        StrategyCommon(oneToken, description)
     {}
-
-    function init() external override {
-        _initStrategy();
-    }
-    
 }

@@ -9,6 +9,7 @@ import "./ICHIERC20.sol";
  * @dev Uses the modified ERC20 with Initializer.
  */
 contract ICHIERC20Burnable is ICHIERC20 {
+    
     using SafeMath for uint256;
 
     /**

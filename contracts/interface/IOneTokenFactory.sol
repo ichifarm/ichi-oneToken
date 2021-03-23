@@ -7,28 +7,26 @@ import "./InterfaceCommon.sol";
 
 interface IOneTokenFactory is InterfaceCommon {
 
-    function deployOneTokenProxy(address governance, address version) external returns(address newOneTokenProxy, address proxyAdmin);
-    
-    function initOneTokenProxy(
+    function deployOneTokenProxy(
         string memory name,
         string memory symbol,
-        address oneToken,
-        address governance,
+        address governance, 
+        address version,
         address controller,
         address mintMaster,              
         address memberToken, 
         address collateral,
-        address oneTokenOracle,
-        address version
+        address oneTokenOracle
     ) 
-        external;
+        external 
+        returns(address newOneTokenProxy, address proxyAdmin);
 
     function admitModule(address module, ModuleType moduleType, string memory name, string memory url) external;
     function updateModule(address module, string memory name, string memory url) external;
     function removeModule(address module) external;
 
-    function admitForeignToken(address foreignToken, string memory name, string memory symbol, bool collateral, address oracle) external;
-    function updateForeignToken(address foreignToken, string memory name, string memory symbol, bool collateral) external;
+    function admitForeignToken(address foreignToken, bool collateral, address oracle) external;
+    function updateForeignToken(address foreignToken, bool collateral) external;
     function removeForeignToken(address foreignToken) external;
 
     function assignOracle(address foreignToken, address oracle) external;
@@ -40,7 +38,6 @@ interface IOneTokenFactory is InterfaceCommon {
 
     function oneTokenCount() external view returns(uint);
     function oneTokenAtIndex(uint index) external view returns(address);
-    function oneTokenInfo(address oneToken) external view returns(address);
     function isOneToken(address oneToken) external view returns(bool);
  
     // modules
@@ -55,7 +52,7 @@ interface IOneTokenFactory is InterfaceCommon {
 
     function foreignTokenCount() external view returns(uint);
     function foreignTokenAtIndex(uint index) external view returns(address);
-    function foreignTokenInfo(address foreignToken) external view returns(string memory name, string memory symbol, bool collateral, uint oracleCount);
+    function foreignTokenInfo(address foreignToken) external view returns(bool collateral, uint oracleCount);
     function foreignTokenOracleCount(address foreignToken) external view returns(uint);
     function foreignTokenOracleAtIndex(address foreignToken, uint index) external view returns(address);
     function isOracle(address foreignToken, address oracle) external view returns(bool);

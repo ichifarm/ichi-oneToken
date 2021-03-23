@@ -13,6 +13,7 @@ import "hardhat-spdx-license-identifier";
 import "hardhat-typechain";
 import "hardhat-watcher";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-truffle5";
 
 import "./tasks";
 
