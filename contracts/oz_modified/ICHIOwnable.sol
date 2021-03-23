@@ -5,6 +5,7 @@
  * _transferOwnership() has been added to support proxied deployments.
  * Abstract tag removed from contract block.
  * Added interface inheritance and override modifiers.
+ * Changed contract identifier in require error messages.
  */
 
 pragma solidity >=0.6.0 <0.8.0;
@@ -24,6 +25,7 @@ import "../interface/IICHIOwnable.sol";
  * the owner.
  */
 contract ICHIOwnable is IICHIOwnable, Context {
+    
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -33,15 +35,23 @@ contract ICHIOwnable is IICHIOwnable, Context {
      */
      
     modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        require(owner() == _msgSender(), "ICHIOwnable: caller is not the owner");
         _;
     }    
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
+     * Ineffective for proxied deployed. Use initOwnable.
      */
-
     constructor() {
+        _transferOwnership(msg.sender);
+    }
+
+    /**
+     @dev initialize proxied deployment
+     */
+    function initOwnable() internal {
+        require(owner() == address(0), "ICHIOwnable: already initialized");
         _transferOwnership(msg.sender);
     }
 
@@ -78,7 +88,7 @@ contract ICHIOwnable is IICHIOwnable, Context {
      */
 
     function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(newOwner != address(0), "ICHIOwnable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }

@@ -17,10 +17,10 @@ library AddressSet {
     }
 
     /**
-     * @notice insert a key. 
-     * @dev duplicate keys are not permitted.
-     * @param self storage pointer to a Set. 
-     * @param key value to insert.
+     @notice insert a key. 
+     @dev duplicate keys are not permitted.
+     @param self storage pointer to a Set. 
+     @param key value to insert.
      */    
     function insert(Set storage self, address key, string memory errorMessage) internal {
         require(!exists(self, key), errorMessage);
@@ -29,10 +29,10 @@ library AddressSet {
     }
 
     /**
-     * @notice remove a key.
-     * @dev key to remove must exist. 
-     * @param self storage pointer to a Set.
-     * @param key value to remove.
+     @notice remove a key.
+     @dev key to remove must exist. 
+     @param self storage pointer to a Set.
+     @param key value to remove.
      */    
     function remove(Set storage self, address key, string memory errorMessage) internal {
         require(exists(self, key), errorMessage);
@@ -46,18 +46,18 @@ library AddressSet {
     }
 
     /**
-     * @notice count the keys.
-     * @param self storage pointer to a Set. 
+     @notice count the keys.
+     @param self storage pointer to a Set. 
      */       
     function count(Set storage self) internal view returns(uint) {
         return(self.keyList.length);
     }
 
     /**
-     * @notice check if a key is in the Set.
-     * @param self storage pointer to a Set.
-     * @param key value to check. Version
-     * @return bool true: Set member, false: not a Set member.
+     @notice check if a key is in the Set.
+     @param self storage pointer to a Set.
+     @param key value to check. Version
+     @return bool true: Set member, false: not a Set member.
      */  
     function exists(Set storage self, address key) internal view returns(bool) {
         if(self.keyList.length == 0) return false;
@@ -65,9 +65,9 @@ library AddressSet {
     }
 
     /**
-     * @notice fetch a key by row (enumerate).
-     * @param self storage pointer to a Set.
-     * @param index row to enumerate. Must be < count() - 1.
+     @notice fetch a key by row (enumerate).
+     @param self storage pointer to a Set.
+     @param index row to enumerate. Must be < count() - 1.
      */      
     function keyAtIndex(Set storage self, uint index) internal view returns(address) {
         return self.keyList[index];

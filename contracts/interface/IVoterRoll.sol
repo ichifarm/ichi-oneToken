@@ -4,6 +4,4 @@ pragma solidity 0.7.6;
 
 import "./IModule.sol";
 
-interface IVoterRoll is IModule {
-
-}
+interface IVoterRoll is IModule {}

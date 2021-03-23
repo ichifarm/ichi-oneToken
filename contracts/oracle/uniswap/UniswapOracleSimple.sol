@@ -18,19 +18,17 @@ contract UniswapOracleSimple is OracleCommon {
     using FixedPoint for *;
     using SafeMath for uint;
 
-    // TODO: Optimal period? Multiple instances? 
-    uint public constant PERIOD = 3 hours;
-
-    address public usdToken;
-    address public uniswapFactory;
+    uint public immutable PERIOD;
+    address public immutable usdToken;
+    address public immutable uniswapFactory;
 
     struct Pair {
-        // address pair;
         address token0;
         address token1;
         uint    price0CumulativeLast;
         uint    price1CumulativeLast;
         uint32  blockTimestampLast;
+        uint    period;
         FixedPoint.uq112x112 price0Average;
         FixedPoint.uq112x112 price1Average;
     }
@@ -40,18 +38,29 @@ contract UniswapOracleSimple is OracleCommon {
     event Deployed(address sender, address uniswapFactory, address usdToken);
     event Initialized(address sender, address token);
 
-    constructor(address uniswapFactory_, address usdToken_)
-        OracleCommon("ICHI Simple Uniswap Oracle, 3 hours", usdToken_)
+    /**
+     @notice the usdToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
+     @dev deploy multiple instances to support different configurations
+     @param uniswapFactory_ external factory contract needed by the uniswap library
+     @param usdToken_ the collateral token to use for usd valuations
+     @param period_ the averaging period to use for price smoothing
+     */
+    constructor(address uniswapFactory_, address usdToken_, uint period_)
+        OracleCommon("ICHI Simple Uniswap Oracle, 15 minutes", usdToken_)
     {
-        uniswapFactory = uniswapFactory;
+        uniswapFactory = uniswapFactory_;
+        PERIOD = period_;
         usdToken = usdToken_;
         emit Deployed(msg.sender, uniswapFactory_, usdToken_);
     }
 
-    /// @dev It is acceptable for multiple oneToken clients to rely on the same pair oracle. Initialize the first time.
-    /// There is no oneToken/client level configuration. 
-    
+    /**
+     @notice configures parameters for a pair, token versus indexToken
+     @dev initializes the first time, then does no work
+     @param token the base token. index is established at deployment time and cannot be changed
+     */
     function init(address token) public override {
+        _initOracle(token); 
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
         if(address(_pair) != NULL_ADDRESS) {
             Pair storage p = pairs[address(_pair)];
@@ -67,19 +76,33 @@ contract UniswapOracleSimple is OracleCommon {
         }
     }
 
+    /**
+     @notice returns equivalent indexTokens for amountIn, token
+     @dev index token is established at deployment time
+     @param token baseToken for comparison
+     @param amountIn amount to convert
+     */
     function read(address token, uint amountIn) external view override returns(uint amountUsd, uint volatility) {
         amountUsd = consult(token, amountIn);
         volatility = 0;
     }
 
-    // @dev inverse conversion, tokens 
+    /**
+     @notice returns equivalent baseTokens for amountUsd, indexToken
+     @dev index token is established at deployment time
+     @param token baseToken for comparison
+     @param amountUsd amount to convert
+     */
     function amountRequired(address token, uint amountUsd) external view override returns(uint tokens, uint volatility) {
         tokens = PRECISION.div(consult(token, amountUsd));
         volatility = 0;
     }
 
-    // @dev it is permissible for anyone to supply gas and update the oracle's price history.
-
+    /**
+     @notice updates price history observation historym if necessary
+     @dev it is permissible for anyone to supply gas and update the oracle's price history.
+     @param token baseToken to update
+     */
     function update(address token) external override {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
         Pair storage p = pairs[address(_pair)];
@@ -90,7 +113,7 @@ contract UniswapOracleSimple is OracleCommon {
         // ensure that at least one full period has passed since the last update
         ///@ dev require() was dropped in favor of if() to make this safe to call when unsure about elapsed time
 
-        if(timeElapsed >= PERIOD) {
+        if(timeElapsed >= p.period) {
             // overflow is desired, casting never truncates
             // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
             p.price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - p.price0CumulativeLast) / timeElapsed));
@@ -105,7 +128,12 @@ contract UniswapOracleSimple is OracleCommon {
 
     // note this will always return 0 before update has been called successfully for the first time.
     // this will return an average over a long period of time unless someone calls the update() function.
-
+    /**
+     @notice returns equivalent indexTokens for amountIn, token
+     @dev always returns 0 before update(token) has been called successfully for the first time.
+     @param token baseToken to update
+     @param amountIn amount to convert
+     */
     function consult(address token, uint amountIn) public view returns (uint amountOut) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
         Pair storage p = pairs[address(_pair)];

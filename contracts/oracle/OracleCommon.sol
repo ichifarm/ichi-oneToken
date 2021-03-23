@@ -9,24 +9,25 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Oracle Implementation"));
     address public override indexToken;
-    string description;
 
     event OracleDeployed(address sender, string description, address indexToken);
     event OracleInitialized(address sender, address oneToken, address baseToken, address indexToken);
     
+    /**
+     @notice records the oracle description and the index that will be used for all quotes
+     @dev oneToken implementations can share oracles
+     @param description_ all modules have a description. No processing or validation. 
+     */
     constructor(string memory description_, address indexToken_) 
         ICHIModuleCommon(ModuleType.Oracle, description_) 
     { 
-        description = description_;
         indexToken = indexToken_;
         emit OracleDeployed(msg.sender, description_, indexToken_);
     }
 
-    function _initOracle(address baseToken_) internal {}
-
-    // @dev We use internally-generated token pair keys to avoid external dependency
-    function getPairKey(address baseToken, address client) public pure returns(bytes32) {
-        return keccak256(abi.encodePacked(baseToken, client));
-    }
-
+    /**
+     @notice oracles have no common initialization requirments
+     @dev this is written explicitly for consistency of structure
+     */
+    function _initOracle(address token) internal {}
 }

@@ -6,13 +6,10 @@ import "../StrategyCommon.sol";
 
 contract Arbitrary is StrategyCommon {
 
-    constructor(string memory description) 
-        StrategyCommon(description)
+    constructor(address oneToken, string memory description) 
+        StrategyCommon(oneToken, description)
     {}
 
-    function init() external override {
-        _initStrategy();
-    }
 
     /**
     @notice Governance can work with collateral and treasury assets. Can swap assets. 
@@ -23,7 +20,6 @@ contract Arbitrary is StrategyCommon {
            for example: "transfer(address,uint256)", or "approve(address,uint256)"
     @param data abi-encodeded byte-code of the parameter values you are sending.
     */    
-
     function executeTransaction(address target, uint value, string memory signature, bytes memory data) public payable onlyOwner returns (bytes memory) {
         bytes memory callData;
 
@@ -38,5 +34,4 @@ contract Arbitrary is StrategyCommon {
         require(success, "OneTokenV1::executeTransaction: Transaction execution reverted.");
         return returnData;
     }
-
 }
