@@ -35,6 +35,8 @@ interface IOneTokenFactory is InterfaceCommon {
     /**
      * View functions
      */
+    
+    function MODULE_TYPE() external view returns(bytes32);
 
     function oneTokenCount() external view returns(uint);
     function oneTokenAtIndex(uint index) external view returns(address);

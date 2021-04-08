@@ -1,0 +1,205 @@
+const { assert } = require("chai");
+const truffleAssert = require('truffle-assertions');
+
+const 
+    OneToken = artifacts.require("OneTokenV1"),
+    Factory = artifacts.require("OneTokenFactory"),
+    ControllerNull = artifacts.require("NullController"),
+    MintMasterIncremental = artifacts.require("Incremental"),
+    OraclePegged = artifacts.require("ICHIPeggedOracle"),
+    TestOracle = artifacts.require("TestOracle"),
+    MemberToken = artifacts.require("MemberToken"),
+    CollateralToken = artifacts.require("CollateralToken"),
+    NullStrategy = artifacts.require("NullStrategy"),
+    IERC20Extended = artifacts.require("IERC20Extended");
+
+const
+    testOracleName = "ICHI Test Oracle",
+    url = "#";
+
+const 
+    NULL_ADDRESS = "0x0000000000000000000000000000000000000000",
+    RATIO_50 = "500000000000000000", // 50%
+    RATIO_95 = "950000000000000000", // 95%
+    RATIO_60 = "600000000000000000", // 60%
+    RATIO_90 = "900000000000000000", // 90%
+    RATIO_100 = "1000000000000000000", // 100%
+    RATIO_110 = "1100000000000000000", // 110% - invalid
+    STEP_002 = "2000000000000000" // 0.2%
+
+const moduleType = {
+    version: 0, 
+    controller: 1, 
+    strategy: 2, 
+    mintMaster: 3, 
+    oracle: 4, 
+    voterRoll: 5
+}
+
+let governance,
+    badAddress,
+    commonUser,
+    version,
+    factory,
+    oneToken,
+    controller,
+    mintMaster,
+    oracle,
+    testOracle,
+    memberToken,
+    collateralToken;
+
+contract("MintMaster", accounts => {
+
+    beforeEach(async () => {
+        let oneTokenAddress;
+        governance = accounts[0];
+        badAddress = accounts[1];
+        commonUser = accounts[2];
+        version = await OneToken.deployed();
+        factory = await Factory.deployed();
+        controller = await ControllerNull.deployed();
+        mintMaster = await MintMasterIncremental.deployed();
+        oracle = await OraclePegged.deployed();
+        testOracle = await TestOracle.deployed();
+        memberToken = await MemberToken.deployed();
+        collateralToken = await CollateralToken.deployed();
+        oneTokenAddress = await factory.oneTokenAtIndex(0);
+        oneToken = await OneToken.at(oneTokenAddress);
+    });
+
+    it("should be ready to test", async () => {
+        assert.isAtLeast(accounts.length, 3, "There are not at least three accounts to work with");
+    });
+    
+    it("should update params", async () => {
+        let 
+            theRatio,
+            parameters,
+            msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner",
+            msg2 = "Incremental: minRatio must be <= maxRatio",
+            msg3 = "Incremental: maxRatio must be <= 10 ** 18",
+            msg4 = "Incremental: stepSize must be < (max - min) or zero.",
+            msg5 = "Incremental: initial ratio must be >= min ratio.",
+            msg6 = "Incremental: initial ratio must be <= max ratio.";
+        
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: badAddress }), msg1);
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_100, RATIO_95, STEP_002, RATIO_90, { from: governance }), msg2);
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_110, STEP_002, RATIO_90, { from: governance }), msg3);
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, RATIO_90, RATIO_90, { from: governance }), msg4);
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_90, RATIO_95, STEP_002, RATIO_50, { from: governance }), msg5);
+        await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_100, { from: governance }), msg6);
+                            
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+
+        // minting ratio should be updated, without the updateMintingRatio call, and params has changed
+        parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
+        assert.strictEqual(parameters.set, true, "mintMaster didn't set the set flag");
+        assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't set a new ratio");
+
+        // the ratio should be updated, after the updateMintingRatio call, and params has changed too
+        await oneToken.updateMintingRatio();
+        parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
+        assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't set a new ratio");
+
+    });
+
+    it("should adjust the minting ratio", async () => {
+        let 
+            theRatio,
+            parameters,
+            msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner",
+            msg2 = "Incremental: minRatio must be <= maxRatio",
+            msg3 = "Incremental: maxRatio must be > minRatio",
+            msg4 = "Incremental: maxRatio must <= 100%",
+            msg5 = "Incremental: ratio must be > 0",
+            msg6 = "Incremental: ratio must be <= 100%",
+            msg7 = "Incremental: ratio must be >= minRatio",
+            msg8 = "Incremental: ratio must be <= maxRatio";
+        
+        await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
+        await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_100, { from: governance }), msg2);
+        await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
+        
+        await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
+        await mintMaster.setRatio(oneToken.address, RATIO_50, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
+
+        await oneToken.updateMintingRatio();
+        theRatio = await oneToken.getMintingRatio();
+        assert.strictEqual(theRatio[0].toString(10), RATIO_50, "the minting ratio did not update as expected");
+
+        await mintMaster.setMinRatio(oneToken.address, RATIO_60, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_60, "mintMaster didn't limit ratio after resetting min ratio");
+
+        await truffleAssert.reverts(mintMaster.setMaxRatio(oneToken.address, RATIO_50, { from: governance }), msg3);
+        await truffleAssert.reverts(mintMaster.setMaxRatio(oneToken.address, RATIO_110, { from: governance }), msg4);
+        await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, 0, { from: governance }), msg5);
+        await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_110, { from: governance }), msg6);
+        await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_50, { from: governance }), msg7);
+        await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_100, { from: governance }), msg8);
+        await mintMaster.setRatio(oneToken.address, RATIO_95, { from: governance });
+        await mintMaster.setMaxRatio(oneToken.address, RATIO_90, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't limit ratio after resetting max ratio");
+    });
+
+    it("should update the step size", async () => {
+        let 
+            theRatio,
+            parameters,
+            msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner",
+            msg2 = "Incremental: stepSize must be < max - min.",
+            msg3 = "MintMasterCommon: unknown oracle",
+            msg4 = "MintMasterCommon: given oracle is not valid for oneToken (msg.sender)";
+        
+        // should not allow wrong user to change the step size
+        await truffleAssert.reverts(mintMaster.setStepSize(oneToken.address, STEP_002, { from: badAddress }), msg1);
+
+        // with default PeggedOracle changing step size shouldn't affect the ratio
+        await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
+        await truffleAssert.reverts(mintMaster.setStepSize(oneToken.address, RATIO_90, { from: governance }), msg2);
+        assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
+        assert.strictEqual(theRatio[0].toString(10), "900000000000000000", "mintMaster changed the ratio by mistake");
+
+        // now changing the oracle so we could see how changing step size affects the ratio
+        await factory.assignOracle(oneToken.address, testOracle.address);
+        await truffleAssert.reverts(mintMaster.changeOracle(oneToken.address, badAddress, { from: governance }), msg3);
+        await truffleAssert.reverts(mintMaster.changeOracle(oneToken.address, controller.address, { from: governance }), msg4);
+        await mintMaster.changeOracle(oneToken.address, testOracle.address, { from: governance });
+        
+        await mintMaster.setMaxRatio(oneToken.address, RATIO_95, { from: governance });
+        await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
+        assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
+        assert.strictEqual(theRatio[0].toString(10), "902000000000000000", "mintMaster didn't change the ratio using step size (step up)");
+
+        // taking the second step
+        await oneToken.updateMintingRatio({ from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), "904000000000000000", "mintMaster didn't change the ratio using step size (step up)");
+
+        // switching the oracle "off cneter" direction to test "step down" logic
+        await testOracle.setAdjustUp(true, { from: governance });
+        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), "900000000000000000", "mintMaster didn't change the ratio using step size (step down)");
+
+    });
+
+});

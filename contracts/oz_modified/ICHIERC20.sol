@@ -319,5 +319,5 @@ contract ICHIERC20 is IERC20, Context, ICHIInitializable {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
+    function _beforeTokenTransfer(address /* from */, address /* to */, uint256 /* amount */) internal virtual { }
 }

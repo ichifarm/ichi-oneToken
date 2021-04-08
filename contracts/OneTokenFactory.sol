@@ -9,12 +9,13 @@ import "./OneTokenProxyAdmin.sol";
 import "./lib/AddressSet.sol";
 import "./interface/IOneTokenFactory.sol";
 import "./interface/IOneTokenV1.sol";
-import "./interface/IModule.sol";
+import "./interface/IOracle.sol";
 import "./_openzeppelin/access/Ownable.sol";
 
 contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     using AddressSet for AddressSet.Set;
+    bytes32 public constant override MODULE_TYPE = keccak256(abi.encodePacked("ICHI OneToken Factory"));
     bytes constant NULL_DATA = "";
 
     AddressSet.Set oneTokenSet;
@@ -36,8 +37,6 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      */
     
     struct ForeignToken {
-        // string name;
-        // string symbol;
         bool isCollateral;
         AddressSet.Set oracleSet;
     }
@@ -190,11 +189,13 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice factory governance can add a foreign token to the inventory
      @param foreignToken ERC20 contract must not be registered
      @param collateral set true if the asset is considered a collateral token
-     @param oracle must be at least one oracle for every asset so supply the first one for the new asset
+     @param oracle must be at least one USD oracle for every asset so supply the first one for the new asset
      */
     function admitForeignToken(address foreignToken, bool collateral, address oracle) public onlyOwner override {
         require(isModule(oracle), "OneTokenFactory: oracle is not registered.");
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory, Set: unknown oracle");
+        IOracle o = IOracle(oracle);
+        o.init(foreignToken);
         foreignTokenSet.insert(foreignToken, "OneTokenFactory: foreign token is already admitted");
         ForeignToken storage f = foreignTokens[foreignToken];
         f.isCollateral = collateral;
@@ -232,11 +233,14 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice factory governance can assign an oracle to foreign token
      @dev foreign tokens have 1-n registered oracle options which are selectd by oneToken instance governance
      @param foreignToken ERC20 contract address must be registered already
-     @param oracle oracle must be registered
+     @param oracle USD oracle must be registered. Oracle must return quote in a registed collateral (USD) token.
      */
     function assignOracle(address foreignToken, address oracle) external onlyOwner override {
         require(foreignTokenSet.exists(foreignToken), "OneTokenFactory: unknown foreign token");
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory: Internal error checking oracle");
+        IOracle o = IOracle(oracle);
+        o.init(foreignToken);
+        require(foreignTokens[o.indexToken()].isCollateral, "OneTokenFactory: Oracle Index Token is not registered collateral");
         foreignTokens[foreignToken].oracleSet.insert(oracle, "OneTokenFactory, Set: oracle is already assigned to foreign token.");
         emit AddOracle(msg.sender, foreignToken, oracle);
     }
@@ -334,9 +338,6 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         }
         if(moduleType == ModuleType.Oracle) {
             if(candidateSelfDeclaredType == COMPONENT_ORACLE) return true;
-        }
-        if(moduleType == ModuleType.VoterRoll) {
-            if(candidateSelfDeclaredType == COMPONENT_VOTERROLL) return true;
         }
         return false;
     }    

@@ -1,0 +1,20 @@
+## `ICHIInitializable`
+
+
+
+
+
+### `initializer()`
+
+
+
+
+
+### `initialized()`
+
+
+
+
+
+
+

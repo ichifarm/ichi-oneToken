@@ -12,14 +12,20 @@ import '../../_uniswap/lib/contracts/libraries/FixedPoint.sol';
 import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2OracleLibrary.sol';
 import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol';
 
-// fixed window oracle that recomputes the average price for the entire period once every period
-// note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
+/**
+ @notice A fixed-window oracle that recomputes the average price for the entire period once every period,
+ Note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period,
+ Periodicity is fixed at deployment time. Index (usually USD) token is fixed at deployment time.
+ A single deployment can be shared by multiple oneToken clients and can observe multiple base tokens.
+ Non-USD index tokens are possible. Such deployments can used as interim oracles in Composite Oracles. They should
+ NOT be registed because they are not, by definition, valid sources of USD quotes. 
+ */
+
 contract UniswapOracleSimple is OracleCommon {
     using FixedPoint for *;
     using SafeMath for uint;
 
     uint public immutable PERIOD;
-    address public immutable usdToken;
     address public immutable uniswapFactory;
 
     struct Pair {
@@ -35,44 +41,47 @@ contract UniswapOracleSimple is OracleCommon {
 
     mapping(address => Pair) pairs;
 
-    event Deployed(address sender, address uniswapFactory, address usdToken);
+    event Deployed(address sender, address uniswapFactory, address indexToken);
     event Initialized(address sender, address token);
 
     /**
-     @notice the usdToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
+     @notice the indexToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
      @dev deploy multiple instances to support different configurations
      @param uniswapFactory_ external factory contract needed by the uniswap library
-     @param usdToken_ the collateral token to use for usd valuations
+     @param indexToken_ the index token to use for valuations. If not a useToken then the Oracle should not be registed.
      @param period_ the averaging period to use for price smoothing
      */
-    constructor(address uniswapFactory_, address usdToken_, uint period_)
-        OracleCommon("ICHI Simple Uniswap Oracle, 15 minutes", usdToken_)
+    constructor(address uniswapFactory_, address indexToken_, uint period_)
+        OracleCommon("ICHI Simple Uniswap Oracle", indexToken_)
     {
         uniswapFactory = uniswapFactory_;
         PERIOD = period_;
-        usdToken = usdToken_;
-        emit Deployed(msg.sender, uniswapFactory_, usdToken_);
+        indexToken = indexToken_;
+        emit Deployed(msg.sender, uniswapFactory_, indexToken_);
     }
 
     /**
      @notice configures parameters for a pair, token versus indexToken
-     @dev initializes the first time, then does no work
+     @dev initializes the first time, then does no work. Multiple invokations are acceptable.
      @param token the base token. index is established at deployment time and cannot be changed
      */
+    
     function init(address token) public override {
-        _initOracle(token); 
-        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
+        require(token != NULL_ADDRESS, "UniswapOracleSimple: token cannot be null");
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         if(address(_pair) != NULL_ADDRESS) {
             Pair storage p = pairs[address(_pair)];
-            p.token0 = _pair.token0();
-            p.token1 = _pair.token1();
-            p.price0CumulativeLast = _pair.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
-            p.price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
-            uint112 reserve0;
-            uint112 reserve1;
-            (reserve0, reserve1, p.blockTimestampLast) = _pair.getReserves();
-            require(reserve0 != 0 && reserve1 != 0, 'UniswapOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
-            emit Initialized(msg.sender, token);
+            if(p.token0 == NULL_ADDRESS) {
+                p.token0 = _pair.token0();
+                p.token1 = _pair.token1();
+                p.price0CumulativeLast = _pair.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
+                p.price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
+                uint112 reserve0;
+                uint112 reserve1;
+                (reserve0, reserve1, p.blockTimestampLast) = _pair.getReserves();
+                require(reserve0 != 0 && reserve1 != 0, 'UniswapOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
+                emit Initialized(msg.sender, token);
+            }
         }
     }
 
@@ -104,7 +113,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param token baseToken to update
      */
     function update(address token) external override {
-        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
             UniswapV2OracleLibrary.currentCumulativePrices(address(_pair));
@@ -135,7 +144,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param amountIn amount to convert
      */
     function consult(address token, uint amountIn) public view returns (uint amountOut) {
-        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, usdToken));
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         if (token == p.token0) {
             amountOut = p.price0Average.mul(amountIn).decode144();
@@ -143,5 +152,34 @@ contract UniswapOracleSimple is OracleCommon {
             require(token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
             amountOut = p.price1Average.mul(amountIn).decode144();
         }
+    }
+
+    /**
+     @notice discoverable internal state
+     @param token baseToken to inspect
+     */
+    function pairInfo(address token) 
+        external 
+        view 
+        returns
+    (
+        address token0,
+        address token1,
+        uint    price0CumulativeLast,
+        uint    price1CumulativeLast,
+        uint32  blockTimestampLast,
+        uint    period
+    )  
+    {
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
+        Pair storage p = pairs[address(_pair)];
+        return(
+            p.token0,
+            p.token1,
+            p.price0CumulativeLast,
+            p.price1CumulativeLast,
+            p.blockTimestampLast,
+            p.period
+        );
     }
 }

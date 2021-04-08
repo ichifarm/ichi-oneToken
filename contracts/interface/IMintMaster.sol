@@ -9,5 +9,6 @@ interface IMintMaster is IModule {
     function init(address oneTokenOracle) external;
     function updateMintingRatio() external returns(uint ratio, uint maxOrderVolume);
     function getMintingRatio() external view returns(uint ratio, uint maxOrderVolume);
-    function getMintingRatio(address oneToken) external view returns(uint ratio, uint maxOrderVolume);    
+    function getMintingRatio(address oneToken) external view returns(uint ratio, uint maxOrderVolume);  
+    function getMintingRatio(address oneToken, address oracle) external view returns(uint ratio, uint maxOrderVolume); 
 }

@@ -1,9 +1,10 @@
 const { assert } = require("chai");
 const truffleAssert = require('truffle-assertions');
 
-const 
+const
     OneToken = artifacts.require("OneTokenV1"),
     Factory = artifacts.require("OneTokenFactory"),
+    ProxyAdmin = artifacts.require("OneTokenProxyAdmin"),
     ControllerNull = artifacts.require("NullController"),
     MintMasterIncremental = artifacts.require("Incremental"),
     OraclePegged = artifacts.require("ICHIPeggedOracle"),
@@ -17,6 +18,7 @@ const
     mintMasterName = "Simple Incremental",
     oracleName = "CTTest-Pegged Oracle",
     newOracleName = "New CTTest-Pegged Oracle";
+    tempOracleName = "Temp CTTest-Pegged Oracle";
     url = "#";
 
 const
@@ -24,11 +26,11 @@ const
     symbol = "OTI";
 
 const moduleType = {
-    version: 0, 
-    controller: 1, 
-    strategy: 2, 
-    mintMaster: 3, 
-    oracle: 4, 
+    version: 0,
+    controller: 1,
+    strategy: 2,
+    mintMaster: 3,
+    oracle: 4,
     voterRoll: 5
 }
 
@@ -43,7 +45,7 @@ let governance,
     collateralToken;
 
 contract("Factory", accounts => {
-
+    
     beforeEach(async () => {
         governance = accounts[0];
         let oneTokenAddress;
@@ -85,6 +87,8 @@ contract("Factory", accounts => {
         let oneTokenIsCollateral = await factory.isCollateral(oneToken.address);
 
         let foreignTokenCount = await factory.foreignTokenCount();
+        let firstForeignToken = await factory.foreignTokenAtIndex(0);
+        let secondForeignToken = await factory.foreignTokenAtIndex(1);
         let memberTokenInfo = await factory.foreignTokenInfo(memberToken.address);
         let collateralTokenInfo = await factory.foreignTokenInfo(collateralToken.address);
         let oneTokenInfo = await factory.foreignTokenInfo(oneToken.address); // oneTokens are de facto collateral
@@ -94,7 +98,7 @@ contract("Factory", accounts => {
         let oneTokenOracle = await factory.foreignTokenOracleAtIndex(oneToken.address, 0);
 
         assert.strictEqual(parseInt(oneTokenCount.toString(10)), 1, "There is not exactly 1 oneToken");
-        assert.strictEqual(parseInt(moduleCount.toString(10)), 4, "There are not exactly 4 modules");
+        assert.strictEqual(parseInt(moduleCount.toString(10)), 6, "There are not exactly 5 modules");
 
         assert.strictEqual(controllerIsModule, true, "the controller is not a registered module");
         assert.strictEqual(mmIsModule, true, "the mintMaster is not a registered module");
@@ -108,7 +112,7 @@ contract("Factory", accounts => {
         
         assert.strictEqual(mintMasterInfo["name"], mintMasterName, "mintMaster is mislabeled");
         assert.strictEqual(mintMasterInfo["url"], url, "mintmaster url not as specified");
-        assert.strictEqual(parseInt(mintMasterInfo["moduleType"]), moduleType.mintMaster, "mintMaster is mis-typed");        
+        assert.strictEqual(parseInt(mintMasterInfo["moduleType"]), moduleType.mintMaster, "mintMaster is mis-typed");
         assert.strictEqual(isMintMaster, true, "mintMaster is not valid");
 
         assert.strictEqual(oracleInfo["name"], oracleName, "oracleis mislabeled");
@@ -126,6 +130,8 @@ contract("Factory", accounts => {
         assert.strictEqual(oneTokenIsCollateral, true, "oneToken returns collateral false");
 
         assert.strictEqual(parseInt(foreignTokenCount.toString(10)), 3, "there are not exactly 3 foreign tokens");
+        assert.strictEqual(firstForeignToken, memberToken.address, "the first foreign token is not the member token");
+        assert.strictEqual(secondForeignToken, collateralToken.address, "the second foreign token is not the collateral token");
         
         assert.strictEqual(memberTokenInfo["collateral"], false, "member token is marked collateral");
         assert.strictEqual(collateralTokenInfo["collateral"], true, "collateral token is not marked collateral");
@@ -135,9 +141,9 @@ contract("Factory", accounts => {
         assert.strictEqual(parseInt(collateralTokenInfo["oracleCount"].toString(10)), 1, "collateral token doesn't have exactly 1 oracle");
         assert.strictEqual(parseInt(oneTokenInfo["oracleCount"].toString(10)), 1, "oneToken doesn't have exactly 1 oracle");
         
-        assert.strictEqual(memberTokenOracle, OraclePegged.address, "incorrect member token oracle");
-        assert.strictEqual(collateralTokenOracle, OraclePegged.address, "incorrect collateral token oracle");
-        assert.strictEqual(oneTokenOracle, OraclePegged.address, "incorrect oneToken oracle");      
+        assert.strictEqual(memberTokenOracle, oracle.address, "incorrect member token oracle");
+        assert.strictEqual(collateralTokenOracle, oracle.address, "incorrect collateral token oracle");
+        assert.strictEqual(oneTokenOracle, oracle.address, "incorrect oneToken oracle");
     });
 
     it("should update module metadata", async () => {
@@ -148,19 +154,24 @@ contract("Factory", accounts => {
     });
 
     it("should admit a module", async () => {
-        let moduleCount;
-        let tokenOracleCount;
-        let secondTokenOracle;
+        let moduleCount,
+            tokenOracleCount,
+            secondTokenOracle,
+            msg1 = "OneTokenFactory: invalid fingerprint for module type";
 
         let newOracle = await OraclePegged.new(newOracleName, collateralToken.address);
+        truffleAssert.reverts(factory.admitModule(newOracle.address, moduleType.mintMaster, newOracleName, url), msg1);
         await factory.admitModule(newOracle.address, moduleType.oracle, newOracleName, url);
         moduleCount = await factory.moduleCount();
+
+        let moduleAtIndex = await factory.moduleAtIndex(moduleCount-1);
+        assert.strictEqual(newOracle.address, moduleAtIndex, "moduleAtIndex should return correct module address");
         
         await factory.assignOracle(collateralToken.address, newOracle.address);
         tokenOracleCount = await factory.foreignTokenOracleCount(collateralToken.address);
         secondTokenOracle = await factory.foreignTokenOracleAtIndex(collateralToken.address,1);
 
-        assert.strictEqual(parseInt(moduleCount.toString(10)), 5, "there are not exactly 5 modules now");
+        assert.strictEqual(parseInt(moduleCount.toString(10)), 7, "there are not exactly 6 modules now");
         assert.strictEqual(parseInt(tokenOracleCount.toString(10)), 2, "collateral doesn't have exactly two oracles");
         assert.strictEqual(secondTokenOracle, newOracle.address, "unexpected second collateral token oracle");
     });
@@ -176,6 +187,22 @@ contract("Factory", accounts => {
         assert.strictEqual(delta, 1, "the module count was not reduced by one");
     });
     
+    it("should remove an oracle", async () => {
+        let tokenOracleCount;
+
+        let newOracle = await OraclePegged.new(tempOracleName, collateralToken.address);
+        await factory.admitModule(newOracle.address, moduleType.oracle, tempOracleName, url);
+        moduleCount = await factory.moduleCount();
+
+        await factory.assignOracle(collateralToken.address, newOracle.address);
+        tokenOracleCount = await factory.foreignTokenOracleCount(collateralToken.address);
+        assert.strictEqual(parseInt(tokenOracleCount.toString(10)), 3, "collateral doesn't have exactly three oracles");
+        await factory.removeOracle(collateralToken.address, newOracle.address);
+
+        tokenOracleCount = await factory.foreignTokenOracleCount(collateralToken.address);
+        assert.strictEqual(parseInt(tokenOracleCount.toString(10)), 2, "collateral doesn't have exactly two oracles");
+    });
+
     it("should transfer governance", async () => {
         let checkOwner;
         let newOwner = accounts[1];
@@ -187,7 +214,7 @@ contract("Factory", accounts => {
         assert.strictEqual(checkOwner, newOwner, "incorrect new factory ownership");
         await factory.transferOwnership(governance, { from: newOwner });
         checkOwner = await factory.owner();
-        assert.strictEqual(checkOwner, governance, "governance failed to recover factory ownership")        
+        assert.strictEqual(checkOwner, governance, "governance failed to recover factory ownership")
     });
 
     it("should guard governance functions", async () => {
@@ -222,7 +249,7 @@ contract("Factory", accounts => {
         memberToken = await MemberToken.deployed();
         collateralToken = await CollateralToken.deployed();
 
-        await factory.admitModule(oraclePegged.address, moduleType.oracle, oracleName, url);      
+        await factory.admitModule(oraclePegged.address, moduleType.oracle, oracleName, url);
 
         await factory.deployOneTokenProxy(
             oneTokenName,
@@ -239,6 +266,41 @@ contract("Factory", accounts => {
         let oneTokenCount = await factory.oneTokenCount();
 
         assert.strictEqual(parseInt(oneTokenCount.toString(10)), 2, "there are not exactly 2 oneTokens deployed");
+    });
+
+    it("should update foreign token", async () => {
+        let isCollateral;
+        let collateralTokenInfo;
+        
+        await factory.updateForeignToken(collateralToken.address, false);
+        collateralTokenInfo = await factory.foreignTokenInfo(collateralToken.address);
+        isCollateral = await oneToken.isCollateral(collateralToken.address);
+
+        assert.strictEqual(isCollateral, true, "collateralToken should remain a colateral for the oneToken");
+        assert.strictEqual(collateralTokenInfo["collateral"], false, "collateralToken should not be a collateral anymore (for future one tokens)");
+        
+        await factory.updateForeignToken(collateralToken.address, true);
+        collateralTokenInfo = await factory.foreignTokenInfo(collateralToken.address);
+        assert.strictEqual(collateralTokenInfo["collateral"], true, "collateralToken should be a collateral again (for future one tokens)");
+    });
+
+    it("should remove foreign token", async () => {
+        let msg1 = "OneTokenFactory, Set: unknown foreign token";
+        let isCollateral;
+
+        await factory.removeForeignToken(collateralToken.address);
+
+        isCollateral = await factory.isCollateral(collateralToken.address);
+        assert.strictEqual(isCollateral, false, "collateralToken should not be a collateral in the factory anymore");
+
+        numOracles = await factory.foreignTokenOracleCount(collateralToken.address);
+        assert.strictEqual(parseInt(numOracles.toString(10)), 0, "collateralToken should not have oracles anymore");
+        
+        isCollateral = await oneToken.isCollateral(collateralToken.address);
+        assert.strictEqual(isCollateral, true, "collateralToken should remain a colateral for the oneToken");
+
+        truffleAssert.reverts(factory.removeForeignToken(collateralToken.address), msg1);
+        truffleAssert.reverts(factory.updateForeignToken(collateralToken.address, true), msg1);
     });
 });
 
