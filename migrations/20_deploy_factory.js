@@ -1,4 +1,4 @@
-const 
+const
     Factory = artifacts.require("OneTokenFactory"),
     OneToken = artifacts.require("OneTokenV1"),
     ProxyAdmin = artifacts.require("OneTokenProxyAdmin"),
@@ -6,32 +6,25 @@ const
     MintMasterIncremental = artifacts.require("Incremental"),
     mintMasterDesc = "Basic Incremental MintMaster";
 
-var factory,
-    implementation,
-    proxyAdmin,
-    controllerNull,
-    mintMasterIncremental;
+module.exports = async () => {
+    const factory  = await Factory.new();
+    const oneToken  = await OneToken.new();
+    const proxyAdmin  = await ProxyAdmin.new();
+    const controllerNull  = await ControllerNull.new();
+    const mintMasterIncremental  = await MintMasterIncremental.new(mintMasterDesc);
 
-module.exports = async function (deployer, network, accounts) {
-    
-    await deployer.deploy(Factory);
-    await deployer.deploy(OneToken);
-    await deployer.deploy(ProxyAdmin);
-    await deployer.deploy(ControllerNull);
-    await deployer.deploy(MintMasterIncremental, mintMasterDesc);
+    Factory.setAsDeployed(factory);
+    OneToken.setAsDeployed(oneToken);
+    ProxyAdmin.setAsDeployed(proxyAdmin);
+    ControllerNull.setAsDeployed(controllerNull);
+    MintMasterIncremental.setAsDeployed(mintMasterIncremental);
 
-    factory = await Factory.deployed();
-    implementation = await OneToken.deployed();
-    proxyAdmin = await ProxyAdmin.deployed();
-    controllerNull = await ControllerNull.deployed();
-    mintMasterIncremental = await MintMasterIncremental.deployed();
-
-    console.log("*************************************************************");
-    console.log("* factory:", factory.address);
-    console.log("* implementation:", implementation.address);
-    console.log("* proxyAdmin:", proxyAdmin.address);
-    console.log("* controller, null:", controllerNull.address);
-    console.log("* mintmaster:", mintMasterIncremental.address);
-    console.log("*************************************************************");
+    // console.log("*************************************************************");
+    // console.log("* factory:", factory.address);
+    // console.log("* implementation:", oneToken.address);
+    // console.log("* proxyAdmin:", proxyAdmin.address);
+    // console.log("* controllerNull:", controllerNull.address);
+    // console.log("* mintmaster:", mintMasterIncremental.address);
+    // console.log("*************************************************************");
 
 };

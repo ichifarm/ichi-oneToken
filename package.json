@@ -6,7 +6,10 @@
   "scripts": {
     "build": "hardhat compile",
     "console": "hardhat console",
-    "test": "hardhat test --verbose",
+    "test": "hardhat test --deploy-fixture",
+    "test:oracleSimple": "yarn test test/uniswapOracleSimple.js",
+    "test:ichiPeggedOracle": "yarn test test/ichiPeggedOracle.js",
+    "test:ichiCompositeOracle": "yarn test test/ichiCompositeOracle.js",
     "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=2048\" hardhat coverage",
     "test:gas": "cross-env REPORT_GAS=true yarn test"
   },
@@ -21,18 +24,21 @@
   },
   "homepage": "https://github.com/ichifarm/ichi-oneToken#readme",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.1",
     "@nomiclabs/hardhat-solhint": "^2.0.0",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^3.4.0",
+    "@openzeppelin/test-helpers": "^0.5.10",
     "@tenderly/hardhat-tenderly": "^1.0.11",
-    "chai": "^4.3.3",
+    "chai": "^4.3.4",
+    "coveralls": "^3.1.0",
     "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "ethereum-waffle": "^3.3.0",
+    "ethers": "^5.1.0",
     "ganache-cli": "^6.12.2",
     "hardhat": "^2.1.1",
     "hardhat-abi-exporter": "^2.1.2",
@@ -43,10 +49,17 @@
     "hardhat-spdx-license-identifier": "^2.0.3",
     "hardhat-typechain": "^0.3.5",
     "hardhat-watcher": "^2.1.1",
+    "serve": "^11.3.2",
+    "solc-0.7.6": "npm:solc@^0.7.6",
     "solidity-coverage": "^0.7.16",
+    "solidity-docgen": "^0.5.11",
     "truffle": "^5.1.65",
     "truffle-assertions": "^0.9.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@remix-project/remixd": "^0.3.2",
+    "develop": "^1.0.0"
   }
 }

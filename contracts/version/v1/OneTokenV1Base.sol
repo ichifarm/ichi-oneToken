@@ -38,15 +38,16 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     event ControllerChanged(address sender, address controller);
     event MintMasterChanged(address sender, address mintMaster);
     event OracleChanged(address sender, address oracle);
-    event StrategySet(address sender, address token, address strategy, uint allowance); 
-    event StrategyRemoved(address sender, address token, address strategy);  
-    event StrategyClosed(address sender, address token, address strategy, bool success); 
+    event StrategySet(address sender, address token, address strategy, uint allowance);
+    event StrategyRemoved(address sender, address token, address strategy);
+    event StrategyClosed(address sender, address token, address strategy, bool success);
     event ToStrategy(address sender, address strategy, address token, uint amount);
-    event FromStrategy(address sender, address strategy, address token, uint amount);  
+    event FromStrategy(address sender, address strategy, address token, uint amount);
     event StrategyAllowanceSet(address sender, address token, address strategy, uint amount);
     event Recovered(address from, address token, uint amount);
     event AssetAdded(address sender, address token, address oracle);
     event AssetRemoved(address sender, address token);
+    event NewFactory(address sender, address factory);
 
     modifier onlyOwnerOrController {
         if(msg.sender != owner()) {
@@ -70,17 +71,17 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         string memory name_,
         string memory symbol_,
         address oneTokenOracle_,
-        address controller_, 
-        address mintMaster_, 
-        address memberToken_, 
+        address controller_,
+        address mintMaster_,
+        address memberToken_,
         address collateral_
-    ) 
-        external 
-        initializer 
-        override 
+    )
+        external
+        initializer
+        override
     {
         initOwnable();
-        factory = msg.sender; 
+        factory = msg.sender;
         initERC20(name_, symbol_); // decimals is always 18
 
         // no null properties
@@ -92,8 +93,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(IOneTokenFactory(factory).isValidModuleType(controller_, ModuleType.Controller), "OneTokenV1Base: unknown controller");
         require(IOneTokenFactory(factory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OneTokenV1Base: unknown mint master");
         require(IOneTokenFactory(factory).isForeignToken(memberToken_), "OneTokenV1Base: unknown member token");
-        require(IOneTokenFactory(factory).isCollateral(collateral_), "OneTokenV1Base: unknown collateral token"); 
-        
+        require(IOneTokenFactory(factory).isCollateral(collateral_), "OneTokenV1Base: unknown collateral token");
+
         // register the modules
         controller = controller_;
         mintMaster = mintMaster_;
@@ -113,7 +114,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
         // default to the first known oracles for the memberToken and collateralToken
         // oracle selection can be changed with changeOracle
-        
+
         mt.oracle = IOneTokenFactory(factory).foreignTokenOracleAtIndex(memberToken_, 0);
         ct.oracle = IOneTokenFactory(factory).foreignTokenOracleAtIndex(collateral_, 0);
 
@@ -132,7 +133,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         IOracle(ct.oracle).update(collateral_);
 
         // transfer oneToken governance to the deployer
-        
+
         _transferOwnership(msg.sender);
         emit Initialized(msg.sender, name_, symbol_, controller_, mintMaster_, memberToken_, collateral_);
     }
@@ -155,8 +156,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(IOneTokenFactory(factory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OneTokenV1Base: unknown mintMaster");
         IMintMaster(mintMaster_).init();
         mintMaster = mintMaster_;
-        emit MintMasterChanged(msg.sender, mintMaster_);        
-    }       
+        emit MintMasterChanged(msg.sender, mintMaster_);
+    }
 
     /**
      @notice governance can add an asset
@@ -205,16 +206,16 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param allowance ERC20 allowance sets a limit on funds to transfer to the strategy
      */
     function setStrategy(address token, address strategy, uint allowance) external onlyOwner override {
-        
+
         require(assetSet.exists(token), "OneTokenV1Base: unknown token");
         require(IOneTokenFactory(factory).isModule(strategy), "OneTokenV1Base: strategy is not registered with the factory");
         require(IOneTokenFactory(factory).isValidModuleType(strategy, ModuleType.Strategy), "OneTokenV1Base: unknown strategy");
         require(IStrategy(strategy).oneToken() == address(this), "OneTokenV1Base: cannot assign strategy that doesn't recognize this vault");
         require(IStrategy(strategy).owner() == owner(), "OneTokenV1Base: unknown strategy owner");
-        
+
         // close the old strategy, may not be possible to recover all funds, e.g. locked tokens
         // the old strategy continues to respect oneToken goverancea and controller for manual token recovery
-    
+
         Asset storage a = assets[token];
         closeStrategy(token);
 
@@ -223,7 +224,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         IStrategy(strategy).setAllowance(token, INFINITE);
 
         // appoint the new strategy
-        a.strategy = strategy;      
+        a.strategy = strategy;
         emit StrategySet(msg.sender, token, strategy, allowance);
     }
 
@@ -241,10 +242,10 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice governance can close a strategy and return funds to the vault
-     @dev strategy remains assigned the asset with allowance set to 0. 
+     @dev strategy remains assigned the asset with allowance set to 0.
        Emits positionsClosed: false if strategy reports < 100% funds recovery, e.g. funds are locked elsewhere.
      @param token ERC20 asset with a strategy to close. Sweeps all registered assets.
-     */ 
+     */
 
     function closeStrategy(address token) public override onlyOwnerOrController {
         require(assetSet.exists(token), "OneTokenV1Base::closeStrategy: unknown token");
@@ -252,7 +253,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         address oldStrategy = a.strategy;
         if(oldStrategy != NULL_ADDRESS) {
             IStrategy s = IStrategy(a.strategy);
-            bool positionsClosed = s.closeAllPositions(); 
+            bool positionsClosed = s.closeAllPositions();
             emit StrategyClosed(msg.sender, token, oldStrategy, positionsClosed);
         } else {
             emit StrategyClosed(msg.sender, token, oldStrategy, false);
@@ -265,7 +266,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param strategy receiving address must match the assigned strategy
      @param token ERC20 asset
      @param amount amount to send
-     */ 
+     */
     function toStrategy(address strategy, address token, uint amount) external onlyOwnerOrController {
         Asset storage a = assets[token];
         require(a.strategy == strategy, "OneTokenV1Base: not the token strategy");
@@ -275,12 +276,12 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice governance can transfer assets from the strategy to this vault
-     @dev funds are normally pushed from strategy. This is an alternative in case of an errant strategy. 
+     @dev funds are normally pushed from strategy. This is an alternative in case of an errant strategy.
        Relies on allowance that is usually set to infinite when the strategy is assigned
      @param strategy receiving address must match the assigned strategy
      @param token ERC20 asset
      @param amount amount to draw from the strategy
-     */ 
+     */
     function fromStrategy(address strategy, address token, uint amount) external onlyOwnerOrController {
         Asset storage a = assets[token];
         require(a.strategy == strategy, "OneTokenV1Base: not the token strategy");
@@ -293,19 +294,19 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @dev Requires allowance granted by the strategy
      @param from sender address, usually a strategy
      @param token ERC20 asset to transfer
-     @param amount amount to draw from the strategy, relies on an allowance    
-     */ 
+     @param amount amount to draw from the strategy, relies on an allowance
+     */
     function recoverFunds(address from, address token, uint amount) external override onlyOwner {
         ICHIERC20Burnable(token).transferFrom(from, address(this), amount);
         emit Recovered(from, token, amount);
     }
-    
+
     /**
      @notice governance can set an allowance for a token strategy
-     @dev computes the net allowance, current holdings - new allowance
+     @dev computes the net allowance, new allowance - current holdings
      @param token ERC20 asset
-     @param amount amount to draw from the strategy     
-     */   
+     @param amount amount to draw from the strategy
+     */
     function setStrategyAllowance(address token, uint amount) public onlyOwnerOrController override {
         Asset storage a = assets[token];
         address strategy = a.strategy;
@@ -316,7 +317,18 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
             IERC20(token).approve(strategy, 0);
         }
         emit StrategyAllowanceSet(msg.sender, token, strategy, amount);
-    }    
+    }
+
+    /**
+     @notice adopt a new factory
+     @dev accomodates factory upgrades
+     @param newFactory address of the new factory
+     */
+    function setFactory(address newFactory) external override onlyOwner {
+        require(IOneTokenFactory(newFactory).MODULE_TYPE() == COMPONENT_FACTORY, "OneTokenV1Base: proposed factory does not emit factory fingerprint");
+        factory = newFactory;
+        emit NewFactory(msg.sender, newFactory);
+    }
 
     /**
      * View functions
@@ -329,7 +341,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         IERC20 asset = IERC20(token);
         inVault = asset.balanceOf(address(this));
         inStrategy = asset.balanceOf(assets[token].strategy);
-    } 
+    }
 
     /**point
      @notice returns the number of acceptable collateral token contracts
@@ -348,7 +360,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**
      @notice returns true if the token contract is recognized collateral
      */
-    function isCollateral(address token) external view override returns(bool) {
+    function isCollateral(address token) public view override returns(bool) {
         return collateralTokenSet.exists(token);
     }
 
@@ -364,14 +376,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function otherTokenAtIndex(uint index) external view override returns(address) {
         return otherTokenSet.keyAtIndex(index);
-    } 
+    }
 
     /**
      @notice returns true if the token contract is registered and is not collateral
      */
     function isOtherToken(address token) external view override returns(bool) {
         return otherTokenSet.exists(token);
-    } 
+    }
 
     /**
      @notice returns the sum of collateral and non-collateral ERC20 token contracts
@@ -385,7 +397,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function assetAtIndex(uint index) external view override returns(address) {
         return assetSet.keyAtIndex(index);
-    } 
+    }
 
     /**
      @notice returns true if the token contract is a registered asset of either type

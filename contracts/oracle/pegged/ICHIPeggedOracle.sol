@@ -6,17 +6,16 @@ import "../OracleCommon.sol";
 import "../../interface/IERC20Extended.sol";
 
 /**
- * @notice Separate ownable instances can be managed by separate governing authorities.
- * Immutable windowSize and granularity changes require a new oracle contract. 
+ @notice Returns 1:1 in all cases for any pair and any observer. No governable functions. 
  */
 
 contract ICHIPeggedOracle is IOracle, OracleCommon {
 
     event Deployed(address sender);
     event Initialized(address sender, address baseToken, address indexToken);
-    
-    constructor(string memory description, address indexToken_) 
-        OracleCommon(description, indexToken_) 
+
+    constructor(string memory description, address indexToken_)
+        OracleCommon(description, indexToken_)
     {
         emit Deployed(msg.sender);
     }
@@ -25,19 +24,17 @@ contract ICHIPeggedOracle is IOracle, OracleCommon {
      @notice intialization is called when a oneToken appoints an Oracle
      @dev there is nothing to do in this case
      */
-    function init(address baseToken) external override {
-        _initOracle(baseToken);
-    }
+    function init(address /* baseToken */) external override {}
 
     /**
      @notice update is called when a oneToken wants to persist observations
      @dev there is nothing to do in this case
      */
-    function update(address token) external override {}
+    function update(address /* token */) external override {}
 
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
-     @dev token:usdToken is always 1:1 and valatility is always 0
+     @dev token:usdToken is always 1:1 and volatility is always 0
      */
     function read(address /* token */, uint amount) public view override returns(uint amountOut, uint volatility) {
         /// @notice it is always 1:1 with no volatility
@@ -48,12 +45,12 @@ contract ICHIPeggedOracle is IOracle, OracleCommon {
 
     /**
      @notice returns the tokens needed to reach a target usd value
-     @dev token:usdToken is always 1:1 and valatility is always 0
+     @dev token:usdToken is always 1:1 and volatility is always 0
      */
     function amountRequired(address /* token */, uint amountUsd) external view override returns(uint tokens, uint volatility) {
         /// @notice it is always 1:1 with no volatility
-        this; // silence visbility warning
+        this; // silence mutability warning
         tokens = amountUsd;
-        volatility = 0;      
+        volatility = 0;
     }
 }

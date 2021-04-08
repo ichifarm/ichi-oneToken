@@ -5,6 +5,6 @@ pragma abicoder v2;
 
 interface InterfaceCommon {
 
-    enum ModuleType { Version, Controller, Strategy, MintMaster, Oracle, VoterRoll }
+    enum ModuleType { Version, Controller, Strategy, MintMaster, Oracle }
 
 }

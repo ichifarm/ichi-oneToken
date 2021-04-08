@@ -66,8 +66,8 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @notice closes all positions and returns the funds to the oneToken vault
      @dev override this function to withdraw funds from external contracts. Return false if any funds are unrecovered.
      */  
-    function closeAllPositions() external virtual /* tokenOwnerOrController */ override returns(bool success) {
-        return true; // _closeAllPositions();
+    function closeAllPositions() external virtual tokenOwnerOrController override returns(bool success) {
+        success = _closeAllPositions();
     }
 
     /**
@@ -77,19 +77,21 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     function _closeAllPositions() internal virtual returns(bool success) {
         uint assetCount;
         uint strategyBalance;
+        success = true;
         assetCount = IOneTokenV1Base(oneToken).assetCount();
         for(uint i=0; i < assetCount; i++) {
             address thisAsset = IOneTokenV1Base(oneToken).assetAtIndex(i);
+            // this naive process returns funds on hand. 
+            // override this to explicitly close external positions and return false if 1 or more positions cannot be closed at this time.
             strategyBalance = IERC20(thisAsset).balanceOf(address(this));
             if(strategyBalance > 0) {
                 _toVault(thisAsset, strategyBalance); 
             }
         }
-        return true;
     }
 
     /**
-     @notice let's the controller oneToken instance send funds to the oneToken vault 
+     @notice let's the oneToken controller instance send funds to the oneToken vault 
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
@@ -106,4 +108,23 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
         IERC20(token).transfer(oneToken, amount);
         emit ToVault(msg.sender, token, amount); 
     }
+
+    /**
+     @notice let's the oneToken controller instance draw funds from the oneToken vault allowance 
+     @param token the ecr20 token to send
+     @param amount the amount of tokens to send
+     */
+    function fromVault(address token, uint amount) external tokenOwnerOrController override {
+        _fromVault(token, amount);
+    }
+
+    /**
+     @notice draw funds from the oneToken vault 
+     @param token the ecr20 token to send
+     @param amount the amount of tokens to send
+     */
+    function _fromVault(address token, uint amount) internal {
+        IERC20(token).transferFrom(oneToken, address(this), amount);
+        emit FromVault(msg.sender, token, amount); 
+    }    
 }

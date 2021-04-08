@@ -25,9 +25,4 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
         emit OracleDeployed(msg.sender, description_, indexToken_);
     }
 
-    /**
-     @notice oracles have no common initialization requirments
-     @dev this is written explicitly for consistency of structure
-     */
-    function _initOracle(address token) internal {}
 }

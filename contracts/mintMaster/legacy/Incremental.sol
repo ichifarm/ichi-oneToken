@@ -29,7 +29,7 @@ contract Incremental is MintMasterCommon {
     event Deployed(address sender, string description);
     event Initialized(address sender, address oneTokenOracle);
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
-    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint initialRatio);
+    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio);
     event UpdateMintingRatio(address sender, uint volatility, uint newRatio, uint maxOrderVolume);
     event StepSizeSet(address sender, uint stepSize);
     event MinRatioSet(address sender, uint minRatio);
@@ -43,13 +43,13 @@ contract Incremental is MintMasterCommon {
     }
 
     /**
-     @notice initializes the common interface 
-     @dev A single instance can be shared by n oneToken implementations. Initialize from each instance. 
+     @notice initializes the common interface with parameters managed by msg.sender, usually a oneToken.
+     @dev A single instance can be shared by n oneToken implementations. Initialize from each instance. Re-initialization is acceptabe.
      @param oneTokenOracle gets the exchange rate of the oneToken
      */
     function init(address oneTokenOracle) external override {
         _setParams(msg.sender, DEFAULT_RATIO, DEFAULT_RATIO, DEFAULT_STEP_SIZE, DEFAULT_RATIO);
-        _initMintMaster(oneTokenOracle);
+        _initMintMaster(msg.sender, oneTokenOracle);
         emit Initialized(msg.sender, oneTokenOracle);
    
     }
@@ -61,7 +61,7 @@ contract Incremental is MintMasterCommon {
      @param oracle oracle contract must be registered in the factory
      */
     function changeOracle(address oneToken, address oracle) external onlyTokenOwner(oneToken) {
-        _initMintMaster(oracle);
+        _initMintMaster(oneToken, oracle);
         emit OneTokenOracleChanged(msg.sender, oneToken, oracle);
     }
 
@@ -71,7 +71,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken token context for parameters
      @param minRatio minimum minting ratio that will be set
      @param maxRatio maximum minting ratio that will be set
-     @param stepSize adjustment size interation
+     @param stepSize adjustment size iteration
      @param initialRatio unadjusted starting minting ratio
      */
     function setParams(
@@ -96,9 +96,9 @@ contract Incremental is MintMasterCommon {
     ) 
         private
     {
-        Parameters storage p = parameters[msg.sender];
+        Parameters storage p = parameters[oneToken];
         require(minRatio <= maxRatio, "Incremental: minRatio must be <= maxRatio");
-        require(maxRatio <= PRECISION * 100, "Incremental: maxRatio must be <= 100, 18 decimals");
+        require(maxRatio <= PRECISION, "Incremental: maxRatio must be <= 10 ** 18");
         // Can be zero to prevent movement
         // require(stepSize > 0, "Incremental: stepSize must be > 0");
         require(stepSize < maxRatio - minRatio || stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
@@ -109,7 +109,7 @@ contract Incremental is MintMasterCommon {
         p.stepSize = stepSize;
         p.lastRatio = initialRatio;
         p.set = true;
-        emit SetParams(msg.sender, oneToken, minRatio, maxRatio, initialRatio);
+        emit SetParams(msg.sender, oneToken, minRatio, maxRatio, stepSize, initialRatio);
     }
  
     /**
@@ -121,24 +121,33 @@ contract Incremental is MintMasterCommon {
     }
 
     /**
-     @notice returns an adjusted minting ratio
-     @dev anyone calls this to inspect any oneToken minting ratio
+     @notice returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
+     @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
      @param oneToken oneToken implementation to inspect
      */    
-    function getMintingRatio(address oneToken) public view override returns(uint ratio, uint maxOrderVolume) {       
+    function getMintingRatio(address oneToken) public view override returns(uint ratio, uint maxOrderValue) {
+        address oracle = oneTokenOracles[oneToken];
+        return getMintingRatio(oneToken, oracle);
+    }
+
+    /**
+     @notice returns an adjusted minting ratio
+     @dev anyone calls this to inspect any oneToken minting ratio based on an arbitry oracle
+     @param oneToken oneToken implementation to inspect
+     @param oracle explicit oracle selection
+     */   
+    function getMintingRatio(address oneToken, address oracle) public view override returns(uint ratio, uint maxOrderVolume) {       
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
-        address o = oneTokenOracles[oneToken];
-        (uint quote, /* uint volatility */ ) = IOracle(o).read(oneToken, PRECISION);
+        (uint quote, /* uint volatility */ ) = IOracle(oracle).read(oneToken, PRECISION);
+        ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, INFINITE);
-        ratio = p.lastRatio;
         uint stepSize = p.stepSize;
-        uint lastRatio = p.lastRatio;
         maxOrderVolume = INFINITE;
         if(quote < PRECISION && ratio + stepSize <= p.maxRatio) {
             ratio += stepSize;
         }
-        if(quote > PRECISION && lastRatio - stepSize >= p.minRatio) {
+        if(quote > PRECISION && ratio - stepSize >= p.minRatio) {
             ratio -= stepSize;
         }
     }
@@ -150,13 +159,6 @@ contract Incremental is MintMasterCommon {
     function updateMintingRatio() external override returns(uint ratio, uint maxOrderVolume) {
         return _updateMintingRatio(msg.sender);
     }
-
-    /**
-     @dev disabled by design for security reasons    
-    function updateMintingRatio(address oneToken) external onlyTokenOwner(oneToken) override returns(uint ratio, uint maxOrderVolume) {
-        return _updateMintingRatio(oneToken);
-    }
-     */
 
     /**
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
@@ -234,8 +236,6 @@ contract Incremental is MintMasterCommon {
         require(ratio >= p.minRatio, "Incremental: ratio must be >= minRatio");
         require(ratio <= p.maxRatio, "Incremental: ratio must be <= maxRatio");
         p.lastRatio = ratio;
-        if(p.maxRatio < ratio) setMaxRatio(oneToken, ratio);
-        if(p.minRatio > ratio) setMinRatio(oneToken, ratio);
         emit RatioSet(msg.sender, ratio);
     }
 }

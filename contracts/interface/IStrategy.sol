@@ -8,6 +8,7 @@ interface IStrategy is IModule {
     
     function setAllowance(address token, uint amount) external;
     function toVault(address token, uint amount) external;
+    function fromVault(address token, uint amount) external;
     function closeAllPositions() external returns(bool);
     function oneToken() external view returns(address);
 }
