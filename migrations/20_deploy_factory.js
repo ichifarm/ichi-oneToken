@@ -10,8 +10,8 @@ module.exports = async () => {
     const factory  = await Factory.new();
     const oneToken  = await OneToken.new();
     const proxyAdmin  = await ProxyAdmin.new();
-    const controllerNull  = await ControllerNull.new();
-    const mintMasterIncremental  = await MintMasterIncremental.new(mintMasterDesc);
+    const controllerNull  = await ControllerNull.new(factory.address);
+    const mintMasterIncremental  = await MintMasterIncremental.new(factory.address, mintMasterDesc);
 
     Factory.setAsDeployed(factory);
     OneToken.setAsDeployed(oneToken);

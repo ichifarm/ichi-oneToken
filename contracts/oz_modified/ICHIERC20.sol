@@ -60,7 +60,7 @@ contract ICHIERC20 is IERC20, Context, ICHIInitializable {
     /**
      * @dev this constructor is ineffective in proxy deployment. Use init().
      */
-    
+
     /*
     constructor (string memory name_, string memory symbol_) {
         _name = name_;

@@ -5,7 +5,7 @@
 
 
 
-### `init()` (external)
+### `oneTokenFactory() → address` (external)
 
 
 

@@ -6,6 +6,7 @@ import "./IModule.sol";
 
 interface IMintMaster is IModule {
     
+    function oneTokenOracles(address) external view returns(address);
     function init(address oneTokenOracle) external;
     function updateMintingRatio() external returns(uint ratio, uint maxOrderVolume);
     function getMintingRatio() external view returns(uint ratio, uint maxOrderVolume);

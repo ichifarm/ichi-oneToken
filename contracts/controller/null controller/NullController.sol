@@ -12,4 +12,8 @@ contract NullController is ControllerCommon {
      @dev the controller implementation can be extended but must implement the minimum interface
      */
 
+    constructor(address oneTokenFactory_)
+       ControllerCommon(oneTokenFactory_, "Null Controller")
+     {} 
+
 }

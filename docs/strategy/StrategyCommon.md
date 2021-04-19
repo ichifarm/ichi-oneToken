@@ -4,14 +4,20 @@
 
 
 
-### `tokenOwnerOrController()`
+### `onlyToken()`
+
+
+
+
+
+### `strategyOwnerTokenOrController()`
 
 
 
 oneToken governance has privileges that may be delegated to a controller
 
 
-### `constructor(address oneToken_, string description)` (internal)
+### `constructor(address oneTokenFactory_, address oneToken_, string description)` (internal)
 
 a strategy is dedicated to exactly one oneToken instance
      @param oneToken_ bind this instance to one oneToken vault
@@ -21,7 +27,14 @@ a strategy is dedicated to exactly one oneToken instance
 
 ### `init()` (external)
 
+a strategy is dedicated to exactly one oneToken instance and must be re-initializable
 
+
+
+### `execute()` (external)
+
+a controller invokes execute() to trigger logic within the strategy.
+     @dev called from oneToken governance or the active controller
 
 
 
@@ -50,7 +63,7 @@ closes all positions and returns the funds to the oneToken vault
 
 ### `toVault(address token, uint256 amount)` (external)
 
-let's the controller oneToken instance send funds to the oneToken vault 
+let's the oneToken controller instance send funds to the oneToken vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
 
@@ -58,20 +71,42 @@ let's the controller oneToken instance send funds to the oneToken vault
 
 ### `_toVault(address token, uint256 amount)` (internal)
 
-send funds to the oneToken vault 
+send funds to the oneToken vault
+     @param token the ecr20 token to send
+     @param amount the amount of tokens to send
+
+
+
+### `fromVault(address token, uint256 amount)` (external)
+
+let's the oneToken controller instance draw funds from the oneToken vault allowance
+     @param token the ecr20 token to send
+     @param amount the amount of tokens to send
+
+
+
+### `_fromVault(address token, uint256 amount)` (internal)
+
+draw funds from the oneToken vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
 
 
 
 
-### `Deployed(address sender)`
+### `StrategyDeployed(address sender)`
 
 
 
 
 
-### `Initialized(address sender)`
+### `StrategyInitialized(address sender)`
+
+
+
+
+
+### `StrategyExecuted(address sender, address token)`
 
 
 

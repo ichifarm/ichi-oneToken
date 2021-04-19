@@ -1,15 +1,20 @@
 const { assert } = require("chai");
 const truffleAssert = require('truffle-assertions');
+const { expectEvent } = require("@openzeppelin/test-helpers");
+const { artifacts } = require("hardhat");
 
 const
     OneToken = artifacts.require("OneTokenV1"),
     Factory = artifacts.require("OneTokenFactory"),
     ControllerNull = artifacts.require("NullController"),
+    ControllerCommon = artifacts.require("ControllerCommon"),
     MintMasterIncremental = artifacts.require("Incremental"),
+    MintMasterCommon = artifacts.require("MintMasterCommon"),
     OraclePegged = artifacts.require("ICHIPeggedOracle"),
     MemberToken = artifacts.require("MemberToken"),
     CollateralToken = artifacts.require("CollateralToken"),
     NullStrategy = artifacts.require("NullStrategy"),
+    OneTokenProxyAdmin = artifacts.require("OneTokenProxyAdmin"),
     IERC20Extended = artifacts.require("IERC20Extended");
 
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -60,7 +65,7 @@ contract("OneToken V1 Base", accounts => {
     });
 
     it("should know the oneToken factory", async () => {
-        let f = await oneToken.factory();
+        let f = await oneToken.oneTokenFactory();
         assert.strictEqual(f, factory.address, "the factory address is unknown");
     });
 
@@ -108,18 +113,61 @@ contract("OneToken V1 Base", accounts => {
 
     });
 
+    it("should trasfer governance", async () => {
+        let checkOwner;
+        let proxyAdminAddress;
+        let proxyAdmin;
+        let proxyAdminOwner;
+        let newOwner = accounts[1];
+
+        proxyAdminAddress = await factory.oneTokenProxyAdmins(oneToken.address);
+        proxyAdmin = await OneTokenProxyAdmin.at(proxyAdminAddress);
+
+        // set new governance
+        checkOwner = await oneToken.owner();
+        assert.strictEqual(checkOwner, governance, "incorrect oneToken ownership")
+        await oneToken.transferOwnership(newOwner);
+        checkOwner = await oneToken.owner();
+        assert.strictEqual(checkOwner, newOwner, "incorrect new oneToken ownership");
+
+        proxyAdminOwner = await proxyAdmin.owner();
+        assert.strictEqual(proxyAdminOwner, governance, "incorrect proxyAdmin ownership")
+        await proxyAdmin.transferOwnership(newOwner);
+        proxyAdminOwner = await proxyAdmin.owner();
+        assert.strictEqual(proxyAdminOwner, newOwner, "incorrect new proxyAdmin ownership");
+
+        // restore old governance 
+        await proxyAdmin.transferOwnership(governance, { from: newOwner });
+        proxyAdminOwner = await proxyAdmin.owner();
+        assert.strictEqual(proxyAdminOwner, governance, "governance failed to recover proxyAdmin ownership")
+
+        await oneToken.transferOwnership(governance, { from: newOwner });
+        checkOwner = await oneToken.owner();
+        assert.strictEqual(checkOwner, governance, "governance failed to recover oneToken ownership")
+    });
+
     it("should allow a change of controller", async () => {
 
         msg1 = "ICHIOwnable: caller is not the owner";
         msg2 = "OneTokenV1Base: controller is not registered in the factory";
         msg3 = "OneTokenV1Base: unknown controller";
 
-        await oneToken.changeController(controller.address, { from: governance });
+        let tx = await oneToken.changeController(controller.address, { from: governance });
         await truffleAssert.reverts(oneToken.changeController(badAddress, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.changeController(badAddress, { from: governance }), msg2);
         await truffleAssert.reverts(oneToken.changeController(mintMaster.address, { from: governance }), msg3);
         let c = await oneToken.controller();
         assert.strictEqual(c, controller.address, "controller is not set");
+
+        expectEvent(tx, 'ControllerChanged', {
+			sender: governance,
+			controller: controller.address
+		})
+
+        // test event from ControllerCommon
+		expectEvent.inTransaction(tx.tx, ControllerCommon, 'ControllerInitialized', {
+			sender: oneToken.address
+		})
     });
 
     it("should allow a change of factory", async () => {
@@ -127,7 +175,7 @@ contract("OneToken V1 Base", accounts => {
         msg1 = "ICHIOwnable: caller is not the owner";
         msg2 = "OneTokenV1Base: proposed factory does not emit factory fingerprint";
 
-        await oneToken.setFactory(factory.address, { from: governance });
+        let tx = await oneToken.setFactory(factory.address, { from: governance });
         await truffleAssert.reverts(
             oneToken.setFactory(badAddress, { from: badAddress }), msg1);
         await truffleAssert.reverts(
@@ -135,31 +183,57 @@ contract("OneToken V1 Base", accounts => {
         await truffleAssert.reverts(
             oneToken.setFactory(badAddress, { from: governance }), ""); // reverts without reason
 
-        // this one is expected to fail with "reverted without a reason"
-        /*
-        try {
-            await oneToken.setFactory(badAddress, { from: governance });
-        } catch (e) {
-            console.log("Expected Error = "+ e);
-        }
-        */
-        
-        let f = await oneToken.factory();
+        let f = await oneToken.oneTokenFactory();
         assert.strictEqual(f, factory.address, "factory is not set");
+
+        expectEvent(tx, 'NewFactory', {
+			sender: governance,
+			factory: factory.address
+		})
     });
 
     it("should allow a change of mintMaster", async () => {
 
-        let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OneTokenV1Base: mintMaster is not registered in the factory";
-        let msg3 = "OneTokenV1Base: unknown mintMaster";
+        let msg1 = "ICHIOwnable: caller is not the owner",
+            msg2 = "OneTokenV1Base: mintMaster is not registered in the factory",
+            msg3 = "OneTokenV1Base: unknown mintMaster",
+            msg4 = "OneTokenV1Base: unregistered oneToken Oracle";
 
-        await oneToken.changeMintMaster(mintMaster.address, { from: governance });
-        await truffleAssert.reverts(oneToken.changeMintMaster(badAddress, { from: badAddress }), msg1);
-        await truffleAssert.reverts( oneToken.changeMintMaster(badAddress, { from: governance }), msg2);
-        await truffleAssert.reverts(oneToken.changeMintMaster(controller.address, { from: governance }), msg3);
+        //await factory.assignOracle(oneToken.address, oracle.address);
+        let tx = await oneToken.changeMintMaster(mintMaster.address, oracle.address, { from: governance });
+        await truffleAssert.reverts(oneToken.changeMintMaster(badAddress, oracle.address, { from: badAddress }), msg1);
+        await truffleAssert.reverts(oneToken.changeMintMaster(badAddress, oracle.address, { from: governance }), msg2);
+        await truffleAssert.reverts(oneToken.changeMintMaster(controller.address, oracle.address, { from: governance }), msg3);
+        await truffleAssert.reverts(oneToken.changeMintMaster(mintMaster.address, badAddress, { from: governance }), msg4);
         let m = await oneToken.mintMaster();
         assert.strictEqual(m, mintMaster.address, "mintMaster is not set");
+
+        expectEvent(tx, 'MintMasterChanged', {
+			sender: governance,
+			mintMaster: mintMaster.address
+		})
+
+        // test event from MintMasterCommon
+		expectEvent.inTransaction(tx.tx, MintMasterCommon, 'MintMasterInitialized', {
+			sender: oneToken.address,
+			oneToken: oneToken.address,
+			oneTokenOracle: oracle.address
+		})
+
+        const newMintMaster = await MintMasterIncremental.new(factory.address, "new mint master");
+
+        expectEvent.inConstruction(newMintMaster, 'MintMasterDeployed', {
+			sender: governance,
+			description: "new mint master"
+		})
+
+        await factory.admitModule(newMintMaster.address, moduleType.mintMaster, "new mint master", "#")
+        tx = await oneToken.changeMintMaster(newMintMaster.address, oracle.address, { from: governance });
+
+        expectEvent(tx, 'MintMasterChanged', {
+			sender: governance,
+			mintMaster: newMintMaster.address
+		})
     });
 
     it("should permit adding an asset", async () => {
@@ -172,7 +246,14 @@ contract("OneToken V1 Base", accounts => {
         let newToken = await CollateralToken.new();
 
         // register in the factory via factory governance
-        await factory.admitForeignToken(newToken.address, true, oracle.address);
+        let tx = await factory.admitForeignToken(newToken.address, true, oracle.address);
+
+        expectEvent(tx, 'ForeignTokenAdmitted', {
+			sender: governance,
+			foreignToken: newToken.address,
+            isCollateral: true,
+            oracle: oracle.address
+		})
 
         // guards
         await truffleAssert.reverts(oneToken.addAsset(newToken.address, oracle.address, { from: badAddress }), msg1);
@@ -181,7 +262,7 @@ contract("OneToken V1 Base", accounts => {
         await truffleAssert.reverts(oneToken.addAsset(collateralToken.address, oracle.address, { from: governance }), msg3);
 
         // admit the asset
-        await oneToken.addAsset(newToken.address, oracle.address);
+        tx = await oneToken.addAsset(newToken.address, oracle.address);
 
         let assetCount = await oneToken.assetCount();
         assert.strictEqual(parseInt(assetCount.toString(10)), 3, "there are not exactly three assets");
@@ -191,6 +272,12 @@ contract("OneToken V1 Base", accounts => {
 
         let assetAtIndex = await oneToken.assetAtIndex(assetCount-1);
         assert.strictEqual(newToken.address, assetAtIndex, "last asset in the set should match the last one added");
+
+        expectEvent(tx, 'AssetAdded', {
+			sender: governance,
+            token: newToken.address,
+			oracle: oracle.address
+		})
     });
 
     it("should permit removing an asset", async () => {
@@ -210,11 +297,16 @@ contract("OneToken V1 Base", accounts => {
         // remove collateral token    
         beforeCount = await oneToken.assetCount();
         beforeCount = parseInt(beforeCount.toString(10));
-        await oneToken.removeAsset(collateralToken.address, { from: governance });
+        let tx = await oneToken.removeAsset(collateralToken.address, { from: governance });
         newCount = await oneToken.assetCount();
         newCount = parseInt(newCount.toString(10));
         delta = beforeCount - newCount;
         assert.strictEqual(delta, 1, "there is not one less asset");
+
+        expectEvent(tx, 'AssetRemoved', {
+			sender: governance,
+            token: collateralToken.address
+		})
 
         // remove other token
         beforeCount = newCount;
@@ -311,7 +403,8 @@ contract("OneToken V1 Base", accounts => {
             allowance = "10",
             amount = "1000",
             half = "500",
-            strategy = await NullStrategy.new(oneToken.address, strategyName),
+            factory = await Factory.deployed(),
+            strategy = await NullStrategy.new(factory.address, oneToken.address, strategyName),
             collateral = await oneToken.collateralTokenAtIndex(0),
             erc20Collateral = await IERC20Extended.at(collateral);
 
@@ -328,7 +421,6 @@ contract("OneToken V1 Base", accounts => {
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");
 
         // access control
-        await truffleAssert.reverts(oneToken.recoverFunds(strategy.address, collateral, half, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, strategy.address, allowance, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(badAddress, strategy.address, allowance, { from: governance }), msg2);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, badAddress, allowance, { from: governance }), msg3);
@@ -348,51 +440,91 @@ contract("OneToken V1 Base", accounts => {
         )
         let oneTokenAddress_2 = await factory.oneTokenAtIndex(1);
         let oneToken_2 = await OneToken.at(oneTokenAddress_2);
-        let wrongTokenStrategy = await NullStrategy.new(oneToken_2.address, "strategy with wrong token");
+        let wrongTokenStrategy = await NullStrategy.new(factory.address, oneToken_2.address, "strategy with wrong token");
         await factory.admitModule(wrongTokenStrategy.address, moduleType.strategy, "strategy with wrong token", "url");
         await truffleAssert.reverts(oneToken.setStrategy(collateral, wrongTokenStrategy.address, allowance, { from: governance }), msg5);
         // end of msg5 pre-condition check
 
         // more access control
-        let wrongOwnerStrategy = await NullStrategy.new(oneToken.address, "strategy with wrong owner", { from: bob });
+        let wrongOwnerStrategy = await NullStrategy.new(factory.address, oneToken.address, "strategy with wrong owner", { from: bob });
         await factory.admitModule(wrongOwnerStrategy.address, moduleType.strategy, "strategy with wrong owner", "url");
         await truffleAssert.reverts(oneToken.setStrategy(collateral, wrongOwnerStrategy.address, allowance, { from: governance }), msg6);
 
         // assign strategy
-        await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
+        let tx = await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
         let asset = await oneToken.assets(collateral);
         let assignedStrategy = asset["strategy"];
         let vault = await strategy.oneToken();
         assert.strictEqual(assignedStrategy, strategy.address, "the strategy is not assigned");
         assert.strictEqual(vault, oneToken.address, "the strategy is using the wrong vault");
 
+        expectEvent(tx, 'StrategySet', {
+			sender: governance,
+            token: collateral,
+            strategy: strategy.address,
+            allowance: allowance
+		})
+
+        // test re-assign strategy steps
+        let newStrategy = await NullStrategy.new(factory.address, oneToken.address, "new strategy", { from: governance });
+        await factory.admitModule(newStrategy.address, moduleType.strategy, "new strategy", "url");
+        tx = await oneToken.setStrategy(collateral, newStrategy.address, allowance, { from: governance });
+        expectEvent(tx, 'StrategySet', {
+			sender: governance,
+            token: collateral,
+            strategy: newStrategy.address,
+            allowance: allowance
+		})
+        tx = await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
+        expectEvent(tx, 'StrategySet', {
+			sender: governance,
+            token: collateral,
+            strategy: strategy.address,
+            allowance: allowance
+		})
+
         // funds to vault and on to strategy
         await erc20Collateral.transfer(oneToken.address, amount);
         await truffleAssert.reverts(oneToken.removeAsset(collateral, { from: governance }), msg8 ); // fails because staff in the vault
-        await oneToken.toStrategy(strategy.address, collateral, amount);
-        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
+        tx = await oneToken.toStrategy(strategy.address, collateral, amount);
         await truffleAssert.reverts(oneToken.removeAsset(collateral, { from: governance }), msg9 ); // vault is empty now, but strategy is not, so fails
         let strategyBalance = await erc20Collateral.balanceOf(strategy.address);
         assert.strictEqual(parseInt(strategyBalance.toString(10)), parseInt(amount), "the strategy did not receive the expected funds");
         await truffleAssert.reverts(oneToken.toStrategy(wrongTokenStrategy.address, collateral, amount, { from: governance }), msg7);
 
+        expectEvent(tx, 'ToStrategy', {
+			sender: governance,
+            strategy: strategy.address,
+            token: collateral,
+            amount: amount
+		})
+
         // partial funds back to vault
-        await oneToken.fromStrategy(strategy.address, collateral, half);
+        tx = await oneToken.fromStrategy(strategy.address, collateral, half);
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(half.toString(10));
         vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
         assert.strictEqual(parseInt(vaultBalance.toString(10)), parseInt(half), "the vault didn't withdraw the first half of the funds");
         await truffleAssert.reverts(oneToken.fromStrategy(wrongTokenStrategy.address, collateral, half, { from: governance }), msg7);
         
+        expectEvent(tx, 'FromStrategy', {
+			sender: governance,
+            strategy: strategy.address,
+            token: collateral,
+            amount: half
+		})
+
         // remove the strategy
         await truffleAssert.reverts(oneToken.removeStrategy(collateral, { from: badAddress }), msg1);
-        await oneToken.removeStrategy(collateral, { from: governance });
+        tx = await oneToken.removeStrategy(collateral, { from: governance });
         asset = await oneToken.assets(collateral);
         assignedStrategy = asset["strategy"];
         assert.strictEqual(assignedStrategy, NULL_ADDRESS, "this strategy wasn't removed");
 
-        // recover remaining funds from de-activated strategy
-        await oneToken.recoverFunds(strategy.address, collateral, half);
-        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
-        assert.strictEqual(parseInt(vaultBalance.toString(10)), parseInt(amount), "the vault didn't recover the second half of the funds");
+        expectEvent(tx, 'StrategyRemoved', {
+			sender: governance,
+            token: collateral,
+            strategy: strategy.address
+		})
     });
 
     it("should set a strategy allowance", async () => {
@@ -400,26 +532,43 @@ contract("OneToken V1 Base", accounts => {
         let strategyName = "Do Nothing Strategy",
             allowance = "10",
             getAllowance,
-            strategy = await NullStrategy.new(oneToken.address, strategyName),
+
+            strategy = await NullStrategy.new(factory.address, oneToken.address, strategyName),
+            strategy_2 = await NullStrategy.new(factory.address, oneToken.address, "another strategy"),
+
             collateral = await oneToken.collateralTokenAtIndex(0),
             erc20Collateral = await IERC20Extended.at(collateral);
         
-        let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OneTokenV1Base: unknown token",
-            msg3 = "OneTokenV1Base: strategy is not registered with the factory"
-            msg4 = "OneTokenV1Base: not owner or controller.";
+        let msg1 = "OneTokenV1Base: not owner or controller.";
 
         // assign strategy
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url")
-        await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
+        await factory.admitModule(strategy_2.address, moduleType.strategy, "strategy name 2", "url")
+        await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
+        // setting new strategy results in old one being removed and closeStrategy event fired
+        let tx = await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
+
+        expectEvent(tx, 'StrategyClosed', {
+			sender: governance,
+            token: collateral,
+            strategy: strategy_2.address,
+            success: true
+		})
 
         // access control
-        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, allowance, { from: badAddress }), msg4);
+        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, allowance, { from: badAddress }), msg1);
 
         // adjust allowance
-        await oneToken.setStrategyAllowance(collateral, allowance);
+        tx = await oneToken.setStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
+
+        expectEvent(tx, 'StrategyAllowanceSet', {
+			sender: governance,
+            token: collateral,
+            strategy: strategy.address,
+            amount: allowance
+		})
 
         await erc20Collateral.transfer(strategy.address, 1);
         in_vault_and_strategies = in_vault_and_strategies + 1;
@@ -444,19 +593,19 @@ contract("OneToken V1 Base", accounts => {
             strategyName = "Do Nothing Strategy",
             allowance = "10",
             amount = "1000",
-            strategy = await NullStrategy.new(oneToken.address, strategyName),
+            factory = await Factory.deployed(),
+            strategy = await NullStrategy.new(factory.address, oneToken.address, strategyName),
             collateral = await oneToken.collateralTokenAtIndex(0),
             erc20Collateral = await IERC20Extended.at(collateral);
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OneTokenV1Base: unknown token",
             msg3 = "OneTokenV1Base: strategy is not registered with the factory",
-            msg4 = "OneTokenV1Base::closeStrategy: unknown token";
+            msg4 = "OneTokenV1Base:cs: unknown token";
 
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");
 
         // access control
-        await truffleAssert.reverts(oneToken.recoverFunds(strategy.address, collateral, amount, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, strategy.address, allowance, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(badAddress, strategy.address, allowance, { from: governance }), msg2);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, badAddress, allowance, { from: governance }), msg3);
@@ -482,12 +631,13 @@ contract("OneToken V1 Base", accounts => {
         vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
         assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault didn't receive funds");
     });
-    
+
     it("should change a existing strategy", async () => {
         let strategyName = "Do Nothing Strategy",
             allowance = "10",
-            getAllowance,
-            strategy = await NullStrategy.new(oneToken.address, strategyName),
+            // getAllowance,
+            factory = await Factory.deployed(),
+            strategy = await NullStrategy.new(factory.address, oneToken.address, strategyName),
             collateral = await oneToken.collateralTokenAtIndex(0),
             erc20Collateral = await IERC20Extended.at(collateral);
         
@@ -498,7 +648,7 @@ contract("OneToken V1 Base", accounts => {
         let strategyName2 = "Do Nothing Strategy 2",
             allowance2 = "10",
             getAllowance2,
-            strategy2 = await NullStrategy.new(oneToken.address, strategyName2),
+            strategy2 = await NullStrategy.new(factory.address, oneToken.address, strategyName2),
             collateral2 = await oneToken.collateralTokenAtIndex(0),
             erc20Collateral2 = await IERC20Extended.at(collateral2);
 

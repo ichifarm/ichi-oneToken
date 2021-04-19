@@ -5,16 +5,9 @@ Returns 1:1 in all cases for any pair and any observer. No governable functions.
 
 
 
-### `constructor(string description, address indexToken_)` (public)
+### `constructor(address oneTokenFactory_, string description, address indexToken_)` (public)
 
 
-
-
-
-### `init(address)` (external)
-
-intialization is called when a oneToken appoints an Oracle
-     @dev there is nothing to do in this case
 
 
 
@@ -36,18 +29,6 @@ returns equivalent amount of index tokens for an amount of baseTokens and volati
 
 returns the tokens needed to reach a target usd value
      @dev token:usdToken is always 1:1 and volatility is always 0
-
-
-
-
-### `Deployed(address sender)`
-
-
-
-
-
-### `Initialized(address sender, address baseToken, address indexToken)`
-
 
 
 

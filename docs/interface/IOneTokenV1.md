@@ -5,6 +5,18 @@
 
 
 
+### `mintingFee() → uint256` (external)
+
+
+
+
+
+### `redemptionFee() → uint256` (external)
+
+
+
+
+
 ### `withdraw(address token, uint256 amount)` (external)
 
 
@@ -18,6 +30,18 @@
 
 
 ### `redeem(address collateral, uint256 amount)` (external)
+
+
+
+
+
+### `setMintingFee(uint256 fee)` (external)
+
+
+
+
+
+### `setRedemptionFee(uint256 fee)` (external)
 
 
 

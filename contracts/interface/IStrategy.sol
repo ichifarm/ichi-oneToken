@@ -6,6 +6,8 @@ import "./IModule.sol";
 
 interface IStrategy is IModule {
     
+    function init() external;
+    function execute() external;
     function setAllowance(address token, uint amount) external;
     function toVault(address token, uint amount) external;
     function fromVault(address token, uint amount) external;

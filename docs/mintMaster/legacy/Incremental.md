@@ -6,7 +6,7 @@ Immutable windowSize and granularity changes require a new oracle contract.
 
 
 
-### `constructor(string description_)` (public)
+### `constructor(address oneTokenFactory_, string description_)` (public)
 
 
 
@@ -14,8 +14,8 @@ Immutable windowSize and granularity changes require a new oracle contract.
 
 ### `init(address oneTokenOracle)` (external)
 
-initializes the common interface 
-     @dev A single instance can be shared by n oneToken implementations. Initialize from each instance. 
+initializes the common interface with parameters managed by msg.sender, usually a oneToken.
+     @dev A single instance can be shared by n oneToken implementations. Initialize from each instance. Re-initialization is acceptabe.
      @param oneTokenOracle gets the exchange rate of the oneToken
 
 
@@ -48,11 +48,20 @@ returns an adjusted minting ratio
 
 
 
-### `getMintingRatio(address oneToken) → uint256 ratio, uint256 maxOrderVolume` (public)
+### `getMintingRatio(address oneToken) → uint256 ratio, uint256 maxOrderValue` (public)
+
+returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
+     @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
+     @param oneToken oneToken implementation to inspect
+
+
+
+### `getMintingRatio(address oneToken, address oracle) → uint256 ratio, uint256 maxOrderVolume` (public)
 
 returns an adjusted minting ratio
-     @dev anyone calls this to inspect any oneToken minting ratio
+     @dev anyone calls this to inspect any oneToken minting ratio based on an arbitry oracle
      @param oneToken oneToken implementation to inspect
+     @param oracle explicit oracle selection
 
 
 
@@ -102,18 +111,6 @@ sets the current minting ratio
 
 
 
-### `Deployed(address sender, string description)`
-
-
-
-
-
-### `Initialized(address sender, address oneTokenOracle)`
-
-
-
-
-
 ### `OneTokenOracleChanged(address sender, address oneToken, address oracle)`
 
 
@@ -126,7 +123,7 @@ sets the current minting ratio
 
 
 
-### `UpdateMintingRatio(address sender, uint256 volatility, uint256 newRatio, uint256 maxOrderVolume)`
+### `UpdateMintingRatio(address sender, uint256 newRatio, uint256 maxOrderVolume)`
 
 
 

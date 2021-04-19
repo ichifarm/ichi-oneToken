@@ -53,7 +53,7 @@ factory governance can de-register a module
 factory governance can add a foreign token to the inventory
      @param foreignToken ERC20 contract must not be registered
      @param collateral set true if the asset is considered a collateral token
-     @param oracle must be at least one oracle for every asset so supply the first one for the new asset
+     @param oracle must be at least one USD oracle for every asset so supply the first one for the new asset
 
 
 
@@ -69,7 +69,7 @@ factory governance can update asset metadata
 ### `removeForeignToken(address foreignToken)` (external)
 
 factory governance can de-register a foreignToken
-     @dev de-registering prevents future assignment but has no effect on existing oneToken 
+     @dev de-registering prevents future assignment but has no effect on existing oneToken
        instances that rely on the foreignToken
     @param foreignToken the ERC20 contract address to de-register
 
@@ -78,15 +78,15 @@ factory governance can de-register a foreignToken
 ### `assignOracle(address foreignToken, address oracle)` (external)
 
 factory governance can assign an oracle to foreign token
-     @dev foreign tokens have 1-n registered oracle options which are selectd by oneToken instance governance
+     @dev foreign tokens have 1-n registered oracle options which are selected by oneToken instance governance
      @param foreignToken ERC20 contract address must be registered already
-     @param oracle oracle must be registered
+     @param oracle USD oracle must be registered. Oracle must return quote in a registered collateral (USD) token.
 
 
 
 ### `removeOracle(address foreignToken, address oracle)` (external)
 
-factory can decommission an oracle associated with a particular asset 
+factory can decommission an oracle associated with a particular asset
      @dev unassociating the oracle with a given asset prevents assignment but does not affect oneToken instances that use it
      @param foreignToken the ERC20 contract to disassociate with the oracle
      @param oracle the oracle to remove from the foreignToken
@@ -192,15 +192,9 @@ returns true if the given foreignToken is marked collateral
 
 
 
-### `OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address memberToken, address collateral)`
+### `OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address oneTokenOracle, address memberToken, address collateral)`
 
 Events
-
-
-
-### `SetOneTokenModuleParam(address sender, address oneToken, address foreignToken, enum InterfaceCommon.ModuleType moduleType, bytes32 key, bytes32 value)`
-
-
 
 
 
