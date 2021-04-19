@@ -56,8 +56,6 @@ module.exports = async () => {
     memberToken = await MemberToken.deployed();
     collateralToken = await CollateralToken.deployed();
 
-    // enum ModuleType { Version, Controller, Strategy, MintMaster, Oracle, VoterRoll }
-
     await factory.admitModule(version.address, moduleType.version, versionName, url);
     await factory.admitModule(controllerNull.address, moduleType.controller, controllerName, url);
     await factory.admitModule(mintMasterIncremental.address, moduleType.mintMaster, mintMasterName, url);

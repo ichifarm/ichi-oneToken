@@ -1,8 +1,9 @@
 const { assert, expect } = require("chai");
 const truffleAssert = require('truffle-assertions');
+const { expectEvent } = require("@openzeppelin/test-helpers");
 const { time, prepare, deploy, getBigNumber, ADDRESS_ZERO } = require("./utilities")
 
-const 
+const
     OneToken = artifacts.require("OneTokenV1"),
     Factory = artifacts.require("OneTokenFactory"),
     ControllerNull = artifacts.require("NullController"),
@@ -14,26 +15,29 @@ const
     NullStrategy = artifacts.require("NullStrategy"),
     IERC20Extended = artifacts.require("IERC20Extended");
 
-const 
+const
     NULL_ADDRESS = "0x0000000000000000000000000000000000000000",
-    RATIO_50 = "500000000000000000", // 50%
-    RATIO_95 = "950000000000000000", // 95%
-    RATIO_90 = "900000000000000000", // 90%
-    STEP_002 =   "2000000000000000"  // 0.2%
-    FEE =        "2000000000000000"; // 0.2%
-    FEE_20 =   "200000000000000000"; // 20%
+    RATIO_50 =   "500000000000000000", // 50%
+    RATIO_95 =   "950000000000000000", // 95%
+    RATIO_110 = "1100000000000000000", // 110%
+    RATIO_90 =   "900000000000000000", // 90%
+    STEP_002 =     "2000000000000000", // 0.2%
+    FEE =          "2000000000000000"; // 0.2%
+    FEE_20 =     "200000000000000000"; // 20%
+    FEE_10 =     "100000000000000000"; // 10%
 
 const moduleType = {
-    version: 0, 
-    controller: 1, 
-    strategy: 2, 
-    mintMaster: 3, 
-    oracle: 4, 
+    version: 0,
+    controller: 1,
+    strategy: 2,
+    mintMaster: 3,
+    oracle: 4,
     voterRoll: 5
 }
 
 let governance,
     badAddress,
+    bob,
     version,
     factory,
     oneToken,
@@ -87,22 +91,25 @@ contract("OneToken V1 Main", accounts => {
     it("should be able to mint", async () => {
         let msg1 = "OneTokenV1: offer a collateral token",
             msg2 = "OneTokenV1: request oneTokens quantity",
-            msg3 = "OneTokenV1: orders exceeds temporary limit."
+            msg3 = "OneTokenV1: orders exceeds temporary limit.",
             msg4 = "OneTokenV1: sender has insufficient member token balance.",
             msg5 = "OneTokenV1: sender has insufficient collateral token balance.";
 
         await truffleAssert.reverts(oneToken.mint(memberToken.address, 1, { from: bob }), msg1);
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, 0, { from: bob }), msg2);
 
-        await testMintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
-        await testMintMaster.changeOracle(oneToken.address, oracle.address, { from: governance });
+        //let newOracle = await OraclePegged.new(factory.address, "new oracle", oneToken.address);
+        //await factory.admitModule(newOracle.address, moduleType.oracle, "new oracle", "#");
+        //await factory.assignOracle(oneToken.address, newOracle.address);
 
-        await oneToken.changeMintMaster(testMintMaster.address, { from: governance });
+        await oneToken.changeMintMaster(testMintMaster.address, oracle.address, { from: governance });
+        // has to setParams after changeMintMaster - because it's relinitialized
+        await testMintMaster.setParams(oneToken.address,
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
 
         let theRatio = await oneToken.getMintingRatio();
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, parseInt(theRatio[1].toString(10)) + 1, { from: bob }), msg3);
-        
+
         // no allowance for member token, should fail on collateral balance check
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, parseInt(theRatio[1].toString(10)) - 1, { from: bob }), msg5);
 
@@ -120,7 +127,7 @@ contract("OneToken V1 Main", accounts => {
         await memberToken.transfer(bob, 2000, { from: governance });
         
         // minting 999 oneTokens!
-        await oneToken.mint(collateralToken.address, 999, { from: bob });
+        let tx = await oneToken.mint(collateralToken.address, 999, { from: bob });
         let userCollateralBalance = await collateralToken.balanceOf(bob);
         let userMemberBalance = await memberToken.balanceOf(bob);
         // should take 998 collateral tokens because ran 1 member token allowance
@@ -147,12 +154,20 @@ contract("OneToken V1 Main", accounts => {
         // return 101 collateral back to governance to make redeem tests easiere
         await collateralToken.approve(governance, 2000, { from: bob });
         await collateralToken.transfer(governance, 101, { from: bob });
+
+        expectEvent(tx, 'Minted', {
+			sender: bob,
+			collateral: collateralToken.address,
+            oneTokens: "999",
+            memberTokens: "1",
+            collateralTokens: "998"
+		})
     });
 
     it("should be able to redeem", async () => {
         let msg1 = "OneTokenV1: insufficient available funds.",
             msg2 = "OneTokenV1: withdrawal amount must greater than zero.",
-            msg3 = "OneTokenV1: requested token is not collateral."
+            msg3 = "OneTokenV1: requested token is not collateral.",
             msg4 = "OneTokenV1: sender has insufficient member token balance.",
             msg5 = "OneTokenV1: sender has insufficient collateral token balance.",
             msg6 = "OneTokenV1: collateral not recognized.";
@@ -162,10 +177,16 @@ contract("OneToken V1 Main", accounts => {
         assert.strictEqual(parseInt(liabilities.toString(10)), 0, "oneToken liabilities for collateral should be 0");
 
         // set fee to 20%
-        await oneToken.setFee(FEE_20, { from: governance });
+        let tx = await oneToken.setRedemptionFee(FEE_20, { from: governance });
+
+        expectEvent(tx, 'NewRedemptionFee', {
+            sender: governance,
+			fee: FEE_20
+		})
 
         // adding allowance for oneToken
-        await oneToken.approve(bob, 1000, { from: bob });
+        // approval is implied
+        // await oneToken.approve(bob, 1000, { from: bob });
 
         // trying to redeem into non-collateral
         await truffleAssert.reverts(oneToken.redeem(badAddress, 100, { from: bob }), msg6);
@@ -190,8 +211,19 @@ contract("OneToken V1 Main", accounts => {
         collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address);
         assert.strictEqual(parseInt(collateralUserBalance.toString(10)), 80, "user available balance should be 80 for collateral token");
 
-        await oneToken.redeem(collateralToken.address, 100, { from: bob });
+        tx = await oneToken.redeem(collateralToken.address, 100, { from: bob });
         await time.advanceBlock();
+
+        expectEvent(tx, 'Redeemed', {
+			sender: bob,
+			collateral: collateralToken.address,
+            amount: "100"
+		})
+        expectEvent(tx, 'UserBalanceIncreased', {
+			user: bob,
+			token: collateralToken.address,
+            amount: "80" // with 20 redemption fee
+		})
 
         collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address, { from: bob });
         assert.strictEqual(parseInt(collateralUserBalance.toString(10)), 160, "user available balance should be 160 for collateral token");
@@ -207,7 +239,18 @@ contract("OneToken V1 Main", accounts => {
         let userCollateralBalance1 = await collateralToken.balanceOf(bob);
 
         // now let's withdraw 100
-        await oneToken.withdraw(collateralToken.address, 100, { from: bob });
+        tx = await oneToken.withdraw(collateralToken.address, 100, { from: bob });
+
+        expectEvent(tx, 'UserWithdrawal', {
+			sender: bob,
+			token: collateralToken.address,
+            amount: "100"
+		})
+        expectEvent(tx, 'UserBalanceDecreased', {
+			user: bob,
+			token: collateralToken.address,
+            amount: "100"
+		})
 
         let userCollateralBalance2 = await collateralToken.balanceOf(bob);
         assert.strictEqual(parseInt(userCollateralBalance2.toString(10))-100, parseInt(userCollateralBalance1.toString(10)), "user collateral holding should increase by 100");
@@ -227,5 +270,44 @@ contract("OneToken V1 Main", accounts => {
         liabilities = await oneToken.liabilities(collateralToken.address);
         assert.strictEqual(parseInt(liabilities.toString(10)), 15, "oneToken liabilities for collateral should be 0");
     });
+    
+    it("should be able to set minting fee", async () => {
+        let tx = await oneToken.setMintingFee(0, { from: governance });
 
+        expectEvent(tx, 'NewMintingFee', {
+            sender: governance,
+			fee: "0"
+		})
+
+        tx = await oneToken.setMintingFee( FEE_10, { from: governance } );
+
+        expectEvent(tx, 'NewMintingFee', {
+            sender: governance,
+			fee: FEE_10
+		})
+
+        // ratio = 90, need 90 coll and 10 mem tokens
+        // with 10% minting fee, need 9 more coll token, so 99 coll tokens
+        // minus 15 liabilities, so need 84 coll tokens
+        let startCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
+        let startMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
+        let liabilities = parseInt((await oneToken.liabilities(collateralToken.address)).toString(10)); // assume only bob minted so far
+
+        tx = await oneToken.mint(collateralToken.address, 100, { from: bob });
+
+        let endCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
+        let endMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
+
+        let reqCollateral = (100 * 90 / 100) * 110 / 100 - liabilities;
+        let reqMember = 100 * 10 / 100;
+
+        assert.strictEqual( reqCollateral, startCollBalance - endCollBalance, "user remaining collateral tokens should match");
+        assert.strictEqual( reqMember, startMemBalance - endMemBalance, "user remaining member tokens should match");
+    });
+    
+    it("should revert on set minting fee if not between 0 and 100 percents", async () => {
+        let msg1 = "OneTokenV1: fee must be between 0 and 100%";
+
+        await truffleAssert.reverts(oneToken.setMintingFee( RATIO_110, { from: governance }), msg1);
+    });
 });

@@ -7,6 +7,7 @@ import "./InterfaceCommon.sol";
 
 interface IOneTokenFactory is InterfaceCommon {
 
+    function oneTokenProxyAdmins(address) external returns(address);
     function deployOneTokenProxy(
         string memory name,
         string memory symbol,

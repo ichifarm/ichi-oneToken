@@ -5,6 +5,18 @@
 
 
 
+### `oneTokenFactory() → address` (external)
+
+
+
+
+
+### `description() → string` (external)
+
+
+
+
+
 ### `init()` (external)
 
 

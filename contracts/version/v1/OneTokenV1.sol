@@ -10,7 +10,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     using AddressSet for AddressSet.Set;
     using SafeMath for uint;
 
-    uint public fee = PRECISION; // defaults to 100% for safety
+    uint public override mintingFee; // defaults to 0%
+    uint public override redemptionFee; // defaults to 0%
 
     /**
      @notice withdrawals are delayed for at least one block (resist flash loan attacks)
@@ -25,12 +26,13 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      */
     mapping(address => uint) public liabilities;
 
-    event UserWithdrawal(address sender, address token, uint amount);
-    event userBalanceIncreased(address user, address token, uint amount);
-    event userBalanceDecreased(address user, address token, uint amount);    
-    event Minted(address sender, address collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
-    event Redeemed(address sender, address collateral, uint amount);
-    event NewFeeSet(address sender, uint fee);
+    event UserWithdrawal(address indexed sender, address indexed token, uint amount);
+    event UserBalanceIncreased(address indexed user, address indexed token, uint amount);
+    event UserBalanceDecreased(address indexed user, address indexed token, uint amount);    
+    event Minted(address indexed sender, address indexed collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
+    event Redeemed(address indexed sender, address indexed collateral, uint amount);
+    event NewMintingFee(address sender, uint fee);
+    event NewRedemptionFee(address sender, uint fee);
     
     /// @dev there is no constructor for proxy deployment. Use init()
 
@@ -59,7 +61,6 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         require(amount <= availableBalance(msg.sender, token), "OneTokenV1: insufficient available funds.");
         decreaseUserBalance(msg.sender, token, amount);
         IERC20(token).transfer(msg.sender, amount);
-        IController(controller).periodic();
         emit UserWithdrawal(msg.sender, token, amount);
     }
 
@@ -74,7 +75,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         userBalances[token][user] = userBalances[token][user].add(amount);
         userCreditBlocks[token][user] = block.number;
         liabilities[token] = liabilities[token].add(amount);
-        emit userBalanceIncreased(user, token, amount);
+        emit UserBalanceIncreased(user, token, amount);
     }
 
     /**
@@ -87,7 +88,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     function decreaseUserBalance(address user, address token, uint amount) private {
         userBalances[token][user] = userBalances[token][user].sub(amount, "OneTokenV1: Insufficient funds");
         liabilities[token] = liabilities[token].sub(amount);
-        emit userBalanceDecreased(user, token, amount);        
+        emit UserBalanceDecreased(user, token, amount);        
     }
 
     /**
@@ -100,6 +101,9 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         require(collateralTokenSet.exists(collateralToken), "OneTokenV1: offer a collateral token");
         require(oneTokens > 0, "OneTokenV1: request oneTokens quantity");
         
+        // update collateral oracle
+        IOracle(assets[collateralToken].oracle).update(collateralToken);
+        
         // this will also update the member token oracle price history
         (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio();
 
@@ -109,6 +113,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // compute the member token value and collateral value requirement
         uint collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
         uint memberTokensUSDValue = oneTokens.sub(collateralUSDValue);
+        collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
 
         // compute the member tokens required
         (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
@@ -163,8 +168,11 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      */
     function redeem(address collateral, uint amount) external override {
         require(isCollateral(collateral), "OneTokenV1: collateral not recognized.");
-        transferFrom(msg.sender, address(this), amount);
-        uint netTokens = amount.sub(amount.mul(fee).div(PRECISION));
+        IOracle(assets[collateral].oracle).update(collateral);
+        // implied transfer approval and allowance
+        // transferFrom(msg.sender, address(this), amount);
+        _transfer(msg.sender, address(this), amount);
+        uint netTokens = amount.sub(amount.mul(redemptionFee).div(PRECISION));
         increaseUserBalance(msg.sender, collateral, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
         // updates the oracle price history for oneToken, only
@@ -174,13 +182,23 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     /**
      @notice governance sets the adjustable fee
-     @param fee_ fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
      */
-    function setFee(uint fee_) external onlyOwner {
-        require(fee_ <= PRECISION, "OneTokenV1: fee must be between 0 and 100%");
-        fee = fee_;
-        emit NewFeeSet(msg.sender, fee_);
+    function setMintingFee(uint fee) external onlyOwner override {
+        require(fee <= PRECISION, "OneTokenV1: fee must be between 0 and 100%");
+        mintingFee = fee;
+        emit NewMintingFee(msg.sender, fee);
     }
+
+    /**
+     @notice governance sets the adjustable fee
+     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     */
+    function setRedemptionFee(uint fee) external onlyOwner override {
+        require(fee <= PRECISION, "OneTokenV1: fee must be between 0 and 100%");
+        redemptionFee = fee;
+        emit NewRedemptionFee(msg.sender, fee);
+    }    
 
     /**
      @notice adjust the minting ratio
@@ -207,5 +225,5 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         vaultBalance = t.balanceOf(address(this));
         Asset storage a = assets[token];
         if(a.strategy != NULL_ADDRESS) strategyBalance = t.balanceOf(a.strategy);
-    }    
+    } 
 }

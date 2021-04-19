@@ -26,32 +26,26 @@ contract Incremental is MintMasterCommon {
 
     mapping(address => Parameters) public parameters;
 
-    event Deployed(address sender, string description);
-    event Initialized(address sender, address oneTokenOracle);
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
     event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio);
-    event UpdateMintingRatio(address sender, uint volatility, uint newRatio, uint maxOrderVolume);
+    event UpdateMintingRatio(address sender, uint newRatio, uint maxOrderVolume);
     event StepSizeSet(address sender, uint stepSize);
     event MinRatioSet(address sender, uint minRatio);
     event MaxRatioSet(address sender, uint maxRatio);
     event RatioSet(address sender, uint ratio);
    
-    constructor(string memory description_) 
-        MintMasterCommon(description_)
-    {
-        emit Deployed(msg.sender, description_);
-    }
+    constructor(address oneTokenFactory_, string memory description_) 
+        MintMasterCommon(oneTokenFactory_, description_) {}
 
     /**
      @notice initializes the common interface with parameters managed by msg.sender, usually a oneToken.
      @dev A single instance can be shared by n oneToken implementations. Initialize from each instance. Re-initialization is acceptabe.
      @param oneTokenOracle gets the exchange rate of the oneToken
      */
-    function init(address oneTokenOracle) external override {
+    function init(address oneTokenOracle) external onlyKnownToken override {
         _setParams(msg.sender, DEFAULT_RATIO, DEFAULT_RATIO, DEFAULT_STEP_SIZE, DEFAULT_RATIO);
         _initMintMaster(msg.sender, oneTokenOracle);
-        emit Initialized(msg.sender, oneTokenOracle);
-   
+        emit MintMasterInitialized(msg.sender, msg.sender, oneTokenOracle);
     }
 
     /**
@@ -61,7 +55,8 @@ contract Incremental is MintMasterCommon {
      @param oracle oracle contract must be registered in the factory
      */
     function changeOracle(address oneToken, address oracle) external onlyTokenOwner(oneToken) {
-        _initMintMaster(oneToken, oracle);
+        require(IOneTokenFactory(oneTokenFactory).isOracle(oneToken, oracle), "Incremental: oracle is not approved for oneToken");
+        _initMintMaster(oneToken, oracle);      
         emit OneTokenOracleChanged(msg.sender, oneToken, oracle);
     }
 
@@ -172,7 +167,7 @@ contract Incremental is MintMasterCommon {
         (ratio, maxOrderVolume) = getMintingRatio(oneToken);
         p.lastRatio = ratio;
         /// @notice no event is emitted to save gas
-        // emit UpdateMintingRatio(msg.sender, volatility, ratio, maxOrderVolume);
+        // emit UpdateMintingRatio(msg.sender, ratio, maxOrderVolume);
     }
 
     /**

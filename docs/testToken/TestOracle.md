@@ -6,7 +6,7 @@ Immutable windowSize and granularity changes require a new oracle contract.
 
 
 
-### `constructor(string description, address indexToken_)` (public)
+### `constructor(address oneTokenFactory, string description, address indexToken_)` (public)
 
 
 

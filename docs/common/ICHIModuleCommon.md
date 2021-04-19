@@ -4,24 +4,33 @@
 
 
 
+### `onlyKnownToken()`
+
+
+
+
+
 ### `onlyTokenOwner(address oneToken)`
 
 
 
 
 
-
-### `constructor(enum InterfaceCommon.ModuleType moduleType_, string description_)` (internal)
-
+### `onlyModuleOrFactory()`
 
 
 
 
-### `init()` (external)
 
 
+### `constructor(address oneTokenFactory_, enum InterfaceCommon.ModuleType moduleType_, string description_)` (internal)
 
-all modules must have an initializer. There is no default behaviour
+modules are bound to the factory at deployment time
+     @param oneTokenFactory_ factory to bind to
+     @param moduleType_ type number helps prevent governance errors
+     @param description_ human-readable, descriptive only
+
+
 
 ### `updateDescription(string description)` (external)
 

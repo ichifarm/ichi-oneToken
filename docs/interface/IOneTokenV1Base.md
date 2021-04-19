@@ -17,7 +17,7 @@
 
 
 
-### `changeMintMaster(address mintMaster_)` (external)
+### `changeMintMaster(address mintMaster_, address oneTokenOracle)` (external)
 
 
 
@@ -41,6 +41,12 @@
 
 
 
+### `executeStrategy(address token)` (external)
+
+
+
+
+
 ### `removeStrategy(address token)` (external)
 
 
@@ -59,12 +65,6 @@
 
 
 
-### `recoverFunds(address from, address token, uint256 amount)` (external)
-
-
-
-
-
 ### `setFactory(address newFactory)` (external)
 
 
@@ -77,7 +77,7 @@
 
 
 
-### `factory() → address` (external)
+### `oneTokenFactory() → address` (external)
 
 
 

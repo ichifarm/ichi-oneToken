@@ -63,11 +63,11 @@ contract("OneToken V1 Admin", accounts => {
         let msg1 = "ICHIOwnable: caller is not the owner"
             msg2 = "OneTokenV1: fee must be between 0 and 100%";
 
-        truffleAssert.reverts(oneToken.setFee(MAX_FEE+1, { from: governance }), msg2);
+        truffleAssert.reverts(oneToken.setRedemptionFee(MAX_FEE+1, { from: governance }), msg2);
 
-        truffleAssert.reverts(oneToken.setFee(FEE, { from: badAddress }), msg1);
-        await oneToken.setFee(FEE, { from: governance });
-        let newFee = await oneToken.fee();
+        truffleAssert.reverts(oneToken.setRedemptionFee(FEE, { from: badAddress }), msg1);
+        await oneToken.setRedemptionFee(FEE, { from: governance });
+        let newFee = await oneToken.redemptionFee();
         assert.strictEqual(newFee.toString(10), FEE, "redemption fee did not set");
     });
 

@@ -41,10 +41,17 @@ redeem oneTokens for collateral tokens - applies fee %
 
 
 
-### `setFee(uint256 fee_)` (external)
+### `setMintingFee(uint256 fee)` (external)
 
 governance sets the adjustable fee
-     @param fee_ fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+
+
+
+### `setRedemptionFee(uint256 fee)` (external)
+
+governance sets the adjustable fee
+     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
 
 
 
@@ -76,13 +83,13 @@ read the vault balance and strategy balance of a given token
 
 
 
-### `userBalanceIncreased(address user, address token, uint256 amount)`
+### `UserBalanceIncreased(address user, address token, uint256 amount)`
 
 
 
 
 
-### `userBalanceDecreased(address user, address token, uint256 amount)`
+### `UserBalanceDecreased(address user, address token, uint256 amount)`
 
 
 
@@ -100,7 +107,13 @@ read the vault balance and strategy balance of a given token
 
 
 
-### `NewFeeSet(address sender, uint256 fee)`
+### `NewMintingFee(address sender, uint256 fee)`
+
+
+
+
+
+### `NewRedemptionFee(address sender, uint256 fee)`
 
 
 

@@ -10,7 +10,7 @@ import "../interface/IERC20Extended.sol";
  * Immutable windowSize and granularity changes require a new oracle contract. 
  */
 
-contract TestOracle is IOracle, OracleCommon {
+contract TestOracle is OracleCommon {
 
     event Deployed(address sender);
     event Initialized(address sender, address baseToken, address indexToken);
@@ -20,8 +20,8 @@ contract TestOracle is IOracle, OracleCommon {
      */
     bool private adjustUp;
 
-    constructor(string memory description, address indexToken_) 
-        OracleCommon(description, indexToken_) 
+    constructor(address oneTokenFactory, string memory description, address indexToken_) 
+        OracleCommon(oneTokenFactory, description, indexToken_) 
     {
         adjustUp = false;
         emit Deployed(msg.sender);

@@ -9,14 +9,10 @@ import "../../interface/IERC20Extended.sol";
  @notice Relies on external Oracles using any price quote methodology.
  */
 
-contract ICHICompositeOracle is IOracle, OracleCommon {
+contract ICHICompositeOracle is OracleCommon {
 
     address[] public oracleContracts;
     address[] public interimTokens;
-
-    event Deployed(address sender, address[] interimTokens, address[] oracles);
-    event Initialized(address sender, address baseToken, address indexToken);
-    event Updated(address sender);
 
     /**
      @notice addresses and oracles define a chain of currency conversions (e.g. through ETH) that will be executed in order of declation
@@ -25,26 +21,24 @@ contract ICHICompositeOracle is IOracle, OracleCommon {
      @param indexToken_ a registered usdToken to use for quote indexed
      @param oracles_ a sequential list of unregisted contracts that support the IOracle interface and return quotes in any currency
      */
-    constructor(string memory description_, address indexToken_, address[] memory interimTokens_, address[] memory oracles_)
-        OracleCommon(description_, indexToken_)
+    constructor(address oneTokenFactory_, string memory description_, address indexToken_, address[] memory interimTokens_, address[] memory oracles_)
+        OracleCommon(oneTokenFactory_, description_, indexToken_)
     {
         require(interimTokens_.length == oracles_.length, 'ICHICompositeOracle: unequal interimTokens and Oracles list lengths');
         oracleContracts = oracles_;
         interimTokens = interimTokens_;
-        for(uint i=0; i<oracleContracts.length; i++) {
-            IOracle(oracleContracts[i]).init(interimTokens[i]);
-        }
-        emit Deployed(msg.sender, interimTokens_, oracles_);
+        indexToken = indexToken_;
     }
 
     /**
-     @notice intialization is called when a oneToken appoints an Oracle
+     @notice intialization is called when the factory assigns an oracle to an asset
      @dev there is nothing to do. Deploy separate instances configured for distinct baseTokens
      */
-    function init(address /* baseToken */) external override {
+    function init(address baseToken) external onlyModuleOrFactory override {
         for(uint i=0; i<oracleContracts.length; i++) {
             IOracle(oracleContracts[i]).init(interimTokens[i]);
         }
+        emit OracleInitialized(msg.sender, baseToken, indexToken);
     }
 
     /**

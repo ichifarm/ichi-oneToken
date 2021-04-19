@@ -21,6 +21,11 @@ contract("AddressSet", accounts => {
         assert.strictEqual(parseInt(count.toString(10)), 3, "There are not exactly three keys in the set");
     });
 
+    it("should not allow to remove unexisting key", async () => {
+        let msg1 = "The key doesn't belong in the set";
+        await truffleAssert.reverts(addressSet.remove(keys[3], msg1), msg1);
+    });
+
     it("should remove the first key", async () => {
         await addressSet.remove(keys[0], "Failed to remove first key");
         let count = await addressSet.count();

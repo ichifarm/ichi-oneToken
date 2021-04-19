@@ -10,7 +10,7 @@ A fixed-window oracle that recomputes the average price for the entire period on
 
 
 
-### `constructor(address uniswapFactory_, address indexToken_, uint256 period_)` (public)
+### `constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint256 period_)` (public)
 
 the indexToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
      @dev deploy multiple instances to support different configurations
@@ -23,7 +23,7 @@ the indexToken (index token), averaging period and uniswapfactory cannot be chan
 ### `init(address token)` (public)
 
 configures parameters for a pair, token versus indexToken
-     @dev initializes the first time, then does no work
+     @dev initializes the first time, then does no work. Initialized from the Factory when assigned to an asset.
      @param token the base token. index is established at deployment time and cannot be changed
 
 
@@ -63,22 +63,10 @@ returns equivalent indexTokens for amountIn, token
 
 
 
-### `pairInfo(address token) → address token0, address token1, uint256 price0CumulativeLast, uint256 price1CumulativeLast, uint32 blockTimestampLast, uint256 period` (external)
+### `pairInfo(address token) → address token0, address token1, uint256 price0CumulativeLast, uint256 price1CumulativeLast, uint256 price0Average, uint256 price1Average, uint32 blockTimestampLast` (external)
 
 discoverable internal state
      @param token baseToken to inspect
-
-
-
-
-### `Deployed(address sender, address uniswapFactory, address indexToken)`
-
-
-
-
-
-### `Initialized(address sender, address token)`
-
 
 
 

@@ -9,22 +9,10 @@ import "../../interface/IERC20Extended.sol";
  @notice Returns 1:1 in all cases for any pair and any observer. No governable functions. 
  */
 
-contract ICHIPeggedOracle is IOracle, OracleCommon {
+contract ICHIPeggedOracle is OracleCommon {
 
-    event Deployed(address sender);
-    event Initialized(address sender, address baseToken, address indexToken);
-
-    constructor(string memory description, address indexToken_)
-        OracleCommon(description, indexToken_)
-    {
-        emit Deployed(msg.sender);
-    }
-
-    /**
-     @notice intialization is called when a oneToken appoints an Oracle
-     @dev there is nothing to do in this case
-     */
-    function init(address /* baseToken */) external override {}
+    constructor(address oneTokenFactory_, string memory description, address indexToken_)
+        OracleCommon(oneTokenFactory_, description, indexToken_) {}
 
     /**
      @notice update is called when a oneToken wants to persist observations

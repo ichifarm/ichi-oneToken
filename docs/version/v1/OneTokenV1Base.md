@@ -33,9 +33,12 @@ governance can appoint a new controller with distinct internal logic
 
 
 
-### `changeMintMaster(address mintMaster_)` (external)
+### `changeMintMaster(address mintMaster_, address oneTokenOracle_)` (external)
 
-
+change the mintMaster
+     @dev controllers support the periodic() function which should be called occasionally to send gas to the controller
+     @param mintMaster_ the new mintMaster implementation
+     @param oneTokenOracle_ intialize the mintMaster with this oracle. Must be registed in the factory.
 
 
 
@@ -83,6 +86,14 @@ governance can close a strategy and return funds to the vault
 
 
 
+### `executeStrategy(address token)` (external)
+
+governance can execute a strategy to trigger innner logic within the strategy
+     @dev normally used by the controller
+     @param token the token strategy to execute
+
+
+
 ### `toStrategy(address strategy, address token, uint256 amount)` (external)
 
 governance can transfer assets from the vault to a strategy
@@ -104,20 +115,10 @@ governance can transfer assets from the strategy to this vault
 
 
 
-### `recoverFunds(address from, address token, uint256 amount)` (external)
-
-general-purpose stray funds recovery does not require a configured token strategy
-     @dev Requires allowance granted by the strategy
-     @param from sender address, usually a strategy
-     @param token ERC20 asset to transfer
-     @param amount amount to draw from the strategy, relies on an allowance
-
-
-
 ### `setStrategyAllowance(address token, uint256 amount)` (public)
 
 governance can set an allowance for a token strategy
-     @dev computes the net allowance, current holdings - new allowance
+     @dev computes the net allowance, new allowance - current holdings
      @param token ERC20 asset
      @param amount amount to draw from the strategy
 
@@ -150,7 +151,7 @@ returns the address of an ERC20 token collateral contract at the index
 
 
 
-### `isCollateral(address token) → bool` (external)
+### `isCollateral(address token) → bool` (public)
 
 returns true if the token contract is recognized collateral
 
@@ -205,19 +206,19 @@ returns true if the token contract is a registered asset of either type
 
 
 
-### `MintMasterChanged(address sender, address mintMaster)`
-
-
-
-
-
-### `OracleChanged(address sender, address oracle)`
+### `MintMasterChanged(address sender, address mintMaster, address oneTokenOracle)`
 
 
 
 
 
 ### `StrategySet(address sender, address token, address strategy, uint256 allowance)`
+
+
+
+
+
+### `StrategyExecuted(address sender, address token, address strategy)`
 
 
 
@@ -248,12 +249,6 @@ returns true if the token contract is a registered asset of either type
 
 
 ### `StrategyAllowanceSet(address sender, address token, address strategy, uint256 amount)`
-
-
-
-
-
-### `Recovered(address from, address token, uint256 amount)`
 
 
 

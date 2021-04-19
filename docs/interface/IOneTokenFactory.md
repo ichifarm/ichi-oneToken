@@ -5,6 +5,12 @@
 
 
 
+### `oneTokenProxyAdmins(address) → address` (external)
+
+
+
+
+
 ### `deployOneTokenProxy(string name, string symbol, address governance, address version, address controller, address mintMaster, address memberToken, address collateral, address oneTokenOracle) → address newOneTokenProxy, address proxyAdmin` (external)
 
 

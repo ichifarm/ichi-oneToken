@@ -1,7 +1,9 @@
 const
+	Factory = artifacts.require("OneTokenFactory"),
 	UniswapV2Factory = artifacts.require("UniswapV2Factory"),
 	UniswapOracleSimple = artifacts.require("UniswapOracleSimple"),
-	MemberToken = artifacts.require("MemberToken")
+	MemberToken = artifacts.require("MemberToken"),
+	CollateralToken = artifacts.require("CollateralToken");
 
 const TEST_TIME_PERIOD = 60000
 
@@ -13,8 +15,11 @@ module.exports = async () => {
 	await UniswapV2Factory.setAsDeployed(uniswapV2Factory);
 	
 	const memberToken = await MemberToken.deployed();
+	const collateralToken = await CollateralToken.deployed();
+
+	const oneTokenFactory = await Factory.deployed();
 	
-	const uniswapOracleSimple = await UniswapOracleSimple.new(uniswapV2Factory.address, memberToken.address, TEST_TIME_PERIOD);
+	const uniswapOracleSimple = await UniswapOracleSimple.new(oneTokenFactory.address, uniswapV2Factory.address, collateralToken.address, TEST_TIME_PERIOD);
 	await UniswapOracleSimple.setAsDeployed(uniswapOracleSimple);
 	
 	// console.log("*************************************************************");

@@ -37,8 +37,8 @@ contract TestMintMaster is MintMasterCommon {
     event MaxRatioSet(address sender, uint maxRatio);
     event RatioSet(address sender, uint ratio);
    
-    constructor(string memory description_) 
-        MintMasterCommon(description_)
+    constructor(address oneTokenFactory_, string memory description_) 
+        MintMasterCommon(oneTokenFactory_, description_)
     {
         emit Deployed(msg.sender, description_);
     }
