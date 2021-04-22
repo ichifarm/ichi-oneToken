@@ -14,9 +14,9 @@ interface IOneTokenV1 is IOneTokenV1Base {
     function redeem(address collateral, uint amount) external;
     function setMintingFee(uint fee) external;
     function setRedemptionFee(uint fee) external;
-    function updateMintingRatio() external returns(uint ratio, uint maxOrderVolume);
+    function updateMintingRatio(address collateralToken) external returns(uint ratio, uint maxOrderVolume);
     function userBalances(address, address) external view returns(uint);
     function userCreditBlocks(address, address) external view returns(uint);
-    function getMintingRatio() external view returns(uint ratio, uint maxOrderVolume);
+    function getMintingRatio(address collateralToken) external view returns(uint ratio, uint maxOrderVolume);
     function getHoldings(address token) external view returns(uint vaultBalance, uint strategyBalance);
 }

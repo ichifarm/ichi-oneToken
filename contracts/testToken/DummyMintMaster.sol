@@ -69,8 +69,8 @@ contract DummyMintMaster is MintMasterCommon {
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
      */
-    function getMintingRatio() external view override returns(uint ratio, uint maxOrderVolume) {
-        return getMintingRatio(msg.sender);
+    function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
+        return getMintingRatio2(msg.sender, NULL_ADDRESS);
     }
 
     /**
@@ -78,18 +78,16 @@ contract DummyMintMaster is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio
      @param oneToken oneToken implementation to inspect
      */    
-    function getMintingRatio(address oneToken) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
         address oracle = oneTokenOracles[oneToken];
-        return getMintingRatio(oneToken, oracle);
+        return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
 
     /**
      @notice returns an adjusted minting ratio
      @dev anyone calls this to inspect any oneToken minting ratio
-     @param oneToken oneToken implementation to inspect
-     @param oracle explicit oracle selection
      */   
-    function getMintingRatio(address oneToken, address oracle) public view override returns(uint ratio, uint maxOrderVolume) {       
+    function getMintingRatio4(address /* oneToken */, address /* oneTokenOracle */, address /* collateral */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
         return(DEFAULT_RATIO, MAX_VOLUME);
     }
 
@@ -97,7 +95,7 @@ contract DummyMintMaster is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
      */
-    function updateMintingRatio() external override returns(uint ratio, uint maxOrderVolume) {
+    function updateMintingRatio(address collateralToken) external override returns(uint ratio, uint maxOrderVolume) {
     }
 
     /**

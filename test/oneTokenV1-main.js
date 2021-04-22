@@ -80,8 +80,8 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should not able to withdraw when balance is 0", async () => {
-        let msg1 = "OneTokenV1: insufficient available funds."
-            msg2 = "OneTokenV1: withdrawal amount must greater than zero.";
+        let msg1 = "OneTokenV1: insufficient funds."
+            msg2 = "OneTokenV1: amount must greater than zero.";
 
         await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 1, { from: bob }), msg1);
         
@@ -107,7 +107,7 @@ contract("OneToken V1 Main", accounts => {
         await testMintMaster.setParams(oneToken.address,
             RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
 
-        let theRatio = await oneToken.getMintingRatio();
+        let theRatio = await oneToken.getMintingRatio(collateralToken.address);
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, parseInt(theRatio[1].toString(10)) + 1, { from: bob }), msg3);
 
         // no allowance for member token, should fail on collateral balance check
@@ -165,9 +165,9 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to redeem", async () => {
-        let msg1 = "OneTokenV1: insufficient available funds.",
-            msg2 = "OneTokenV1: withdrawal amount must greater than zero.",
-            msg3 = "OneTokenV1: requested token is not collateral.",
+        let msg1 = "OneTokenV1: insufficient funds.",
+            msg2 = "OneTokenV1: amount must greater than zero.",
+            msg3 = "OneTokenV1: token is not collateral.",
             msg4 = "OneTokenV1: sender has insufficient member token balance.",
             msg5 = "OneTokenV1: sender has insufficient collateral token balance.",
             msg6 = "OneTokenV1: collateral not recognized.";

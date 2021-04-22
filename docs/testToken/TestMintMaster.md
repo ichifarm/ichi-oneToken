@@ -41,14 +41,14 @@ updates parameters for a given oneToken that uses this module
 
 
 
-### `getMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (external)
+### `getMintingRatio(address) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
 
 
 
-### `getMintingRatio(address oneToken) → uint256 ratio, uint256 maxOrderValue` (public)
+### `getMintingRatio2(address oneToken, address) → uint256 ratio, uint256 maxOrderValue` (public)
 
 returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
      @dev anyone calls this to inspect any oneToken minting ratio
@@ -56,16 +56,16 @@ returns an adjusted minting ratio. OneTokens use this function and it relies on 
 
 
 
-### `getMintingRatio(address oneToken, address oracle) → uint256 ratio, uint256 maxOrderVolume` (public)
+### `getMintingRatio4(address oneToken, address oneTokenOracle, address, address) → uint256 ratio, uint256 maxOrderVolume` (public)
 
 returns an adjusted minting ratio
      @dev anyone calls this to inspect any oneToken minting ratio
      @param oneToken oneToken implementation to inspect
-     @param oracle explicit oracle selection
+     @param oneTokenOracle explicit oracle selection
 
 
 
-### `updateMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (external)
+### `updateMintingRatio(address) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process

@@ -83,11 +83,11 @@ contract("OneToken V1 Admin", accounts => {
         
         await mintMaster.setMinRatio(oneToken.address, NEW_RATIO, { from: governance });
         await mintMaster.setRatio(oneToken.address, NEW_RATIO, { from: governance });
-        theRatio = await mintMaster.getMintingRatio(oneToken.address);
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address);
         assert.strictEqual(theRatio[0].toString(10), NEW_RATIO, "mintMaster didn't set a new ratio");
 
-        await oneToken.updateMintingRatio();
-        theRatio = await oneToken.getMintingRatio();
+        await oneToken.updateMintingRatio(collateralToken.address);
+        theRatio = await oneToken.getMintingRatio(collateralToken.address);
         assert.strictEqual(theRatio[0].toString(10), NEW_RATIO, "the minting ratio did not update as expected");
     });
 

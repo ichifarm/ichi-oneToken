@@ -12,8 +12,11 @@
     "test:ichiCompositeOracle": "yarn test test/ichiCompositeOracle.js",
     "test:strategy": "yarn test test/arbitraryStrategy.js",
     "test:mintMaster": "yarn test test/mintMaster.js",
+    "test:integration": "yarn test test/integration.js",
     "test:controller": "yarn test test/controller.js",
-    "test:oneToken": "hardhat test test/oneTokenV1-main.js",
+    "test:oneTokenMain": "hardhat test test/oneTokenV1-main.js",
+    "test:oneTokenBase": "hardhat test test/oneTokenV1-base.js",
+    "test:oneTokenAdmin": "hardhat test test/oneTokenV1-admin.js",
     "test:e2e": "hardhat test test/integration.js",
     "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=2048\" hardhat coverage",
     "test:gas": "cross-env REPORT_GAS=true yarn test"

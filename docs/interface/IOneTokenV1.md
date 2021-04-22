@@ -47,7 +47,7 @@
 
 
 
-### `updateMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (external)
+### `updateMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 
 
@@ -65,7 +65,7 @@
 
 
 
-### `getMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (external)
+### `getMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 
 
