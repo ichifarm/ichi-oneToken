@@ -56,9 +56,9 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param amount amount to transfer
      */
     function withdraw(address token, uint amount) public override {
-        require(isCollateral(token), "OneTokenV1: requested token is not collateral.");
-        require(amount > 0, "OneTokenV1: withdrawal amount must greater than zero.");
-        require(amount <= availableBalance(msg.sender, token), "OneTokenV1: insufficient available funds.");
+        require(isCollateral(token), "OneTokenV1: token is not collateral.");
+        require(amount > 0, "OneTokenV1: amount must greater than zero.");
+        require(amount <= availableBalance(msg.sender, token), "OneTokenV1: insufficient funds.");
         decreaseUserBalance(msg.sender, token, amount);
         IERC20(token).transfer(msg.sender, amount);
         emit UserWithdrawal(msg.sender, token, amount);
@@ -105,7 +105,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         IOracle(assets[collateralToken].oracle).update(collateralToken);
         
         // this will also update the member token oracle price history
-        (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio();
+        (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio(collateralToken);
 
         // future mintmasters may return a maximum order volume to tamp down on possible manipulation
         require(oneTokens <= maxOrderVolume, "OneTokenV1: orders exceeds temporary limit.");
@@ -176,7 +176,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         increaseUserBalance(msg.sender, collateral, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
         // updates the oracle price history for oneToken, only
-        updateMintingRatio();
+        updateMintingRatio(collateral);
         IController(controller).periodic();
     }
 
@@ -204,15 +204,16 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @notice adjust the minting ratio
      @dev acceptable for gas-paying external actors to call this function
      */
-    function updateMintingRatio() public override returns(uint ratio, uint maxOrderVolume) {
-        return IMintMaster(mintMaster).updateMintingRatio();
+    function updateMintingRatio(address collateralToken) public override returns(uint ratio, uint maxOrderVolume) {
+        return IMintMaster(mintMaster).updateMintingRatio(collateralToken);
     }
 
     /**
      @notice read the minting ratio and maximum order volume prescribed by the mintMaster
+     @param collateralToken token to use for ratio calculation
      */
-    function getMintingRatio() external view override returns(uint ratio, uint maxOrderVolume) {
-        return IMintMaster(mintMaster).getMintingRatio();
+    function getMintingRatio(address collateralToken) external view override returns(uint ratio, uint maxOrderVolume) {
+        return IMintMaster(mintMaster).getMintingRatio(collateralToken);
     }
 
     /**

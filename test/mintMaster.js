@@ -174,14 +174,14 @@ contract("MintMaster", accounts => {
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
         assert.strictEqual(parameters.set, true, "mintMaster didn't set the set flag");
         assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, NULL_ADDRESS, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't set a new ratio");
 
         // the ratio should be updated, after the updateMintingRatio call, and params has changed too
-        await oneToken.updateMintingRatio();
+        await oneToken.updateMintingRatio(collateralToken.address);
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
         assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't set a new ratio");
 
         expectEvent(tx, 'SetParams', {
@@ -221,15 +221,15 @@ contract("MintMaster", accounts => {
 			sender: governance,
             ratio: RATIO_50
 		})
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
 
-        await oneToken.updateMintingRatio();
-        theRatio = await oneToken.getMintingRatio();
+        await oneToken.updateMintingRatio(collateralToken.address);
+        theRatio = await oneToken.getMintingRatio(collateralToken.address);
         assert.strictEqual(theRatio[0].toString(10), RATIO_50, "the minting ratio did not update as expected");
 
         await mintMaster.setMinRatio(oneToken.address, RATIO_60, { from: governance });
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_60, "mintMaster didn't limit ratio after resetting min ratio");
 
         await truffleAssert.reverts(mintMaster.setMaxRatio(oneToken.address, RATIO_50, { from: governance }), msg3);
@@ -244,7 +244,7 @@ contract("MintMaster", accounts => {
 			sender: governance,
             maxRatio: RATIO_90
 		})
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't limit ratio after resetting max ratio");
     });
 
@@ -267,7 +267,7 @@ contract("MintMaster", accounts => {
 			sender: governance,
             stepSize: STEP_002
 		})
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
         await truffleAssert.reverts(mintMaster.setStepSize(oneToken.address, RATIO_90, { from: governance }), msg2);
         assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
@@ -287,19 +287,19 @@ contract("MintMaster", accounts => {
         
         await mintMaster.setMaxRatio(oneToken.address, RATIO_95, { from: governance });
         await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
         assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
         assert.strictEqual(theRatio[0].toString(10), "902000000000000000", "mintMaster didn't change the ratio using step size (step up)");
 
         // taking the second step
-        await oneToken.updateMintingRatio({ from: governance });
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), "904000000000000000", "mintMaster didn't change the ratio using step size (step up)");
 
         // switching the oracle "off center" direction to test "step down" logic
         await testOracle.setAdjustUp(true, { from: governance });
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), "900000000000000000", "mintMaster didn't change the ratio using step size (step down)");
 
     });
@@ -351,10 +351,10 @@ contract("MintMaster", accounts => {
             sender: governance,
             ratio: RATIO_50
         })
-        theRatio = await mintMaster.getMintingRatio(oneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
 
-        theRatio = await mintMaster.getMintingRatio(secondOneToken.address, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(secondOneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster for second oneToken got updated with the first oneToken");
     });
 

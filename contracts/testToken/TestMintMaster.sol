@@ -117,8 +117,8 @@ contract TestMintMaster is MintMasterCommon {
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
      */
-    function getMintingRatio() external view override returns(uint ratio, uint maxOrderVolume) {
-        return getMintingRatio(msg.sender);
+    function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
+        return getMintingRatio2(msg.sender, NULL_ADDRESS);
     }
 
     /**
@@ -126,21 +126,21 @@ contract TestMintMaster is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio
      @param oneToken oneToken implementation to inspect
      */    
-    function getMintingRatio(address oneToken) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
         address oracle = oneTokenOracles[oneToken];
-        return getMintingRatio(oneToken, oracle);
+        return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
 
     /**
      @notice returns an adjusted minting ratio
      @dev anyone calls this to inspect any oneToken minting ratio
      @param oneToken oneToken implementation to inspect
-     @param oracle explicit oracle selection
+     @param oneTokenOracle explicit oracle selection
      */   
-    function getMintingRatio(address oneToken, address oracle) public view override returns(uint ratio, uint maxOrderVolume) {       
+    function getMintingRatio4(address oneToken, address oneTokenOracle, address /* collateral */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
-        (uint quote, /* uint volatility */ ) = IOracle(oracle).read(oneToken, PRECISION);
+        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
         ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, MAX_VOLUME);
         uint stepSize = p.stepSize;
@@ -157,8 +157,8 @@ contract TestMintMaster is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
      */
-    function updateMintingRatio() external override returns(uint ratio, uint maxOrderVolume) {
-        return _updateMintingRatio(msg.sender);
+    function updateMintingRatio(address /* collateralToken */) external override returns(uint ratio, uint maxOrderVolume) {
+        return _updateMintingRatio(msg.sender, NULL_ADDRESS);
     }
 
     /**
@@ -166,11 +166,11 @@ contract TestMintMaster is MintMasterCommon {
      @dev internal use only
      @param oneToken the oneToken implementation to evaluate
      */    
-    function _updateMintingRatio(address oneToken) private returns(uint ratio, uint maxOrderVolume) {
+    function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint ratio, uint maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
         address o = oneTokenOracles[oneToken];
         IOracle(o).update(oneToken);
-        (ratio, maxOrderVolume) = getMintingRatio(oneToken);
+        (ratio, maxOrderVolume) = getMintingRatio2(oneToken, NULL_ADDRESS);
         p.lastRatio = ratio;
         /// @notice no event is emitted to save gas
         // emit UpdateMintingRatio(msg.sender, volatility, ratio, maxOrderVolume);

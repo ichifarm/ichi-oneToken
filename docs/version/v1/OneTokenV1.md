@@ -55,16 +55,17 @@ governance sets the adjustable fee
 
 
 
-### `updateMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (public)
+### `updateMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (public)
 
 adjust the minting ratio
      @dev acceptable for gas-paying external actors to call this function
 
 
 
-### `getMintingRatio() → uint256 ratio, uint256 maxOrderVolume` (external)
+### `getMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 read the minting ratio and maximum order volume prescribed by the mintMaster
+     @param collateralToken token to use for ratio calculation
 
 
 
