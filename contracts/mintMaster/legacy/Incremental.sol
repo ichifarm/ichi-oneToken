@@ -197,6 +197,7 @@ contract Incremental is MintMasterCommon {
     function setMinRatio(address oneToken, uint minRatio) public onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(minRatio <= p.maxRatio, "Incremental: minRatio must be <= maxRatio");
+        require(p.stepSize < p.maxRatio - minRatio, "Incremental: stepSize must be < max - min.");
         p.minRatio = minRatio;
         if(minRatio > p.lastRatio) setRatio(oneToken, minRatio);
         emit MinRatioSet(msg.sender, minRatio);
@@ -213,6 +214,7 @@ contract Incremental is MintMasterCommon {
         Parameters storage p = parameters[oneToken];
         require(maxRatio > p.minRatio, "Incremental: maxRatio must be > minRatio");
         require(maxRatio <= PRECISION, "Incremental: maxRatio must <= 100%");
+        require(p.stepSize < maxRatio - p.minRatio, "Incremental: stepSize must be < max - min.");
         p.maxRatio = maxRatio;
         if(maxRatio < p.lastRatio) setRatio(oneToken, maxRatio);
         emit MaxRatioSet(msg.sender, maxRatio);
