@@ -18,9 +18,11 @@ const
     NULL_ADDRESS = "0x0000000000000000000000000000000000000000",
     RATIO_40 =   "400000000000000000", // 40%
     RATIO_50 =   "500000000000000000", // 50%
+    RATIO_501 =  "501000000000000000", // 50.1%
     RATIO_95 =   "950000000000000000", // 95%
     RATIO_60 =   "600000000000000000", // 60%
     RATIO_90 =   "900000000000000000", // 90%
+    RATIO_949 =  "949000000000000000", // 94.9%
     RATIO_100 = "1000000000000000000", // 100%
     RATIO_110 = "1100000000000000000", // 110% - invalid
     STEP_002 =     "2000000000000000" // 0.2%
@@ -205,10 +207,13 @@ contract("MintMaster", accounts => {
             msg5 = "Incremental: ratio must be > 0",
             msg6 = "Incremental: ratio must be <= 100%",
             msg7 = "Incremental: ratio must be >= minRatio",
-            msg8 = "Incremental: ratio must be <= maxRatio";
+            msg8 = "Incremental: ratio must be <= maxRatio",
+            msg9 = "Incremental: stepSize must be < max - min.";
         
         await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
         await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_100, { from: governance }), msg2);
+        await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_949, { from: governance }), msg9);
+        await truffleAssert.reverts(mintMaster.setMaxRatio(oneToken.address, RATIO_501, { from: governance }), msg9);
         await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
         
         let tx = await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
