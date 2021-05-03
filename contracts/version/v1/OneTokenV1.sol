@@ -128,6 +128,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             // re-evaluate the memberToken value and collateral value required using the oracle rate already obtained
             memberTokensUSDValue = memberTokenRate.mul(memberTokensReq).div(PRECISION);
             collateralUSDValue = oneTokens.sub(memberTokensUSDValue);
+            collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
         }
 
         require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OneTokenV1: sender has insufficient member token balance.");

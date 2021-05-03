@@ -38,6 +38,7 @@ const moduleType = {
 let governance,
     badAddress,
     bob,
+    jane,
     version,
     factory,
     oneToken,
@@ -55,6 +56,7 @@ contract("OneToken V1 Main", accounts => {
         governance = accounts[0];
         badAddress = accounts[1];
         bob = accounts[2];
+        jane = accounts[3];
         version = await OneToken.deployed();
         factory = await Factory.deployed();
         controller = await ControllerNull.deployed();
@@ -310,4 +312,52 @@ contract("OneToken V1 Main", accounts => {
 
         await truffleAssert.reverts(oneToken.setMintingFee( RATIO_110, { from: governance }), msg1);
     });
+
+    it("should apply minting fee correctly in all cases", async () => {
+
+        await oneToken.changeMintMaster(testMintMaster.address, oracle.address, { from: governance });
+        // has to setParams after changeMintMaster - because it's relinitialized
+        await testMintMaster.setParams(oneToken.address,
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+
+        await oneToken.setMintingFee( FEE_10, { from: governance } );
+
+        let theRatio = await oneToken.getMintingRatio(collateralToken.address);
+
+        // adding allowance for member token
+        await memberToken.approve(oneToken.address, 10, { from: jane });
+
+        // adding allowance for collateral token
+        await collateralToken.approve(oneToken.address, 3000, { from: jane });
+
+        // transferring some member and collateral tokens to jane to work with
+        await collateralToken.approve(jane, 3000, { from: governance });
+        await memberToken.approve(jane, 3000, { from: governance });
+        await collateralToken.transfer(jane, 3000, { from: governance });
+        await memberToken.transfer(jane, 2000, { from: governance });
+        
+        // minting 1000 oneTokens!
+        let tx = await oneToken.mint(collateralToken.address, 1000, { from: jane });
+        let userCollateralBalance = await collateralToken.balanceOf(jane);
+        let userMemberBalance = await memberToken.balanceOf(jane);
+
+        // should have 1911 collateral tokens left: 3000 - (1000 - 10) * 1.1 (low member allowance + fee)
+        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 1911, "user collateral token balance should be 1911");
+        assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1990, "user member token balance should be 1990");
+
+        // approving more member tokens for minting and minting 1000 more oneToken
+        await memberToken.approve(oneToken.address, 200, { from: jane });
+        await oneToken.mint(collateralToken.address, 1000, { from: jane });
+        userCollateralBalance = await collateralToken.balanceOf(jane);
+        userMemberBalance = await memberToken.balanceOf(jane);
+
+        // should have 921 collateral tokens left: 1911 - (1000 - 100) * 1.1 (just fee)
+        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 921, "user collateral token balance should be 921");
+        assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1890, "user member token balance should be 1890");
+
+        // checking the balance
+        let userBalance = await oneToken.balanceOf(jane, { from: jane });
+        assert.strictEqual(parseInt(userBalance.toString(10)), 2000, "user balance should be 2000 for oneToken");
+    });
+
 });
