@@ -149,7 +149,7 @@ contract("OneToken V1 Base", accounts => {
     it("should allow a change of controller", async () => {
 
         msg1 = "ICHIOwnable: caller is not the owner";
-        msg2 = "OTV1B: controller isn't registered in factory";
+        msg2 = "OTV1B: unregistered controller";
         msg3 = "OTV1B: unk controller";
 
         let tx = await oneToken.changeController(controller.address, { from: governance });
@@ -195,7 +195,7 @@ contract("OneToken V1 Base", accounts => {
     it("should allow a change of mintMaster", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OTV1B: mintMaster isn't registered in factory",
+            msg2 = "OTV1B: unregistered mint master",
             msg3 = "OTV1B: unk mint master",
             msg4 = "OTV1B: unregistered oneToken oracle";
 
@@ -240,7 +240,7 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
         let msg2 = "OTV1B: unk oracle or token";
-        let msg3 = "OTV1B: collateral already exists";
+        let msg3 = "OTV1B: COLLAT already exists";
         
         // deploy a new token
         let newToken = await CollateralToken.new();
@@ -410,13 +410,13 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: strategy isn't registered with factory"
+            msg3 = "OTV1B: unregistered strategy"
             msg4 = "OTV1B: unk strategy",
             msg5 = "OTV1B: can't assign strategy that doesn't recognize this vault",
             msg6 = "OTV1B: unk strategy owner",
             msg7 = "OTV1B: not the token strategy",
-            msg8 = "OTV1B: can't remove token with balance > 0 in the vault",
-            msg9 = "OTV1B: can't remove asset with balance > 0 in the strategy";
+            msg8 = "OTV1B: can't remove token with vault balance > 0",
+            msg9 = "OTV1B: can't remove asset with strategy balance > 0";
 
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");
 
@@ -600,7 +600,7 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: strategy isn't registered with factory",
+            msg3 = "OTV1B: unregistered strategy",
             msg4 = "OTV1B:cs: unk token";
 
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");

@@ -56,7 +56,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param amount amount to transfer
      */
     function withdraw(address token, uint amount) public override {
-        require(isCollateral(token), "OTV1: token isn't collateral");
+        require(isCollateral(token), "OTV1: token isn't COLLAT");
         require(amount > 0, "OTV1: amount must be > 0");
         require(amount <= availableBalance(msg.sender, token), "OTV1: INSUF funds");
         decreaseUserBalance(msg.sender, token, amount);
@@ -98,7 +98,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param oneTokens exact number of oneTokens to receive
      */
     function mint(address collateralToken, uint oneTokens) external initialized override {
-        require(collateralTokenSet.exists(collateralToken), "OTV1: offer a collateral token");
+        require(collateralTokenSet.exists(collateralToken), "OTV1: offer a COLLAT token");
         require(oneTokens > 0, "OTV1: order must be > 0");
         
         // update collateral oracle
@@ -131,7 +131,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
         }
 
-        require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: INSUF member token balance");
+        require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: INSUF MEM token balance");
 
         // compute actual collateral tokens required in case of imperfect collateral pegs
         // a pegged oracle can be used to reduce the cost of this step but it will not account for price differences
@@ -146,7 +146,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         }
 
         uint collateralTokensToTransfer = collateralTokensReq.sub(collateralFromBalance);
-        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensToTransfer, "OTV1: INSUF collateral token balance");
+        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensToTransfer, "OTV1: INSUF COLLAT token balance");
 
         // transfer tokens in
         IERC20(memberToken).transferFrom(msg.sender, address(this), memberTokensReq);
@@ -168,7 +168,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param amount oneTokens to redeem equals collateral tokens to receive
      */
     function redeem(address collateral, uint amount) external override {
-        require(isCollateral(collateral), "OTV1: collateral not recognized");
+        require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
         IOracle(assets[collateral].oracle).update(collateral);
         // implied transfer approval and allowance
         // transferFrom(msg.sender, address(this), amount);

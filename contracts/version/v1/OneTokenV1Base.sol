@@ -90,8 +90,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(oneTokenOracle_, ModuleType.Oracle), "OTV1B: unk oracle");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unk controller");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unk mint master");
-        require(IOneTokenFactory(oneTokenFactory).isForeignToken(memberToken_), "OTV1B: unk member token");
-        require(IOneTokenFactory(oneTokenFactory).isCollateral(collateral_), "OTV1B: unk collateral");
+        require(IOneTokenFactory(oneTokenFactory).isForeignToken(memberToken_), "OTV1B: unk MEM token");
+        require(IOneTokenFactory(oneTokenFactory).isCollateral(collateral_), "OTV1B: unk COLLAT");
 
         // register the modules
         controller = controller_;
@@ -101,10 +101,10 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         memberToken = memberToken_;
 
         // register the first acceptable collateral and note the existance of the member token
-        collateralTokenSet.insert(collateral_, "OTV1B: ERR inserting collateral");
-        otherTokenSet.insert(memberToken_, "OTV1B: ERR inserting member token");
-        assetSet.insert(collateral_, "OTV1B: ERR inserting collateral as asset");
-        assetSet.insert(memberToken_, "OTV1B: ERR inserting member token as asset");
+        collateralTokenSet.insert(collateral_, "OTV1B: ERR inserting COLLAT");
+        otherTokenSet.insert(memberToken_, "OTV1B: ERR inserting MEM token");
+        assetSet.insert(collateral_, "OTV1B: ERR inserting COLLAT as asset");
+        assetSet.insert(memberToken_, "OTV1B: ERR inserting MEM token as asset");
 
         // instantiate the memberToken and collateralToken records
         Asset storage mt = assets[memberToken_];
@@ -137,7 +137,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param controller_ a deployed controller contract supporting the minimum interface and registered with the factory
      */
     function changeController(address controller_) external onlyOwner override {
-        require(IOneTokenFactory(oneTokenFactory).isModule(controller_), "OTV1B: controller isn't registered in factory");
+        require(IOneTokenFactory(oneTokenFactory).isModule(controller_), "OTV1B: unregistered controller");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unk controller");
         IController(controller_).init();
         controller = controller_;
@@ -151,7 +151,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param oneTokenOracle_ intialize the mintMaster with this oracle. Must be registed in the factory.
      */
     function changeMintMaster(address mintMaster_, address oneTokenOracle_) external onlyOwner override {
-        require(IOneTokenFactory(oneTokenFactory).isModule(mintMaster_), "OTV1B: mintMaster isn't registered in factory");
+        require(IOneTokenFactory(oneTokenFactory).isModule(mintMaster_), "OTV1B: unregistered mint master");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unk mint master");
         require(IOneTokenFactory(oneTokenFactory).isOracle(address(this), oneTokenOracle_), "OTV1B: unregistered oneToken oracle");
         IMintMaster(mintMaster_).init(oneTokenOracle_);
@@ -172,7 +172,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         a.oracle = oracle;
         IOracle(oracle).update(token);
         if(isCollateral_) {
-            collateralTokenSet.insert(token, "OTV1B: collateral already exists");
+            collateralTokenSet.insert(token, "OTV1B: COLLAT already exists");
         } else {
             otherTokenSet.insert(token, "OTV1B: token already exists");
         }
@@ -187,11 +187,11 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function removeAsset(address token) external onlyOwner override {
         (uint inVault, uint inStrategy) = balances(token);
-        require(inVault == 0, "OTV1B: can't remove token with balance > 0 in the vault");
-        require(inStrategy == 0, "OTV1B: can't remove asset with balance > 0 in the strategy");
+        require(inVault == 0, "OTV1B: can't remove token with vault balance > 0");
+        require(inStrategy == 0, "OTV1B: can't remove asset with strategy balance > 0");
         require(assetSet.exists(token), "OTV1B: unk token");
-        if(collateralTokenSet.exists(token)) collateralTokenSet.remove(token, "OTV1B: ERR removing collateral token");
-        if(otherTokenSet.exists(token)) otherTokenSet.remove(token, "OTV1B: ERR removing other token");
+        if(collateralTokenSet.exists(token)) collateralTokenSet.remove(token, "OTV1B: ERR removing COLLAT token");
+        if(otherTokenSet.exists(token)) otherTokenSet.remove(token, "OTV1B: ERR removing MEM token");
         assetSet.remove(token, "OTV1B: ERR removing asset");
         delete assets[token];
         emit AssetRemoved(msg.sender, token);
@@ -207,7 +207,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     function setStrategy(address token, address strategy, uint allowance) external onlyOwner override {
 
         require(assetSet.exists(token), "OTV1B: unk token");
-        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: strategy isn't registered with factory");
+        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unregistered strategy");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(strategy, ModuleType.Strategy), "OTV1B: unk strategy");
         require(IStrategy(strategy).oneToken() == address(this), "OTV1B: can't assign strategy that doesn't recognize this vault");
         require(IStrategy(strategy).owner() == owner(), "OTV1B: unk strategy owner");

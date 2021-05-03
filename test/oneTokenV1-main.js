@@ -91,11 +91,11 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to mint", async () => {
-        let msg1 = "OTV1: offer a collateral token",
+        let msg1 = "OTV1: offer a COLLAT token",
             msg2 = "OTV1: order must be > 0",
             msg3 = "OTV1: order exceeds max limit",
-            msg4 = "OTV1: INSUF member token balance",
-            msg5 = "OTV1: INSUF collateral token balance";
+            msg4 = "OTV1: INSUF MEM token balance",
+            msg5 = "OTV1: INSUF COLLAT token balance";
 
         await truffleAssert.reverts(oneToken.mint(memberToken.address, 1, { from: bob }), msg1);
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, 0, { from: bob }), msg2);
@@ -169,10 +169,10 @@ contract("OneToken V1 Main", accounts => {
     it("should be able to redeem", async () => {
         let msg1 = "OTV1: INSUF funds",
             msg2 = "OTV1: amount must be > 0",
-            msg3 = "OTV1: token isn't collateral",
-            msg4 = "OTV1: INSUF member token balance",
-            msg5 = "OTV1: INSUF collateral token balance",
-            msg6 = "OTV1: collateral not recognized";
+            msg3 = "OTV1: token isn't COLLAT",
+            msg4 = "OTV1: INSUF MEM token balance",
+            msg5 = "OTV1: INSUF COLLAT token balance",
+            msg6 = "OTV1: unrecognized COLLAT";
 
         // initial liabilities are 0
         let liabilities = await oneToken.liabilities(collateralToken.address);
