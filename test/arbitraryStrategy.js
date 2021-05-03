@@ -136,7 +136,7 @@ contract("Arbitrary strategy", accounts => {
 	});
 	
 	it("instance cannot be shared between oneTokens", async () => {
-		let msg1 = "OneTokenV1Base: cannot assign strategy that doesn't recognize this vault";
+		let msg1 = "OTV1B: can't assign strategy that doesn't recognize this vault";
 		let allowance1 = 1000;
 		await truffleAssert.reverts(secondOneToken.setStrategy(collateralToken1.address, 
 			arbitraryStrategy.address, allowance1), msg1 );
