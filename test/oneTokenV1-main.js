@@ -82,8 +82,8 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should not able to withdraw when balance is 0", async () => {
-        let msg1 = "OneTokenV1: insufficient funds."
-            msg2 = "OneTokenV1: amount must greater than zero.";
+        let msg1 = "OTV1: INSUF funds"
+            msg2 = "OTV1: amount must be > 0";
 
         await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 1, { from: bob }), msg1);
         
@@ -91,11 +91,11 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to mint", async () => {
-        let msg1 = "OneTokenV1: offer a collateral token",
-            msg2 = "OneTokenV1: request oneTokens quantity",
-            msg3 = "OneTokenV1: orders exceeds temporary limit.",
-            msg4 = "OneTokenV1: sender has insufficient member token balance.",
-            msg5 = "OneTokenV1: sender has insufficient collateral token balance.";
+        let msg1 = "OTV1: offer a COLLAT token",
+            msg2 = "OTV1: order must be > 0",
+            msg3 = "OTV1: order exceeds max limit",
+            msg4 = "OTV1: INSUF MEM token balance",
+            msg5 = "OTV1: INSUF COLLAT token balance";
 
         await truffleAssert.reverts(oneToken.mint(memberToken.address, 1, { from: bob }), msg1);
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, 0, { from: bob }), msg2);
@@ -167,12 +167,12 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to redeem", async () => {
-        let msg1 = "OneTokenV1: insufficient funds.",
-            msg2 = "OneTokenV1: amount must greater than zero.",
-            msg3 = "OneTokenV1: token is not collateral.",
-            msg4 = "OneTokenV1: sender has insufficient member token balance.",
-            msg5 = "OneTokenV1: sender has insufficient collateral token balance.",
-            msg6 = "OneTokenV1: collateral not recognized.";
+        let msg1 = "OTV1: INSUF funds",
+            msg2 = "OTV1: amount must be > 0",
+            msg3 = "OTV1: token isn't COLLAT",
+            msg4 = "OTV1: INSUF MEM token balance",
+            msg5 = "OTV1: INSUF COLLAT token balance",
+            msg6 = "OTV1: unrecognized COLLAT";
 
         // initial liabilities are 0
         let liabilities = await oneToken.liabilities(collateralToken.address);
@@ -308,7 +308,7 @@ contract("OneToken V1 Main", accounts => {
     });
     
     it("should revert on set minting fee if not between 0 and 100 percents", async () => {
-        let msg1 = "OneTokenV1: fee must be between 0 and 100%";
+        let msg1 = "OTV1: fee must be <= 100%";
 
         await truffleAssert.reverts(oneToken.setMintingFee( RATIO_110, { from: governance }), msg1);
     });

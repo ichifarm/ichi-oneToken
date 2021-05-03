@@ -61,7 +61,7 @@ contract("OneToken V1 Admin", accounts => {
     
     it("should set the redemption fee", async () => {
         let msg1 = "ICHIOwnable: caller is not the owner"
-            msg2 = "OneTokenV1: fee must be between 0 and 100%";
+            msg2 = "OTV1: fee must be <= 100%";
 
         truffleAssert.reverts(oneToken.setRedemptionFee(MAX_FEE+1, { from: governance }), msg2);
 
