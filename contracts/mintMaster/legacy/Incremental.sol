@@ -28,11 +28,11 @@ contract Incremental is MintMasterCommon {
 
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
     event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio);
-    event UpdateMintingRatio(address sender, uint newRatio, uint maxOrderVolume);
-    event StepSizeSet(address sender, uint stepSize);
-    event MinRatioSet(address sender, uint minRatio);
-    event MaxRatioSet(address sender, uint maxRatio);
-    event RatioSet(address sender, uint ratio);
+    event UpdateMintingRatio(address sender, address oneToken, uint newRatio, uint maxOrderVolume);
+    event StepSizeSet(address sender, address oneToken, uint stepSize);
+    event MinRatioSet(address sender, address oneToken, uint minRatio);
+    event MaxRatioSet(address sender, address oneToken, uint maxRatio);
+    event RatioSet(address sender, address oneToken, uint ratio);
    
     constructor(address oneTokenFactory_, string memory description_) 
         MintMasterCommon(oneTokenFactory_, description_) {}
@@ -167,7 +167,7 @@ contract Incremental is MintMasterCommon {
         (ratio, maxOrderVolume) = getMintingRatio2(oneToken, NULL_ADDRESS);
         p.lastRatio = ratio;
         /// @notice no event is emitted to save gas
-        // emit UpdateMintingRatio(msg.sender, ratio, maxOrderVolume);
+        // emit UpdateMintingRatio(msg.sender, oneToken, ratio, maxOrderVolume);
     }
 
     /**
@@ -184,7 +184,7 @@ contract Incremental is MintMasterCommon {
         Parameters storage p = parameters[oneToken];
         require(stepSize < p.maxRatio - p.minRatio, "Incremental: stepSize must be < max - min.");
         p.stepSize = stepSize;
-        emit StepSizeSet(msg.sender, stepSize);
+        emit StepSizeSet(msg.sender, oneToken, stepSize);
     }
 
     /**
@@ -200,7 +200,7 @@ contract Incremental is MintMasterCommon {
         require(p.stepSize < p.maxRatio - minRatio, "Incremental: stepSize must be < max - min.");
         p.minRatio = minRatio;
         if(minRatio > p.lastRatio) setRatio(oneToken, minRatio);
-        emit MinRatioSet(msg.sender, minRatio);
+        emit MinRatioSet(msg.sender, oneToken, minRatio);
     }
 
     /**
@@ -217,7 +217,7 @@ contract Incremental is MintMasterCommon {
         require(p.stepSize < maxRatio - p.minRatio, "Incremental: stepSize must be < max - min.");
         p.maxRatio = maxRatio;
         if(maxRatio < p.lastRatio) setRatio(oneToken, maxRatio);
-        emit MaxRatioSet(msg.sender, maxRatio);
+        emit MaxRatioSet(msg.sender, oneToken, maxRatio);
     }
 
     /**
@@ -233,6 +233,6 @@ contract Incremental is MintMasterCommon {
         require(ratio >= p.minRatio, "Incremental: ratio must be >= minRatio");
         require(ratio <= p.maxRatio, "Incremental: ratio must be <= maxRatio");
         p.lastRatio = ratio;
-        emit RatioSet(msg.sender, ratio);
+        emit RatioSet(msg.sender, oneToken, ratio);
     }
 }
