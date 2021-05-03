@@ -341,7 +341,7 @@ contract("OneToken V1 Main", accounts => {
         let userCollateralBalance = await collateralToken.balanceOf(jane);
         let userMemberBalance = await memberToken.balanceOf(jane);
 
-        // should take 911 collateral tokens: 3000 - (1000 - 10) * 1.1 (low member allowance + fee)
+        // should have 1911 collateral tokens left: 3000 - (1000 - 10) * 1.1 (low member allowance + fee)
         assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 1911, "user collateral token balance should be 1911");
         assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1990, "user member token balance should be 1990");
 
@@ -351,7 +351,7 @@ contract("OneToken V1 Main", accounts => {
         userCollateralBalance = await collateralToken.balanceOf(jane);
         userMemberBalance = await memberToken.balanceOf(jane);
 
-        // should take 921 collateral tokens: 1911 - (1000 - 100) * 1.1 (just fee)
+        // should have 921 collateral tokens left: 1911 - (1000 - 100) * 1.1 (just fee)
         assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 921, "user collateral token balance should be 921");
         assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1890, "user member token balance should be 1890");
 
