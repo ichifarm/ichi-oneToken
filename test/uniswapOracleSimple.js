@@ -151,6 +151,18 @@ contract("UniswapOracleSimple", accounts => {
 		}
 	});
 	
+	it("calling update before init should not fail, but it also shouldn't do anything", async () => {
+		await uniswapOracleSimple.update(memberTokenAddress);
+
+		let info = await uniswapOracleSimple.pairInfo(memberTokenAddress)
+		assert.equal(info.token0, NULL_ADDRESS);
+		assert.equal(info.token1, NULL_ADDRESS);
+		assert.equal(info.price0CumulativeLast, 0);
+		assert.equal(info.price1CumulativeLast, 0);
+		assert.equal(info.price0Average, 0);
+		assert.equal(info.price1Average, 0);
+	});
+
 	it("always initialized when admitted to factory", async () => {
 		let tx = await oneTokenFactory.assignOracle(memberTokenAddress, uniswapOracleSimple.address);
 	

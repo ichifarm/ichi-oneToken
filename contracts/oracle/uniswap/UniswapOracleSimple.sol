@@ -115,24 +115,26 @@ contract UniswapOracleSimple is OracleCommon {
     function update(address token) external override {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
-        (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
-            UniswapV2OracleLibrary.currentCumulativePrices(address(_pair));
-        uint32 timeElapsed = blockTimestamp - p.blockTimestampLast; // overflow is desired
+        if(p.token0 != NULL_ADDRESS) {
+            (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
+                UniswapV2OracleLibrary.currentCumulativePrices(address(_pair));
+            uint32 timeElapsed = blockTimestamp - p.blockTimestampLast; // overflow is desired
 
-        // ensure that at least one full period has passed since the last update
-        ///@ dev require() was dropped in favor of if() to make this safe to call when unsure about elapsed time
+            // ensure that at least one full period has passed since the last update
+            ///@ dev require() was dropped in favor of if() to make this safe to call when unsure about elapsed time
 
-        if(timeElapsed >= PERIOD) {
-            // overflow is desired, casting never truncates
-            // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-            p.price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - p.price0CumulativeLast) / timeElapsed));
-            p.price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - p.price1CumulativeLast) / timeElapsed));
+            if(timeElapsed >= PERIOD) {
+                // overflow is desired, casting never truncates
+                // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
+                p.price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - p.price0CumulativeLast) / timeElapsed));
+                p.price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - p.price1CumulativeLast) / timeElapsed));
 
-            p.price0CumulativeLast = price0Cumulative;
-            p.price1CumulativeLast = price1Cumulative;
-            p.blockTimestampLast = blockTimestamp;
+                p.price0CumulativeLast = price0Cumulative;
+                p.price1CumulativeLast = price1Cumulative;
+                p.blockTimestampLast = blockTimestamp;
+            }
+            // No event emitter to save gas
         }
-        // No event emitter to save gas
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
