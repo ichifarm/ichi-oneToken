@@ -219,11 +219,13 @@ contract("MintMaster", accounts => {
         let tx = await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
         expectEvent(tx, 'MinRatioSet', {
 			sender: governance,
+			oneToken: oneToken.address,
             minRatio: RATIO_50
 		})
         tx = await mintMaster.setRatio(oneToken.address, RATIO_50, { from: governance });
         expectEvent(tx, 'RatioSet', {
 			sender: governance,
+			oneToken: oneToken.address,
             ratio: RATIO_50
 		})
         theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
@@ -247,6 +249,7 @@ contract("MintMaster", accounts => {
         tx = await mintMaster.setMaxRatio(oneToken.address, RATIO_90, { from: governance });
         expectEvent(tx, 'MaxRatioSet', {
 			sender: governance,
+            oneToken: oneToken.address,
             maxRatio: RATIO_90
 		})
         theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
@@ -270,6 +273,7 @@ contract("MintMaster", accounts => {
         let tx = await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
         expectEvent(tx, 'StepSizeSet', {
 			sender: governance,
+			oneToken: oneToken.address,
             stepSize: STEP_002
 		})
         theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
@@ -328,6 +332,7 @@ contract("MintMaster", accounts => {
         let tx = await mintMaster.setMinRatio(oneToken.address, RATIO_40, { from: newOwner });
         expectEvent(tx, 'MinRatioSet', {
 			sender: newOwner,
+			oneToken: oneToken.address,
             minRatio: RATIO_40
 		})
 
@@ -339,6 +344,7 @@ contract("MintMaster", accounts => {
         tx = await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
         expectEvent(tx, 'MinRatioSet', {
 			sender: governance,
+			oneToken: oneToken.address,
             minRatio: RATIO_50
 		})
     });
@@ -354,6 +360,7 @@ contract("MintMaster", accounts => {
         tx = await mintMaster.setRatio(oneToken.address, RATIO_50, { from: governance });
         expectEvent(tx, 'RatioSet', {
             sender: governance,
+			oneToken: oneToken.address,
             ratio: RATIO_50
         })
         theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
