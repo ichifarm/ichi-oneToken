@@ -313,6 +313,48 @@ contract("MintMaster", accounts => {
 
     });
 
+    it("should clamp rate at the top and bottom", async () => {
+        let theRatio;
+
+        // set ratio to 94.9
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_949, { from: governance });
+
+        // try to step over maxRatio
+        await testOracle.setAdjustUp(false, { from: governance });
+        await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_95, "mintMaster didn't set a new ratio");
+
+        // set ratio to 95
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_95, { from: governance });
+
+        // try to step over maxRatio
+        await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_95, "mintMaster didn't set a new ratio");
+
+        // set ratio to 50.1
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_501, { from: governance });
+
+        // try to step over mixRatio
+        await testOracle.setAdjustUp(true, { from: governance });
+        await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
+
+        // set ratio to 50
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_50, { from: governance });
+
+        // try to step over mixRatio
+        await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
+    });
+
     it("access control should follow oneToken change of ownership", async () => {
         let 
             msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner";
