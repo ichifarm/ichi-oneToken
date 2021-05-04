@@ -24,6 +24,8 @@ contract Incremental is MintMasterCommon {
         uint lastRatio;      
     }
 
+    uint lastUpdatedBlock;
+
     mapping(address => Parameters) public parameters;
 
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
@@ -45,6 +47,7 @@ contract Incremental is MintMasterCommon {
     function init(address oneTokenOracle) external onlyKnownToken override {
         _setParams(msg.sender, DEFAULT_RATIO, DEFAULT_RATIO, DEFAULT_STEP_SIZE, DEFAULT_RATIO);
         _initMintMaster(msg.sender, oneTokenOracle);
+        lastUpdatedBlock = block.number;
         emit MintMasterInitialized(msg.sender, msg.sender, oneTokenOracle);
     }
 
@@ -152,7 +155,12 @@ contract Incremental is MintMasterCommon {
      @dev oneToken implementations calls this periodically, e.g. in the minting process
      */
     function updateMintingRatio(address collateralToken) external override returns(uint ratio, uint maxOrderVolume) {
-        return _updateMintingRatio(msg.sender, collateralToken);
+        if (lastUpdatedBlock >= block.number) {
+            (ratio, maxOrderVolume) = getMintingRatio2(msg.sender, NULL_ADDRESS);
+        } else {
+            lastUpdatedBlock = block.number;
+            return _updateMintingRatio(msg.sender, collateralToken);
+        }
     }
 
     /**
