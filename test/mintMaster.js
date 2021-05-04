@@ -202,13 +202,13 @@ contract("MintMaster", accounts => {
             theRatio,
             msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner",
             msg2 = "Incremental: minRatio must be <= maxRatio",
-            msg3 = "Incremental: maxRatio must be > minRatio",
+            msg3 = "Incremental: maxRatio must be >= minRatio",
             msg4 = "Incremental: maxRatio must <= 100%",
             msg5 = "Incremental: ratio must be > 0",
             msg6 = "Incremental: ratio must be <= 100%",
             msg7 = "Incremental: ratio must be >= minRatio",
             msg8 = "Incremental: ratio must be <= maxRatio",
-            msg9 = "Incremental: stepSize must be < max - min.";
+            msg9 = "Incremental: stepSize must be < (max - min) or zero.";
         
         await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
         await truffleAssert.reverts(mintMaster.setMinRatio(oneToken.address, RATIO_100, { from: governance }), msg2);
@@ -216,6 +216,20 @@ contract("MintMaster", accounts => {
         await truffleAssert.reverts(mintMaster.setMaxRatio(oneToken.address, RATIO_501, { from: governance }), msg9);
         await truffleAssert.reverts(mintMaster.setRatio(oneToken.address, RATIO_50, { from: badAddress }), msg1);
         
+        // setting stepSize to 0 allows very narrow ranges
+        await mintMaster.setStepSize(oneToken.address, 0, { from: governance });
+        await mintMaster.setMinRatio(oneToken.address, RATIO_949, { from: governance });
+        await mintMaster.setMinRatio(oneToken.address, RATIO_95, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_95, "mintMaster didn't set a new ratio");
+        await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
+        await mintMaster.setMaxRatio(oneToken.address, RATIO_501, { from: governance });
+        await mintMaster.setMaxRatio(oneToken.address, RATIO_50, { from: governance });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
+        assert.strictEqual(theRatio[0].toString(10), RATIO_50, "mintMaster didn't set a new ratio");
+        await mintMaster.setMaxRatio(oneToken.address, RATIO_95, { from: governance });
+        await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
+
         let tx = await mintMaster.setMinRatio(oneToken.address, RATIO_50, { from: governance });
         expectEvent(tx, 'MinRatioSet', {
 			sender: governance,
@@ -261,7 +275,7 @@ contract("MintMaster", accounts => {
             theRatio,
             parameters,
             msg1 = "ICHIModuleCommon: msg.sender is not oneToken owner",
-            msg2 = "Incremental: stepSize must be < max - min.",
+            msg2 = "Incremental: stepSize must be < (max - min) or zero.",
             msg3 = "MintMasterCommon: unknown oracle",
             msg4 = "MintMasterCommon: given oracle is not valid for oneToken (msg.sender)",
             msg5 = "Incremental: oracle is not approved for oneToken";
