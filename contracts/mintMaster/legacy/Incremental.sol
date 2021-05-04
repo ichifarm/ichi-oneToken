@@ -142,11 +142,17 @@ contract Incremental is MintMasterCommon {
         if(quote == PRECISION) return(ratio, INFINITE);
         uint stepSize = p.stepSize;
         maxOrderVolume = INFINITE;
-        if(quote < PRECISION && ratio + stepSize <= p.maxRatio) {
+        if(quote < PRECISION && ratio < p.maxRatio) {
             ratio += stepSize;
+            if (ratio > p.maxRatio) {
+                ratio = p.maxRatio;
+            }
         }
-        if(quote > PRECISION && ratio - stepSize >= p.minRatio) {
+        if(quote > PRECISION && ratio > p.minRatio) {
             ratio -= stepSize;
+            if (ratio < p.minRatio) {
+                ratio = p.minRatio;
+            }
         }
     }
 
