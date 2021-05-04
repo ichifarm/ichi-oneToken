@@ -234,6 +234,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function removeStrategy(address token) external onlyOwner override {
         Asset storage a = assets[token];
+        closeStrategy(token);
         address strategy = a.strategy;
         a.strategy = NULL_ADDRESS;
         emit StrategyRemoved(msg.sender, token, strategy);
