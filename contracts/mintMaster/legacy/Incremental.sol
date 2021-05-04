@@ -196,7 +196,7 @@ contract Incremental is MintMasterCommon {
      */
     function setStepSize(address oneToken, uint stepSize) public onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
-        require(stepSize < p.maxRatio - p.minRatio, "Incremental: stepSize must be < max - min.");
+        require(stepSize < p.maxRatio - p.minRatio || stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
         p.stepSize = stepSize;
         emit StepSizeSet(msg.sender, oneToken, stepSize);
     }
@@ -211,7 +211,7 @@ contract Incremental is MintMasterCommon {
     function setMinRatio(address oneToken, uint minRatio) public onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(minRatio <= p.maxRatio, "Incremental: minRatio must be <= maxRatio");
-        require(p.stepSize < p.maxRatio - minRatio, "Incremental: stepSize must be < max - min.");
+        require(p.stepSize < p.maxRatio - minRatio || p.stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
         p.minRatio = minRatio;
         if(minRatio > p.lastRatio) setRatio(oneToken, minRatio);
         emit MinRatioSet(msg.sender, oneToken, minRatio);
@@ -226,9 +226,9 @@ contract Incremental is MintMasterCommon {
      */ 
     function setMaxRatio(address oneToken, uint maxRatio) public onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
-        require(maxRatio > p.minRatio, "Incremental: maxRatio must be > minRatio");
+        require(maxRatio >= p.minRatio, "Incremental: maxRatio must be >= minRatio");
         require(maxRatio <= PRECISION, "Incremental: maxRatio must <= 100%");
-        require(p.stepSize < maxRatio - p.minRatio, "Incremental: stepSize must be < max - min.");
+        require(p.stepSize < maxRatio - p.minRatio || p.stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
         p.maxRatio = maxRatio;
         if(maxRatio < p.lastRatio) setRatio(oneToken, maxRatio);
         emit MaxRatioSet(msg.sender, oneToken, maxRatio);
