@@ -519,6 +519,7 @@ contract("OneToken V1 Base", accounts => {
         asset = await oneToken.assets(collateral);
         assignedStrategy = asset["strategy"];
         assert.strictEqual(assignedStrategy, NULL_ADDRESS, "this strategy wasn't removed");
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(half.toString(10));
 
         expectEvent(tx, 'StrategyRemoved', {
 			sender: governance,
@@ -638,8 +639,7 @@ contract("OneToken V1 Base", accounts => {
             // getAllowance,
             factory = await Factory.deployed(),
             strategy = await NullStrategy.new(factory.address, oneToken.address, strategyName),
-            collateral = await oneToken.collateralTokenAtIndex(0),
-            erc20Collateral = await IERC20Extended.at(collateral);
+            collateral = await oneToken.collateralTokenAtIndex(0);
         
         // assign strategy
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url")
@@ -647,14 +647,61 @@ contract("OneToken V1 Base", accounts => {
     
         let strategyName2 = "Do Nothing Strategy 2",
             allowance2 = "10",
-            getAllowance2,
             strategy2 = await NullStrategy.new(factory.address, oneToken.address, strategyName2),
-            collateral2 = await oneToken.collateralTokenAtIndex(0),
-            erc20Collateral2 = await IERC20Extended.at(collateral2);
+            collateral2 = await oneToken.collateralTokenAtIndex(0);
 
         // access control
         await factory.admitModule(strategy2.address, moduleType.strategy, "strategy name 2", "url")
         await oneToken.setStrategy(collateral2, strategy2.address, allowance2, { from: governance });
     })
+
+    it("strategy positions should be closed when it's removed or re-set", async () => {
+
+        let vaultBalance,
+            strategyName = "Do Nothing Strategy",
+            allowance = "10",
+            amount = "1000",
+            factory = await Factory.deployed(),
+            strategy_1 = await NullStrategy.new(factory.address, oneToken.address, strategyName),
+            strategy_2 = await NullStrategy.new(factory.address, oneToken.address, strategyName),
+            collateral = await oneToken.collateralTokenAtIndex(0),
+            erc20Collateral = await IERC20Extended.at(collateral);
+
+        await factory.admitModule(strategy_1.address, moduleType.strategy, "strategy name", "url");
+        await factory.admitModule(strategy_2.address, moduleType.strategy, "strategy name", "url");
+
+        // assign a strategy
+        await oneToken.setStrategy(collateral, strategy_1.address, allowance, { from: governance });
+
+        // funds to vault and on to the strategy
+        await erc20Collateral.transfer(oneToken.address, amount);
+        await oneToken.toStrategy(strategy_1.address, collateral, amount);
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
+        let strategyBalance = await erc20Collateral.balanceOf(strategy_1.address);
+        assert.strictEqual(parseInt(strategyBalance.toString(10)), parseInt(amount), "the strategy did not receive the expected funds");
+
+        // assign new strategy
+        await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
+
+        // old strategy should have closed its positions
+        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
+        assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault didn't receive funds");
+
+        // funds to vault and on to the new strategy
+        await erc20Collateral.transfer(oneToken.address, amount);
+        await oneToken.toStrategy(strategy_2.address, collateral, amount);
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
+        strategyBalance = await erc20Collateral.balanceOf(strategy_2.address);
+        assert.strictEqual(parseInt(strategyBalance.toString(10)), parseInt(amount), "the new strategy did not receive the expected funds");
+
+        // remove strategy
+        await oneToken.removeStrategy(collateral, { from: governance });
+
+        // new strategy should have closed its positions
+        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
+        assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault didn't receive funds");
+        strategyBalance = await erc20Collateral.balanceOf(strategy_2.address);
+        assert.strictEqual(parseInt(strategyBalance.toString(10)), 0, "the new strategy did not close its positions");
+    });
     
 });
