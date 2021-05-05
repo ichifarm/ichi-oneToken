@@ -231,7 +231,8 @@ contract("Factory", accounts => {
         let tokenOracleCount;
         let msg1 = "OneTokenFactory: unknown foreign token",
             msg2 = "OneTokenFactory: Internal error checking oracle",
-            msg3 = "OneTokenFactory: Oracle Index Token is not registered collateral";
+            msg3 = "OneTokenFactory: Oracle Index Token is not registered collateral",
+            msg4 = "OneTokenFactory: oracle is not registered.";
 
         const factory = await Factory.deployed();
         let newOracle = await OraclePegged.new(factory.address, tempOracleName, collateralToken.address);
@@ -239,9 +240,14 @@ contract("Factory", accounts => {
         moduleCount = await factory.moduleCount();
 
         // should fail with bad inputs
+        await truffleAssert.reverts(factory.assignOracle(collateralToken.address, badAddress), msg4);
         await truffleAssert.reverts(factory.assignOracle(badAddress, newOracle.address), msg1);
         await truffleAssert.reverts(factory.assignOracle(collateralToken.address, version.address), msg2);
-        let badOracle = await OraclePegged.new(factory.address, tempOracleName, memberToken.address);
+        
+		let badToken = await OneToken.new();
+        let badOracle = await OraclePegged.new(factory.address, tempOracleName, badToken.address);
+		await factory.admitModule(badOracle.address, moduleType.oracle, "badOracle", "#");
+		await factory.admitForeignToken(badToken.address, false, badOracle.address);
         await truffleAssert.reverts(factory.assignOracle(collateralToken.address, badOracle.address), msg3);
 
         let tx = await factory.assignOracle(collateralToken.address, newOracle.address);

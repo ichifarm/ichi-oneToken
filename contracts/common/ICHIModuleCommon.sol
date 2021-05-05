@@ -53,6 +53,7 @@ abstract contract ICHIModuleCommon is IModule, ICHICommon {
      @param description new module desciption
      */
     function updateDescription(string memory description) external onlyOwner override {
+        require(bytes(description).length > 0, "ICHIModuleCommon: description cannot be empty");
         moduleDescription = description;
         emit DescriptionUpdated(msg.sender, description);
     }  

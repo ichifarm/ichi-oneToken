@@ -268,11 +268,18 @@ contract("Integration tests", accounts => {
 		await memberTokenOracle.update(memberToken.address)
 		
 		const infoAfter = await memberTokenOracle.pairInfo(memberToken.address)
-		
+
 		assert.isTrue(infoBefore.price1Average.eq(infoBefore.price0Average))
-		assert.isTrue(infoBefore.price0Average.lt(infoAfter.price0Average))
-		assert.isTrue(infoBefore.price1Average.gt(infoAfter.price1Average))
-		assert.isTrue(infoAfter.price0Average.gt(infoAfter.price1Average))
+		if (memberToken.address == infoBefore.token1.toString()) {
+			assert.isTrue(infoBefore.price0Average.lt(infoAfter.price0Average))
+			assert.isTrue(infoBefore.price1Average.gt(infoAfter.price1Average))
+			assert.isTrue(infoAfter.price0Average.gt(infoAfter.price1Average))
+		} else {
+			// flipped tokens in the pair
+			assert.isTrue(infoBefore.price0Average.gt(infoAfter.price0Average))
+			assert.isTrue(infoBefore.price1Average.lt(infoAfter.price1Average))
+			assert.isTrue(infoAfter.price0Average.lt(infoAfter.price1Average))
+		}
 	})
 	
 	it("Bob redeems tokens, gets USD", async () => {
