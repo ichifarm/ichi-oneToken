@@ -6,7 +6,7 @@ import "../OracleCommon.sol";
 import "../../interface/IERC20Extended.sol";
 
 /**
- @notice Returns 1:1 (scaled) in all cases without consulting price oracles. Use to save gas when confirming pegs is not desired.
+ @notice Returns 1:1, scaled to the indexToken which is defined on deployment and cannot be changed post-deployment. 
  */
 
 contract ICHIPeggedOracle is OracleCommon {
@@ -35,13 +35,12 @@ contract ICHIPeggedOracle is OracleCommon {
     /**
      @notice returns the tokens needed to reach a target usd value
      @dev token:usdToken is always 1:1 and volatility is always 1
-     @param token base token to calculate usd value
      @param amountUsd Usd required, precision 18
-     @param tokens tokens required, token native precision
+     @param tokens tokens required, index token native precision
      @param volatility metric for future use-cases
      */
-    function amountRequired(address token, uint amountUsd) external view override returns(uint tokens, uint volatility) {
-        tokens = normalizedToTokens(token, amountUsd);
+    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint tokens, uint volatility) {
+        tokens = normalizedToTokens(indexToken, amountUsd);
         volatility = 1;
     }
 }
