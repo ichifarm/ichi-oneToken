@@ -220,7 +220,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
         // initialize the new strategy, set local allowance to infinite
         IStrategy(strategy).init();
-        IStrategy(strategy).setAllowance(token, INFINITE);
 
         // appoint the new strategy
         a.strategy = strategy;
