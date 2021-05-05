@@ -84,27 +84,32 @@ contract UniswapOracleSimple is OracleCommon {
     /**
      @notice returns equivalent indexTokens for amountIn, token
      @dev index token is established at deployment time
-     @param token baseToken for comparison
-     @param amountIn amount to convert
+     @param token ERC20 token
+     @param amountTokens quantity, token precision
+     @param amountUsd US dollar equivalent, precision 18
+     @param volatility metric for future use-cases 
      */
-    function read(address token, uint amountIn) external view override returns(uint amountUsd, uint volatility) {
-        amountUsd = consult(token, amountIn);
-        volatility = 0;
+    function read(address token, uint amountTokens) external view override returns(uint amountUsd, uint volatility) {
+        amountUsd = tokensToNormalized(indexToken, consult(token, amountTokens));
+        volatility = 1;
     }
 
     /**
      @notice returns equivalent baseTokens for amountUsd, indexToken
      @dev index token is established at deployment time
-     @param token baseToken for comparison
-     @param amountUsd amount to convert
+     @param token ERC20 token
+     @param amountTokens quantity, token precision
+     @param amountUsd US dollar equivalent, precision 18
+     @param volatility metric for future use-cases
      */
-    function amountRequired(address token, uint amountUsd) external view override returns(uint tokens, uint volatility) {
+    function amountRequired(address token, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         require(token == p.token0 || token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
         require(p.price0CumulativeLast > 0, "UniswapOracleSimple: Gathering history. Try again later");
-        tokens = (token == p.token0 ? p.price0Average : p.price1Average).reciprocal().mul(amountUsd).decode144();
-        volatility = 0;
+        amountUsd = normalizedToTokens(indexToken, amountUsd);
+        amountTokens = (token == p.token0 ? p.price0Average : p.price1Average).reciprocal().mul(amountUsd).decode144();
+        volatility = 1;
     }
 
     /**
@@ -143,14 +148,16 @@ contract UniswapOracleSimple is OracleCommon {
      @notice returns equivalent indexTokens for amountIn, token
      @dev always returns 0 before update(token) has been called successfully for the first time.
      @param token baseToken to update
-     @param amountIn amount to convert
+     @param amountTokens amount in token native precision
+     @param amountUsd usd equivilent in precision 18
      */
-    function consult(address token, uint amountIn) public view returns (uint amountOut) {
+    function consult(address token, uint amountTokens) public view returns (uint amountUsd) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         require(token == p.token0 || token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
         require(p.price0CumulativeLast > 0, "UniswapOracleSimple: Gathering history. Try again later");
-        amountOut = (token == p.token0 ? p.price0Average : p.price1Average).mul(amountIn).decode144();
+        amountUsd = (token == p.token0 ? p.price0Average : p.price1Average).mul(amountTokens).decode144();
+        amountUsd = tokensToNormalized(indexToken, amountUsd);
     }
 
     /**

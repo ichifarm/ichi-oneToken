@@ -58,7 +58,7 @@ contract TestOracle is OracleCommon {
         } else {
             amountOut = amount - 2 * 10 ** 16;
         }
-        volatility = 0;
+        volatility = 1;
     }
 
     /**
@@ -69,6 +69,6 @@ contract TestOracle is OracleCommon {
         /// @notice it is always 1:1 with no volatility
         this; // silence visbility warning
         tokens = amountUsd;
-        volatility = 0;      
+        volatility = 1;      
     }
 }

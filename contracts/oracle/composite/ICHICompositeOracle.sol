@@ -4,6 +4,7 @@ pragma solidity 0.7.6;
 
 import "../OracleCommon.sol";
 import "../../interface/IERC20Extended.sol";
+import "../../_openzeppelin/math/SafeMath.sol";
 
 /**
  @notice Relies on external Oracles using any price quote methodology.
@@ -11,6 +12,8 @@ import "../../interface/IERC20Extended.sol";
 
 contract ICHICompositeOracle is OracleCommon {
 
+    using SafeMath for uint;
+    
     address[] public oracleContracts;
     address[] public interimTokens;
 
@@ -54,22 +57,56 @@ contract ICHICompositeOracle is OracleCommon {
 
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
-     @dev volatility is calculated by the final oracle
+     @dev volatility is the product of interim volatility measurements
+     // param token TODO
+     @param amountTokens quantity of tokens, token precision
+     @param amountUsd index tokens required, precision 18
+     @param volatility overall volatility metric - for future use-caeses
      */
-    function read(address /* token */, uint amount) public view override returns(uint amountOut, uint volatility) {
-        amountOut = amount;
+    function read(address /* token */ , uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
+        uint compoundedVolatility;
+        uint amount = amountTokens;
+        volatility = 1;
         for(uint i=0; i<oracleContracts.length; i++) {
-            ( amountOut, volatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], amountOut);
+            ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], normalizedToTokens(interimTokens[i], amount));
+            volatility = volatility.mul(compoundedVolatility);
         }
+        amountUsd = amount;
     }
 
     /**
      @notice returns the tokens needed to reach a target usd value
+     @param amountUsd Usd required in 10**18 precision
+     @param amountTokens tokens required in tokens native precision
+     @param volatility metric for future use-cases
      */
-    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint tokens, uint volatility) {
-        /// @notice it is always 1:1 with no volatility
-        this; // silence visibility warning
-        tokens = amountUsd;
-        volatility = 0;
+    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
+        uint tokenToUsd;
+        (tokenToUsd, volatility) = read(NULL_ADDRESS, PRECISION); 
+        uint usdToTokens = PRECISION.mul(PRECISION).div(tokenToUsd);
+        amountTokens = PRECISION.mul(amountUsd).div(usdToTokens);
+        amountTokens = normalizedToTokens(indexToken, amountTokens);
+        volatility = 1;
+    }
+
+    /**
+     * extended functionality 
+     */
+
+    /**
+     @param count number of interim oracles
+     */
+    function oracleCount() public view returns(uint count) {
+        return oracleContracts.length;
+    }
+
+    /**
+     @param index oracle contract to retrieve
+     @param token interim token address
+     @param oracle interim token oracle address
+     */
+
+    function oracleAtIndex(uint index) public view returns(address oracle, address token) {
+        return(oracleContracts[index], interimTokens[index]);
     }
 }

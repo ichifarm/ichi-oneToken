@@ -88,16 +88,16 @@ contract("ICHIPeggedOracle", accounts => {
 	
 	it("read should return equivalent amount of index tokens for an amount of baseTokens", async () => {
 		let amount = 1;
-		const { amountOut, volatility } = await oracle.read(token.address, amount);
-		assert.strictEqual(amount, amountOut.toNumber());
-		assert.strictEqual(volatility.toNumber(), 0);
+		const { amountUsd, volatility } = await oracle.read(token.address, amount);
+		assert.strictEqual(amount, amountUsd.toNumber());
+		assert.strictEqual(volatility.toNumber(), 1);
 	});
 	
 	it("amountRequired should return the tokens needed to reach a target usd value", async () => {
 		let amountUsd = 1;
 		const { tokens, volatility } = await oracle.amountRequired(token.address, amountUsd);
 		assert.strictEqual(amountUsd, tokens.toNumber());
-		assert.strictEqual(volatility.toNumber(), 0);
+		assert.strictEqual(volatility.toNumber(), 1);
 	});
 	
 });
