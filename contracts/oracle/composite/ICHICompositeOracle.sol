@@ -68,7 +68,7 @@ contract ICHICompositeOracle is OracleCommon {
         uint amount = amountTokens;
         volatility = 1;
         for(uint i=0; i<oracleContracts.length; i++) {
-            ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], amount);
+            ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], normalizedToTokens(interimTokens[i], amount));
             volatility = volatility.mul(compoundedVolatility);
         }
         amountUsd = amount;
