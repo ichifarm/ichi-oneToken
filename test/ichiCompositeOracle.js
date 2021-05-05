@@ -91,20 +91,29 @@ contract("ICHICompositeOracle", accounts => {
 		const updateTx = await compositeOracle.update(token1.address);
 		assert.isNotNull(updateTx.transactionHash, "ICHICompositeOracle should be able to update interim oracle");
 	});
-	
+
+	it("should be configured", async () => {
+		const oracleCount = await compositeOracle.oracleCount();
+		console.log('oracleCount', oracleCount.toString(10));
+		let interimOracle = await compositeOracle.oracleAtIndex(0);
+		console.log('interimOracle', interimOracle);
+		interimOracle = await ICHIPeggedOracle.at(interimOracle[0]);
+		const interimQuote = await interimOracle.read(token1.address, "1000");
+		console.log('interimQuote', interimQuote[0].toString(10));
+	})
+
 	it("read should return proper value", async () => {
-		const value = 1;
-		const { amountOut, volatility } = await compositeOracle.read(token2.address, value);
-		assert.equal(amountOut.toNumber(), value, "ICHICompositeOracle.read() should return proper amountOut");
-		assert.equal(volatility.toNumber(), 0, "ICHICompositeOracle.read() should return proper volatility");
+		const value = "10001000000000000000000";
+		const { amountUsd, volatility } = await compositeOracle.read(token2.address, value);
+		assert.equal(amountUsd.toString(10), value, "ICHICompositeOracle.read() should return proper amountOut");
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.read() should return proper volatility");
 	})
 	
 	it("amountRequired should return proper value", async () => {
-		const value = 1;
-		const { tokens, volatility } = await compositeOracle.amountRequired(token2.address, value);
-		assert.equal(tokens.toNumber(), value, "ICHICompositeOracle.amountRequired() should return proper amount of tokens");
-		assert.equal(volatility.toNumber(), 0, "ICHICompositeOracle.amountRequired() should return proper volatility");
+		const value = "10001000000000000000000";
+		const { amountTokens, volatility } = await compositeOracle.amountRequired(token2.address, value);
+		assert.equal(amountTokens.toString(10), value, "ICHICompositeOracle.amountRequired() should return proper amount of tokens");
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.amountRequired() should return proper volatility");
 	});
-	
 	
 });
