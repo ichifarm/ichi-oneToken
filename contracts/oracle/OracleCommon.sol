@@ -7,6 +7,7 @@ import "../common/ICHIModuleCommon.sol";
 
 abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
+    uint constant NORMAL = 18;
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Oracle Implementation"));
     address public override indexToken;
 
@@ -31,6 +32,34 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
      */
     function init(address baseToken) external onlyModuleOrFactory virtual override {
         emit OracleInitialized(msg.sender, baseToken, indexToken);
+    }
+
+    /**
+     @notice converts normalized precision 18 amounts to token native precision amounts, truncates low-order values
+     @param token ERC20 token contract
+     @param amountNormal quantity in precision-18
+     @param amountTokens quantity scaled to token decimals()
+     */    
+    function normalizedToTokens(address token, uint amountNormal) public view override returns(uint amountTokens) {
+        IERC20Extended t = IERC20Extended(token);
+        uint nativeDecimals = t.decimals();
+        require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
+        if(nativeDecimals == NORMAL) return amountNormal;
+        return amountNormal / ( 10 ** (NORMAL - nativeDecimals));
+    }
+
+    /**
+     @notice converts token native precision amounts to normalized precision 18 amounts
+     @param token ERC20 token contract
+     @param amountNormal quantity in precision-18
+     @param amountTokens quantity scaled to token decimals()
+     */  
+    function tokensToNormalized(address token, uint amountTokens) public view override returns(uint amountNormal) {
+        IERC20Extended t = IERC20Extended(token);
+        uint nativeDecimals = t.decimals();
+        require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
+        if(nativeDecimals == NORMAL) return amountTokens;
+        return amountNormal * ( 10 ** (NORMAL - nativeDecimals));
     }
 
 }

@@ -107,6 +107,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         require(foreignTokenSet.exists(memberToken), "OneTokenFactory: unknown member token");
         require(foreignTokenSet.exists(collateral), "OneTokenFactory: unknown collateral");
         require(foreignTokens[collateral].isCollateral, "OneTokenFactory: specified token is not recognized as collateral");
+        require(IERC20Extended(collateral).decimals() <= 18, "OneTokenFactory: collateral with +18 decimals precision is not supported");
 
         // deploy a proxy admin and assign ownership to governance
         OneTokenProxyAdmin _admin = new OneTokenProxyAdmin();
