@@ -249,10 +249,14 @@ contract("UniswapOracleSimple", accounts => {
 	
 	it("should fail to create UNI oracle with bad input parameters", async () => {
 		let msg1 = "UniswapOracleSimple: uniswapFactory cannot be empty",
-			msg2 = "ICHIModuleCommon: oneTokenFactory cannot be empty";
+			msg2 = "ICHIModuleCommon: oneTokenFactory cannot be empty",
+			msg3 = "OracleCommon: indexToken cannot be empty",
+			msg4 = "UniswapOracleSimple: period must be > 0";
 
-        await truffleAssert.reverts(UniswapOracleSimple.new(oneTokenFactory.address, NULL_ADDRESS, memberToken.address, TEST_TIME_PERIOD), msg1);
+		await truffleAssert.reverts(UniswapOracleSimple.new(oneTokenFactory.address, NULL_ADDRESS, memberToken.address, TEST_TIME_PERIOD), msg1);
         await truffleAssert.reverts(UniswapOracleSimple.new(NULL_ADDRESS, uniswapV2Factory.address, memberToken.address, TEST_TIME_PERIOD), msg2);
+        await truffleAssert.reverts(UniswapOracleSimple.new(oneTokenFactory.address, uniswapV2Factory.address, NULL_ADDRESS, TEST_TIME_PERIOD), msg3);
+        await truffleAssert.reverts(UniswapOracleSimple.new(oneTokenFactory.address, uniswapV2Factory.address, memberToken.address, 0), msg4);
 	});
 
 	it("multiple oneToken implementations can share an Oracle", async () => {

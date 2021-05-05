@@ -243,6 +243,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      */
     function assignOracle(address foreignToken, address oracle) external onlyOwner override {
         require(foreignTokenSet.exists(foreignToken), "OneTokenFactory: unknown foreign token");
+        require(isModule(oracle), "OneTokenFactory: oracle is not registered.");
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory: Internal error checking oracle");
         IOracle o = IOracle(oracle);
         o.init(foreignToken);

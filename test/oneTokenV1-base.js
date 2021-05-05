@@ -703,5 +703,12 @@ contract("OneToken V1 Base", accounts => {
         strategyBalance = await erc20Collateral.balanceOf(strategy_2.address);
         assert.strictEqual(parseInt(strategyBalance.toString(10)), 0, "the new strategy did not close its positions");
     });
+
+    it("should not allow setting strategy alowance when strategy is missing", async () => {
+        let msg1 = "OTV1B: strategy is missing";
+        let collateral = await oneToken.collateralTokenAtIndex(0);
+
+        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, "1000", { from: governance }), msg1);
+    });
     
 });

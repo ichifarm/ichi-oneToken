@@ -8,6 +8,9 @@ const
 	ICHICompositeOracle = artifacts.require("ICHICompositeOracle"),
 	OneToken = artifacts.require("OneTokenV1");
 
+const 
+	NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const moduleType = {
 	version: 0,
 	controller: 1,
@@ -69,8 +72,14 @@ contract("ICHICompositeOracle", accounts => {
 	});
 	
 	it("should be constructed", async () => {
-		let msg1 = "ICHICompositeOracle: unequal interimTokens and Oracles list lengths";
-        truffleAssert.reverts(ICHICompositeOracle.new(factory.address, "ICHICompositeOracle", token2.address, [], [interimOracle1.address]), msg1);
+		let msg1 = "ICHICompositeOracle: unequal interimTokens and Oracles list lengths",
+			msg2 = "ICHIModuleCommon: oneTokenFactory cannot be empty",
+			msg3 = "OracleCommon: indexToken cannot be empty";
+
+		await truffleAssert.reverts(ICHICompositeOracle.new(NULL_ADDRESS, "ICHICompositeOracle", token2.address, [token_18_Dec.address], [interimOracle3.address], { from: governance }), msg2);
+		await truffleAssert.reverts(ICHICompositeOracle.new(factory.address, "ICHICompositeOracle", NULL_ADDRESS, [token_18_Dec.address], [interimOracle3.address], { from: governance }), msg3);
+
+		truffleAssert.reverts(ICHICompositeOracle.new(factory.address, "ICHICompositeOracle", token2.address, [], [interimOracle1.address]), msg1);
 		compositeOracle = await ICHICompositeOracle.new(factory.address, "ICHICompositeOracle", token_18_Dec.address, [token_18_Dec.address], [interimOracle3.address]);
 		assert.isNotNull(compositeOracle.address, "ICHICompositeOracle should be constructed");
 

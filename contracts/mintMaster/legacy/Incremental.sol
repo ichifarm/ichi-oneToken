@@ -176,6 +176,7 @@ contract Incremental is MintMasterCommon {
      */    
     function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint ratio, uint maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
+        require(p.set, "Incremental: mintmaster is not initialized");
         address o = oneTokenOracles[oneToken];
         IOracle(o).update(oneToken);
         (ratio, maxOrderVolume) = getMintingRatio2(oneToken, NULL_ADDRESS);
