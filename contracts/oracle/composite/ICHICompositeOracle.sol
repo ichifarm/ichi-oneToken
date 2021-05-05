@@ -65,12 +65,13 @@ contract ICHICompositeOracle is OracleCommon {
      */
     function read(address /* token */ , uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
         uint compoundedVolatility;
-        amountUsd = amountTokens;
+        uint amount = amountTokens;
         volatility = 1;
         for(uint i=0; i<oracleContracts.length; i++) {
-            ( amountUsd, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], amountUsd);
+            ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], amount);
             volatility = volatility.mul(compoundedVolatility);
         }
+        amountUsd = amount;
     }
 
     /**
