@@ -252,6 +252,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         address oldStrategy = a.strategy;
         if(oldStrategy != NULL_ADDRESS) {
             IStrategy s = IStrategy(a.strategy);
+            IERC20(token).approve(oldStrategy, 0);
             bool positionsClosed = s.closeAllPositions();
             emit StrategyClosed(msg.sender, token, oldStrategy, positionsClosed);
         } else {
