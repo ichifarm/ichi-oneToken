@@ -12,6 +12,7 @@
     "test:ichiCompositeOracle": "yarn test test/ichiCompositeOracle.js",
     "test:strategy": "yarn test test/arbitraryStrategy.js",
     "test:mintMaster": "yarn test test/mintMaster.js",
+    "test:factory": "yarn test test/factory.js",
     "test:integration": "yarn test test/integration.js",
     "test:controller": "yarn test test/controller.js",
     "test:oneTokenMain": "hardhat test test/oneTokenV1-main.js",

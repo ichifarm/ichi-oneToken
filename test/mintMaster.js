@@ -104,6 +104,15 @@ contract("MintMaster", accounts => {
         await truffleAssert.reverts(mintMaster.init(oracle.address), msg1);
     });
 
+    it("should not be able to update non-initialized Incremental mint master", async () => {
+        let msg1 = "Incremental: mintmaster is not initialized";
+
+        let incMintMasterName = "Inc Mint Master";
+        let incMintMaster = await MintMasterIncremental.new(factory.address, incMintMasterName);
+
+		await truffleAssert.reverts(incMintMaster.updateMintingRatio(oneToken.address, { from: governance }), msg1);
+    });
+
     it("should emit Initialized event when initialized by OneToken contract", async () => {
         let dummyMintMasterName = "Dummy Mint Master";
         dummyMintMaster = await DummyMintMaster.new(factory.address, dummyMintMasterName);

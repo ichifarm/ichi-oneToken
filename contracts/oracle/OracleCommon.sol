@@ -23,6 +23,7 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
     constructor(address oneTokenFactory_, string memory description_, address indexToken_) 
         ICHIModuleCommon(oneTokenFactory_, ModuleType.Oracle, description_) 
     { 
+        require(indexToken_ != NULL_ADDRESS, "OracleCommon: indexToken cannot be empty");
         indexToken = indexToken_;
         emit OracleDeployed(msg.sender, description_, indexToken_);
     }

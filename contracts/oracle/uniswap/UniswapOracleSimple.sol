@@ -51,6 +51,7 @@ contract UniswapOracleSimple is OracleCommon {
         OracleCommon(oneTokenFactory_, "ICHI Simple Uniswap Oracle", indexToken_)
     {
         require(uniswapFactory_ != NULL_ADDRESS, "UniswapOracleSimple: uniswapFactory cannot be empty");
+        require(period_ > 0, "UniswapOracleSimple: period must be > 0");
         uniswapFactory = uniswapFactory_;
         PERIOD = period_;
         indexToken = indexToken_;

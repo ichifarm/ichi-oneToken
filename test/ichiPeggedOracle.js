@@ -11,7 +11,8 @@ const
 
 const
 	newName = "Renamed Oracle",
-	failedName = "I should not be here";
+	failedName = "I should not be here",
+    NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const moduleType = {
 	version: 0,
@@ -43,7 +44,14 @@ contract("ICHIPeggedOracle", accounts => {
 	});
 	
 	it("should emit event when being deployed", async () => {
+		let msg1 = "ICHIModuleCommon: oneTokenFactory cannot be empty",
+			msg2 = "OracleCommon: indexToken cannot be empty";
+
 		interimToken = await CollateralToken.new()
+
+		await truffleAssert.reverts(OraclePegged.new(NULL_ADDRESS, "ICHIPeggedOracle", interimToken.address, { from: governance }), msg1);
+		await truffleAssert.reverts(OraclePegged.new(factory.address, "ICHIPeggedOracle", NULL_ADDRESS, { from: governance }), msg2);
+
 		interimOracle = await OraclePegged.new(factory.address, "ICHIPeggedOracle", interimToken.address);
 	
 		expectEvent.inConstruction(interimOracle, 'OracleDeployed', {
@@ -72,9 +80,13 @@ contract("ICHIPeggedOracle", accounts => {
 	});
 	
 	it("should update the module description", async () => {
-		msg1 = "ICHIOwnable: caller is not the owner";
+		let msg1 = "ICHIOwnable: caller is not the owner",
+			msg2 = "ICHIModuleCommon: description cannot be empty";
+
 		let tx = await oracle.updateDescription(newName, { from: governance });
 		await truffleAssert.reverts(oracle.updateDescription(newName, { from: badAddress }), msg1);
+		await truffleAssert.reverts(oracle.updateDescription("", { from: governance }), msg2);
+
 		let newDescription = await oracle.moduleDescription();
 		assert.strictEqual(newDescription, newName, "the module isn't correctly renamed");
 
