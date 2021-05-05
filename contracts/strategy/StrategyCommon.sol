@@ -6,9 +6,12 @@ import "../interface/IOneTokenFactory.sol";
 import "../interface/IStrategy.sol";
 import "../interface/IOneTokenV1Base.sol";
 import "../_openzeppelin/token/ERC20/IERC20.sol";
+import "../_openzeppelin/token/ERC20/SafeERC20.sol";
 import "../common/ICHIModuleCommon.sol";
 
 abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
+
+    using SafeERC20 for IERC20;
 
     address public override oneToken;
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Strategy Implementation"));
@@ -55,7 +58,8 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @notice a strategy is dedicated to exactly one oneToken instance and must be re-initializable
      */
     function init() external onlyToken virtual override {
-        IERC20(oneToken).approve(oneToken, INFINITE);
+        IERC20(oneToken).safeApprove(oneToken, 0);
+        IERC20(oneToken).safeApprove(oneToken, INFINITE);
         emit StrategyInitialized(oneToken);
     }
 
@@ -75,7 +79,8 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      */
     function setAllowance(address token, uint amount) external strategyOwnerTokenOrController override {
         if(amount == 0) amount = INFINITE;
-        IERC20(token).approve(oneToken, amount);
+        IERC20(token).safeApprove(oneToken, 0);
+        IERC20(token).safeApprove(oneToken, amount);
         emit VaultAllowance(msg.sender, token, amount);
     }
 
@@ -122,7 +127,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param amount the amount of tokens to send
      */
     function _toVault(address token, uint amount) internal {
-        IERC20(token).transfer(oneToken, amount);
+        IERC20(token).safeTransfer(oneToken, amount);
         emit ToVault(msg.sender, token, amount);
     }
 
@@ -141,7 +146,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param amount the amount of tokens to send
      */
     function _fromVault(address token, uint amount) internal {
-        IERC20(token).transferFrom(oneToken, address(this), amount);
+        IERC20(token).safeTransferFrom(oneToken, address(this), amount);
         emit FromVault(msg.sender, token, amount);
     }
 }
