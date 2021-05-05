@@ -59,7 +59,7 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
         uint nativeDecimals = t.decimals();
         require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
         if(nativeDecimals == NORMAL) return amountTokens;
-        return amountNormal * ( 10 ** (NORMAL - nativeDecimals));
+        return amountTokens * ( 10 ** (NORMAL - nativeDecimals));
     }
 
 }
