@@ -88,6 +88,7 @@ contract DummyMintMaster is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio
      */   
     function getMintingRatio4(address /* oneToken */, address /* oneTokenOracle */, address /* collateral */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
+        this; // suppress state mutability warning
         return(DEFAULT_RATIO, MAX_VOLUME);
     }
 
