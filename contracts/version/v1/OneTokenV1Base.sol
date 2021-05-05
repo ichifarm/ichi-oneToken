@@ -4,6 +4,7 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 
 import "../../common/ICHICommon.sol";
+import "../../_openzeppelin/token/ERC20/SafeERC20.sol";
 import "../../oz_modified/ICHIERC20Burnable.sol";
 import "../../lib/AddressSet.sol";
 import "../../interface/IOneTokenFactory.sol";
@@ -15,6 +16,7 @@ import "../../interface/IOracle.sol";
 
 contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
+    using SafeERC20 for IERC20;
     using AddressSet for AddressSet.Set;
 
     bytes32 public constant override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 OneToken Implementation"));
@@ -252,7 +254,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         address oldStrategy = a.strategy;
         if(oldStrategy != NULL_ADDRESS) {
             IStrategy s = IStrategy(a.strategy);
-            IERC20(token).approve(oldStrategy, 0);
+            IERC20(token).safeApprove(oldStrategy, 0);
             bool positionsClosed = s.closeAllPositions();
             emit StrategyClosed(msg.sender, token, oldStrategy, positionsClosed);
         } else {
@@ -313,9 +315,10 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         address strategy = a.strategy;
         uint strategyCurrentBalance = IERC20(token).balanceOf(a.strategy);
         if(strategyCurrentBalance < amount) {
-            IERC20(token).approve(strategy, amount - strategyCurrentBalance);
+            IERC20(token).safeApprove(strategy, 0);
+            IERC20(token).safeApprove(strategy, amount - strategyCurrentBalance);
         } else {
-            IERC20(token).approve(strategy, 0);
+            IERC20(token).safeApprove(strategy, 0);
         }
         emit StrategyAllowanceSet(msg.sender, token, strategy, amount);
     }

@@ -3,12 +3,14 @@
 pragma solidity 0.7.6;
 
 import "../../interface/IOneTokenV1.sol";
+import "../../_openzeppelin/token/ERC20/SafeERC20.sol";
 import "./OneTokenV1Base.sol";
 
 contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     using AddressSet for AddressSet.Set;
     using SafeMath for uint;
+    using SafeERC20 for IERC20;
 
     uint public override mintingFee; // defaults to 0%
     uint public override redemptionFee; // defaults to 0%
@@ -60,7 +62,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         require(amount > 0, "OTV1: amount must be > 0");
         require(amount <= availableBalance(msg.sender, token), "OTV1: INSUF funds");
         decreaseUserBalance(msg.sender, token, amount);
-        IERC20(token).transfer(msg.sender, amount);
+        IERC20(token).safeTransfer(msg.sender, amount);
         emit UserWithdrawal(msg.sender, token, amount);
     }
 
@@ -151,8 +153,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensToTransfer, "OTV1: INSUF COLLAT token balance");
 
         // transfer tokens in
-        IERC20(memberToken).transferFrom(msg.sender, address(this), memberTokensReq);
-        IERC20(collateralToken).transferFrom(msg.sender, address(this), collateralTokensToTransfer);
+        IERC20(memberToken).safeTransferFrom(msg.sender, address(this), memberTokensReq);
+        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), collateralTokensToTransfer);
         
         // mint oneTokens
         _mint(msg.sender, oneTokens);
