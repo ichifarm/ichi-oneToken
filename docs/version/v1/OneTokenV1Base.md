@@ -120,7 +120,7 @@ governance can transfer assets from the strategy to this vault
 governance can set an allowance for a token strategy
      @dev computes the net allowance, new allowance - current holdings
      @param token ERC20 asset
-     @param amount amount to draw from the strategy
+     @param amount new allowance
 
 
 
