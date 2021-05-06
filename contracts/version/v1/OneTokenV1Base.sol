@@ -81,7 +81,9 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         initializer
         override
     {
+        // transfer oneToken governance to the deployer
         initOwnable();
+
         oneTokenFactory = msg.sender;
         initERC20(name_, symbol_); // decimals is always 18
 
@@ -127,9 +129,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         IOracle(mt.oracle).update(memberToken);
         IOracle(ct.oracle).update(collateral_);
 
-        // transfer oneToken governance to the deployer
-
-        _transferOwnership(msg.sender);
         emit Initialized(msg.sender, name_, symbol_, controller_, mintMaster_, memberToken_, collateral_);
     }
 
@@ -302,7 +301,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @notice governance can set an allowance for a token strategy
      @dev computes the net allowance, new allowance - current holdings
      @param token ERC20 asset
-     @param amount amount to draw from the strategy
+     @param amount new allowance
      */
     function setStrategyAllowance(address token, uint amount) public onlyOwnerOrController override {
         Asset storage a = assets[token];
