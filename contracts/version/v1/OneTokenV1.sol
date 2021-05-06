@@ -117,7 +117,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // compute the member token value and collateral value requirement
         uint collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
         uint memberTokensUSDValue = oneTokens.sub(collateralUSDValue);
-        collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
+        collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
 
         // compute the member tokens required
         (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
@@ -132,7 +132,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             // re-evaluate the memberToken value and collateral value required using the oracle rate already obtained
             memberTokensUSDValue = memberTokenRate.mul(memberTokensReq).div(PRECISION);
             collateralUSDValue = oneTokens.sub(memberTokensUSDValue);
-            collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
+            collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
         }
 
         require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: INSUF MEM token balance");
