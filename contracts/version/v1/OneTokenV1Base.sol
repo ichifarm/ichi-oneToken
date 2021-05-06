@@ -285,7 +285,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     function toStrategy(address strategy, address token, uint amount) external onlyOwnerOrController {
         Asset storage a = assets[token];
         require(a.strategy == strategy, "OTV1B: not the token strategy");
-        ICHIERC20Burnable(token).transfer(strategy, amount);
+        IERC20(token).safeTransfer(strategy, amount);
         emit ToStrategy(msg.sender, strategy, token, amount);
     }
 
@@ -313,7 +313,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     function setStrategyAllowance(address token, uint amount) public onlyOwnerOrController override {
         Asset storage a = assets[token];
         address strategy = a.strategy;
-        require(strategy != NULL_ADDRESS, "OTV1B: strategy is missing");
+        require(a.strategy != NULL_ADDRESS, "OTV1B: no strategy");
         uint strategyCurrentBalance = IERC20(token).balanceOf(a.strategy);
         if(strategyCurrentBalance < amount) {
             IERC20(token).safeApprove(strategy, 0);
