@@ -705,7 +705,7 @@ contract("OneToken V1 Base", accounts => {
     });
 
     it("should not allow setting strategy alowance when strategy is missing", async () => {
-        let msg1 = "OTV1B: strategy is missing";
+        let msg1 = "OTV1B: no strategy";
         let collateral = await oneToken.collateralTokenAtIndex(0);
 
         await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, "1000", { from: governance }), msg1);
