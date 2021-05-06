@@ -516,16 +516,24 @@ contract("OneToken V1 Base", accounts => {
         // remove the strategy
         await truffleAssert.reverts(oneToken.removeStrategy(collateral, { from: badAddress }), msg1);
         tx = await oneToken.removeStrategy(collateral, { from: governance });
+
+        // removal of the strategy does not close positions
+        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
+        assert.strictEqual(parseInt(vaultBalance.toString(10)), parseInt(half), "the vault should not have changed");
+
         asset = await oneToken.assets(collateral);
         assignedStrategy = asset["strategy"];
         assert.strictEqual(assignedStrategy, NULL_ADDRESS, "this strategy wasn't removed");
-        in_vault_and_strategies = in_vault_and_strategies + parseInt(half.toString(10));
 
         expectEvent(tx, 'StrategyRemoved', {
 			sender: governance,
             token: collateral,
             strategy: strategy.address
 		})
+
+        // manually closing positions to return funds to the vault
+        await strategy.closeAllPositions();
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(half.toString(10));
     });
 
     it("should set a strategy allowance", async () => {
@@ -552,8 +560,7 @@ contract("OneToken V1 Base", accounts => {
         expectEvent(tx, 'StrategyClosed', {
 			sender: governance,
             token: collateral,
-            strategy: strategy_2.address,
-            success: true
+            strategy: strategy_2.address
 		})
 
         // access control
@@ -586,6 +593,9 @@ contract("OneToken V1 Base", accounts => {
         // quick separate check for strategy balance
         let initialBalance = await oneToken.getHoldings(collateral);
         assert.strictEqual(parseInt(initialBalance[1].toString(10)), 21, "the strategy balance should be 21");
+
+        // manually closing positions to return funds to the vault
+        await strategy.closeAllPositions();
     });
 
     it("should close all strategy positions", async () => {
@@ -655,7 +665,7 @@ contract("OneToken V1 Base", accounts => {
         await oneToken.setStrategy(collateral2, strategy2.address, allowance2, { from: governance });
     })
 
-    it("strategy positions should be closed when it's removed or re-set", async () => {
+    it("strategy allowance should be set to 0 when it's removed or re-set", async () => {
 
         let vaultBalance,
             strategyName = "Do Nothing Strategy",
@@ -676,28 +686,50 @@ contract("OneToken V1 Base", accounts => {
         // funds to vault and on to the strategy
         await erc20Collateral.transfer(oneToken.address, amount);
         await oneToken.toStrategy(strategy_1.address, collateral, amount);
-        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
         let strategyBalance = await erc20Collateral.balanceOf(strategy_1.address);
         assert.strictEqual(parseInt(strategyBalance.toString(10)), parseInt(amount), "the strategy did not receive the expected funds");
 
         // assign new strategy
         await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
 
-        // old strategy should have closed its positions
+        // allowance should become 0
+        let strategy_allowance = await oneToken.allowance(strategy_1.address, collateral);
+		assert.equal(strategy_allowance.toNumber(), 0, "strategy_1 should have 0 allowance after it's closed");
+
+        // old strategy should still have its positions
+        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
+        assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault have extra funds");
+
+        // manually closing positions to return funds to the vault
+        await strategy_1.closeAllPositions();
+
+        // old strategy should have closed its positions now
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
         vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
         assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault didn't receive funds");
 
         // funds to vault and on to the new strategy
         await erc20Collateral.transfer(oneToken.address, amount);
         await oneToken.toStrategy(strategy_2.address, collateral, amount);
-        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
         strategyBalance = await erc20Collateral.balanceOf(strategy_2.address);
         assert.strictEqual(parseInt(strategyBalance.toString(10)), parseInt(amount), "the new strategy did not receive the expected funds");
 
         // remove strategy
         await oneToken.removeStrategy(collateral, { from: governance });
 
+        // allowance should become 0
+        strategy_allowance = await oneToken.allowance(strategy_2.address, collateral)
+		assert.equal(strategy_allowance.toNumber(), 0, "strategy_1 should have 0 allowance after it's closed");
+
+        // old strategy should still have its positions
+        vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
+        assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault have extra funds");
+
+        // manually closing positions to return funds to the vault
+        await strategy_2.closeAllPositions();
+
         // new strategy should have closed its positions
+        in_vault_and_strategies = in_vault_and_strategies + parseInt(amount.toString(10));
         vaultBalance = await erc20Collateral.balanceOf(oneToken.address);
         assert.strictEqual(parseInt(vaultBalance.toString(10)), in_vault_and_strategies, "the vault didn't receive funds");
         strategyBalance = await erc20Collateral.balanceOf(strategy_2.address);

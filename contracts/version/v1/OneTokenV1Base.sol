@@ -42,7 +42,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     event StrategySet(address sender, address token, address strategy, uint allowance);
     event StrategyExecuted(address indexed sender, address indexed token, address indexed strategy);
     event StrategyRemoved(address sender, address token, address strategy);
-    event StrategyClosed(address sender, address token, address strategy, bool success);
+    event StrategyClosed(address sender, address token, address strategy);
     event ToStrategy(address sender, address strategy, address token, uint amount);
     event FromStrategy(address sender, address strategy, address token, uint amount);
     event StrategyAllowanceSet(address sender, address token, address strategy, uint amount);
@@ -252,14 +252,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(assetSet.exists(token), "OTV1B:cs: unk token");
         Asset storage a = assets[token];
         address oldStrategy = a.strategy;
-        if(oldStrategy != NULL_ADDRESS) {
-            IStrategy s = IStrategy(a.strategy);
-            IERC20(token).safeApprove(oldStrategy, 0);
-            bool positionsClosed = s.closeAllPositions();
-            emit StrategyClosed(msg.sender, token, oldStrategy, positionsClosed);
-        } else {
-            emit StrategyClosed(msg.sender, token, NULL_ADDRESS, false);
-        }
+        if(oldStrategy != NULL_ADDRESS) IERC20(token).safeApprove(oldStrategy, 0);
+        emit StrategyClosed(msg.sender, token, oldStrategy);
     }
 
     /**
