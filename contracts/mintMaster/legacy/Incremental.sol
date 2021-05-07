@@ -141,19 +141,12 @@ contract Incremental is MintMasterCommon {
         require(collateralToken != NULL_ADDRESS, "Incremental: collateral token is missing");
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
-
-        IERC20Extended t = IERC20Extended(collateralToken);
-        uint nativeDecimals = t.decimals();
-        require(nativeDecimals <= 18, "Incremental: unsupported token precision (greater than 18)");
-        uint256 adjustedPrecison = PRECISION; 
-        if (nativeDecimals < 18) {
-            adjustedPrecison = 10 ** nativeDecimals;
-        }
         
-        // TO DO
-        //uint adjustedPrecison = IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION);
+        // uint adjustedPrecison = IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION);
 
-        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, adjustedPrecison);
+        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(
+            oneToken, 
+            IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION));
         ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, INFINITE);
         uint stepSize = p.stepSize;
