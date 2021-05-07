@@ -36,11 +36,11 @@ contract ICHIPeggedOracle is OracleCommon {
      @notice returns the tokens needed to reach a target usd value
      @dev token:usdToken is always 1:1 and volatility is always 1
      @param amountUsd Usd required, precision 18
-     @param tokens tokens required, index token native precision
+     @param amountTokens tokens required, index token native precision
      @param volatility metric for future use-cases
      */
-    function amountRequired(address token, uint amountUsd) external view override returns(uint tokens, uint volatility) {
-        tokens = normalizedToTokens(token, amountUsd);
+    function amountRequired(address token, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
+        amountTokens = normalizedToTokens(token, amountUsd);
         volatility = 1;
     }
 }
