@@ -30,9 +30,9 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      */
     mapping(address => uint) public liabilities;
 
-    event UserWithdrawal(address indexed sender, address indexed token, uint amount);
-    event UserBalanceIncreased(address indexed user, address indexed token, uint amount);
-    event UserBalanceDecreased(address indexed user, address indexed token, uint amount);    
+    //event UserWithdrawal(address indexed sender, address indexed token, uint amount);
+    //event UserBalanceIncreased(address indexed user, address indexed token, uint amount);
+    //event UserBalanceDecreased(address indexed user, address indexed token, uint amount);    
     event Minted(address indexed sender, address indexed collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
     event Redeemed(address indexed sender, address indexed collateral, uint amount);
     event NewMintingFee(address sender, uint fee);
@@ -188,6 +188,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     function redeem(address collateral, uint amount) external override {
         require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
+        require(amount > 0, "OTV1: amount must be > 0");
+        require(balanceOf(msg.sender) >= amount, "OTV1: INSUF funds");
         IOracle(assets[collateral].oracle).update(collateral);
         // implied transfer approval and allowance
         // transferFrom(msg.sender, address(this), amount);
