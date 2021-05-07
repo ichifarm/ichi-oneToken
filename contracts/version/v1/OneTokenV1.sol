@@ -196,6 +196,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         _transfer(msg.sender, address(this), amount);
         uint netTokens = amount.sub(amount.mul(redemptionFee).div(PRECISION));
         // increaseUserBalance(msg.sender, collateral, netTokens);
+        netTokens = IOracle(assets[collateral].oracle).normalizedToTokens(collateral, netTokens);
         IERC20(collateral).safeTransfer(msg.sender, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
         // updates the oracle price history for oneToken, only

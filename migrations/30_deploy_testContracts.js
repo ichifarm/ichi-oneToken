@@ -2,7 +2,9 @@ const { ethers } = require("hardhat");
 
 const
     MemberToken = artifacts.require("MemberToken"),
-    CollateralToken = artifacts.require("CollateralToken");
+    CollateralToken = artifacts.require("CollateralToken"),
+    Token6 = artifacts.require("Token6"),
+    Token9 = artifacts.require("Token9");
 
 module.exports = async () => {
     const [governance] = await ethers.getSigners();
@@ -13,6 +15,12 @@ module.exports = async () => {
     const collateralToken = await CollateralToken.new();
     CollateralToken.setAsDeployed(collateralToken);
     
+    const token6 = await Token6.new();
+    Token6.setAsDeployed(token6);
+    
+    const token9 = await Token9.new();
+    Token9.setAsDeployed(token9);
+
     const balMT = await memberToken.balanceOf(governance.address);
     const balCT = await collateralToken.balanceOf(governance.address);
 
