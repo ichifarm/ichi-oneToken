@@ -138,6 +138,7 @@ contract Incremental is MintMasterCommon {
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
         
+        // Both OneToken and oracle response are in precision 18. No conversion is necessary.
         (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
         ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, INFINITE);
