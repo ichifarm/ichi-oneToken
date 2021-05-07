@@ -185,7 +185,7 @@ contract("MintMaster", accounts => {
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
         assert.strictEqual(parameters.set, true, "mintMaster didn't set the set flag");
         assert.strictEqual(parameters.stepSize.toString(10), STEP_002, "mintMaster didn't set the new step size");
-        theRatio = await mintMaster.getMintingRatio2(oneToken.address, NULL_ADDRESS, { from: commonUser });
+        theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });
         assert.strictEqual(theRatio[0].toString(10), RATIO_90, "mintMaster didn't set a new ratio");
 
         // the ratio should be updated, after the updateMintingRatio call, and params has changed too

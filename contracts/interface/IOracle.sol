@@ -32,7 +32,7 @@ interface IOracle is IModule {
      @param amountNormal quantity, precision 18
      @param amountTokens quantity scaled to token precision
      */    
-    function normalizedToTokens(address token, uint amountNormal) external returns(uint amountTokens);
+    function normalizedToTokens(address token, uint amountNormal) external view returns(uint amountTokens);
 
     /**
      @notice converts token native precision amounts to normalized precision-18 amounts
@@ -40,5 +40,5 @@ interface IOracle is IModule {
      @param amountNormal quantity, precision 18
      @param amountTokens quantity scaled to token precision
      */  
-    function tokensToNormalized(address token, uint amountTokens) external returns(uint amountNormal);
+    function tokensToNormalized(address token, uint amountTokens) external view returns(uint amountNormal);
 }
