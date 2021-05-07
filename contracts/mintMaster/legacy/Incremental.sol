@@ -138,8 +138,6 @@ contract Incremental is MintMasterCommon {
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
         
-        // uint adjustedPrecison = IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION);
-
         (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(
             oneToken, 
             IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION));
