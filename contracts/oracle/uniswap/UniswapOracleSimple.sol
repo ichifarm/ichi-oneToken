@@ -150,15 +150,14 @@ contract UniswapOracleSimple is OracleCommon {
      @dev always returns 0 before update(token) has been called successfully for the first time.
      @param token baseToken to update
      @param amountTokens amount in token native precision
-     @param amountUsd usd equivilent in precision 18
+     @param amountOut anount in tokens, reciprocal token
      */
-    function consult(address token, uint amountTokens) public view returns (uint amountUsd) {
+    function consult(address token, uint amountTokens) public view returns (uint amountOut) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         require(token == p.token0 || token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
         require(p.price0CumulativeLast > 0, "UniswapOracleSimple: Gathering history. Try again later");
-        amountUsd = (token == p.token0 ? p.price0Average : p.price1Average).mul(amountTokens).decode144();
-        amountUsd = tokensToNormalized(indexToken, amountUsd);
+        amountOut = (token == p.token0 ? p.price0Average : p.price1Average).mul(amountTokens).decode144();
     }
 
     /**
