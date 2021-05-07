@@ -299,22 +299,17 @@ contract("Integration tests", accounts => {
 		const bobCollateralBalanceBefore = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceBefore = await memberToken.balanceOf(bob);
 		const bobOneTokenBalanceBefore = await oneToken.balanceOf(bob);
-		const bobOneTokenCollateralBalanceBefore = await oneToken.userBalances(collateralToken.address, bob);
 		
 		// redeem half
 		let redeemAmount = mintingAmount.div(2);
-		// await oneToken.approve(bob, redeemAmount, { from: bob });
 		await oneToken.redeem(collateralToken.address, redeemAmount, { from: bob });
 		
 		const bobCollateralBalanceAfter = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceAfter = await memberToken.balanceOf(bob);
 		const bobOneTokenBalanceAfter = await oneToken.balanceOf(bob);
-		const bobOneTokenCollateralBalanceAfter = await oneToken.userBalances(collateralToken.address, bob);
 		
-		assert.isTrue(bobCollateralBalanceBefore.eq(bobCollateralBalanceAfter))
+		assert.isTrue(Number(bobCollateralBalanceBefore) == (Number(bobCollateralBalanceAfter) - Number(redeemAmount)))
 		assert.isTrue(bobMemberBalanceBefore.eq(bobMemberBalanceAfter))
 		assert.equal(BigNumber.from(bobOneTokenBalanceBefore.toString()).sub(redeemAmount).toString(), bobOneTokenBalanceAfter.toString())
-		assert.equal(bobOneTokenCollateralBalanceBefore.toNumber(), 0)
-		assert.equal(bobOneTokenCollateralBalanceAfter.toString(), redeemAmount.toString())
 	})
 });
