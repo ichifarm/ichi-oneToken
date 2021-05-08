@@ -227,6 +227,8 @@ contract("Arbitrary strategy", accounts => {
 			sender: governance,
 			amount: transferAmount.toString(10)
 		})
+
+		await strategy.closeAllPositions();
 	});
 	
 	it("from vault original", async () => {

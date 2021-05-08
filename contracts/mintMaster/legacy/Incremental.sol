@@ -113,19 +113,21 @@ contract Incremental is MintMasterCommon {
     /**
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
+     @param collateralToken collateralToken to be used in minting
      */
-    function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
-        return getMintingRatio2(msg.sender, NULL_ADDRESS);
+    function getMintingRatio(address collateralToken) external view override returns(uint ratio, uint maxOrderVolume) {
+        return getMintingRatio2(msg.sender, collateralToken);
     }
 
     /**
      @notice returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
      @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
      @param oneToken oneToken implementation to inspect
+     @param collateralToken collateralToken to be used in minting
      */    
-    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address collateralToken) public view override returns(uint ratio, uint maxOrderValue) {
         address oracle = oneTokenOracles[oneToken];
-        return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
+        return getMintingRatio4(oneToken, oracle, collateralToken, NULL_ADDRESS);
     }
 
     /**
@@ -133,11 +135,18 @@ contract Incremental is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio based on arbitry oracles
      @param oneToken oneToken implementation to inspect
      @param oneTokenOracle explicit oracle selection
+     @param collateralToken collateralToken to be used in minting
      */   
-    function getMintingRatio4(address oneToken, address oneTokenOracle, address /*collateralToken*/, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
+    function getMintingRatio4(address oneToken, address oneTokenOracle, address collateralToken, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
+        require(collateralToken != NULL_ADDRESS, "Incremental: collateral token is missing");
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
-        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
+        
+        // uint adjustedPrecison = IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION);
+
+        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(
+            oneToken, 
+            IOracle(oneTokenOracle).normalizedToTokens(oneToken, PRECISION));
         ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, INFINITE);
         uint stepSize = p.stepSize;
@@ -159,10 +168,11 @@ contract Incremental is MintMasterCommon {
     /**
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
+     @param collateralToken collateralToken to be used in minting
      */
     function updateMintingRatio(address collateralToken) external override returns(uint ratio, uint maxOrderVolume) {
         if (lastUpdatedBlock >= block.number) {
-            (ratio, maxOrderVolume) = getMintingRatio2(msg.sender, NULL_ADDRESS);
+            (ratio, maxOrderVolume) = getMintingRatio2(msg.sender, collateralToken);
         } else {
             lastUpdatedBlock = block.number;
             return _updateMintingRatio(msg.sender, collateralToken);
@@ -173,13 +183,14 @@ contract Incremental is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev internal use only
      @param oneToken the oneToken implementation to evaluate
+     @param collateralToken collateralToken to be used in minting
      */    
-    function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint ratio, uint maxOrderVolume) {
+    function _updateMintingRatio(address oneToken, address collateralToken) private returns(uint ratio, uint maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
         address o = oneTokenOracles[oneToken];
         IOracle(o).update(oneToken);
-        (ratio, maxOrderVolume) = getMintingRatio2(oneToken, NULL_ADDRESS);
+        (ratio, maxOrderVolume) = getMintingRatio2(oneToken, collateralToken);
         p.lastRatio = ratio;
         /// @notice no event is emitted to save gas
         // emit UpdateMintingRatio(msg.sender, oneToken, ratio, maxOrderVolume);

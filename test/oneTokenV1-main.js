@@ -76,18 +76,12 @@ contract("OneToken V1 Main", accounts => {
     it("should return 0 as initial user balance for tokens", async () => {
         let userBalance = await oneToken.balanceOf(bob, { from: bob });
         assert.strictEqual(parseInt(userBalance.toString(10)), 0, "user balance should be 0 for oneToken");
-
-        let userBalanceCollateral = await oneToken.availableBalance(bob, collateralToken.address, { from: bob });
-        assert.strictEqual(parseInt(userBalanceCollateral.toString(10)), 0, "user balance should be 0 for collateral token");
     });
 
     it("should not able to withdraw when balance is 0", async () => {
-        let msg1 = "OTV1: INSUF funds"
-            msg2 = "OTV1: amount must be > 0";
+        let msg1 = "OTV1: amount must be > 0";
 
-        await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 1, { from: bob }), msg1);
-        
-        await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 0, { from: bob }), msg2);
+        await truffleAssert.reverts(oneToken.redeem(collateralToken.address, 0, { from: bob }), msg1);
     });
 
     it("should be able to mint", async () => {
@@ -169,10 +163,7 @@ contract("OneToken V1 Main", accounts => {
     it("should be able to redeem", async () => {
         let msg1 = "OTV1: INSUF funds",
             msg2 = "OTV1: amount must be > 0",
-            msg3 = "OTV1: token isn't COLLAT",
-            msg4 = "OTV1: INSUF MEM token balance",
-            msg5 = "OTV1: INSUF COLLAT token balance",
-            msg6 = "OTV1: unrecognized COLLAT";
+            msg3 = "OTV1: unrecognized COLLAT";
 
         // initial liabilities are 0
         let liabilities = await oneToken.liabilities(collateralToken.address);
@@ -191,16 +182,10 @@ contract("OneToken V1 Main", accounts => {
         // await oneToken.approve(bob, 1000, { from: bob });
 
         // trying to redeem into non-collateral
-        await truffleAssert.reverts(oneToken.redeem(badAddress, 100, { from: bob }), msg6);
+        await truffleAssert.reverts(oneToken.redeem(badAddress, 100, { from: bob }), msg3);
 
         // redeem 100 oneTokens
         await oneToken.redeem(collateralToken.address, 100, { from: bob });
-
-        let collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address);
-        assert.strictEqual(parseInt(collateralUserBalance.toString(10)), 0, "user available balance should be 0 for collateral token because we are in the same block as redeem call");
-
-        liabilities = await oneToken.liabilities(collateralToken.address);
-        assert.strictEqual(parseInt(liabilities.toString(10)), 80, "oneToken liabilities for collateral should be 80");
 
         // let's advance a block
         await time.advanceBlock();
@@ -208,10 +193,6 @@ contract("OneToken V1 Main", accounts => {
         // checking the balance
         let userBalance = await oneToken.balanceOf(bob, { from: bob });
         assert.strictEqual(parseInt(userBalance.toString(10)), 1900, "user balance should be 1900 for oneToken");
-
-        // now it should be 80
-        collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address);
-        assert.strictEqual(parseInt(collateralUserBalance.toString(10)), 80, "user available balance should be 80 for collateral token");
 
         tx = await oneToken.redeem(collateralToken.address, 100, { from: bob });
         await time.advanceBlock();
@@ -221,56 +202,21 @@ contract("OneToken V1 Main", accounts => {
 			collateral: collateralToken.address,
             amount: "100"
 		})
-        expectEvent(tx, 'UserBalanceIncreased', {
-			user: bob,
-			token: collateralToken.address,
-            amount: "80" // with 20 redemption fee
-		})
-
-        collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address, { from: bob });
-        assert.strictEqual(parseInt(collateralUserBalance.toString(10)), 160, "user available balance should be 160 for collateral token");
 
         // trying to withdraw too much
-        await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 10000, { from: bob }), msg1);
+        await truffleAssert.reverts(oneToken.redeem(collateralToken.address, 10000, { from: bob }), msg1);
         // trying to withdraw 0
-        await truffleAssert.reverts(oneToken.withdraw(collateralToken.address, 0, { from: bob }), msg2);
-
-        // trying to withdraw non-collateral
-        await truffleAssert.reverts(oneToken.withdraw(badAddress, 100, { from: bob }), msg3);
+        await truffleAssert.reverts(oneToken.redeem(collateralToken.address, 0, { from: bob }), msg2);
 
         let userCollateralBalance1 = await collateralToken.balanceOf(bob);
 
         // now let's withdraw 100
-        tx = await oneToken.withdraw(collateralToken.address, 100, { from: bob });
-
-        expectEvent(tx, 'UserWithdrawal', {
-			sender: bob,
-			token: collateralToken.address,
-            amount: "100"
-		})
-        expectEvent(tx, 'UserBalanceDecreased', {
-			user: bob,
-			token: collateralToken.address,
-            amount: "100"
-		})
+        await oneToken.redeem(collateralToken.address, 100, { from: bob });
 
         let userCollateralBalance2 = await collateralToken.balanceOf(bob);
-        assert.strictEqual(parseInt(userCollateralBalance2.toString(10))-100, parseInt(userCollateralBalance1.toString(10)), "user collateral holding should increase by 100");
+        // with 20% redemption fee, only get 80 collateral back
+        assert.strictEqual(parseInt(userCollateralBalance2.toString(10))-80, parseInt(userCollateralBalance1.toString(10)), "user collateral holding should increase by 100");
 
-        liabilities = await oneToken.liabilities(collateralToken.address);
-        assert.strictEqual(parseInt(liabilities.toString(10)), 60, "oneToken liabilities for collateral should be 60");
-
-        await time.advanceBlock();
-
-        collateralUserBalance = await oneToken.availableBalance(bob, collateralToken.address);
-
-        // minting 50 more oneToken (45 collateral should come from pending balance)
-        await oneToken.mint(collateralToken.address, 50, { from: bob });
-        let userCollateralBalance3 = await collateralToken.balanceOf(bob);
-        assert.strictEqual(parseInt(userCollateralBalance3.toString(10)), parseInt(userCollateralBalance2.toString(10)), "user collateral holding should remain the same");
-        // liabilities should drop to 15
-        liabilities = await oneToken.liabilities(collateralToken.address);
-        assert.strictEqual(parseInt(liabilities.toString(10)), 15, "oneToken liabilities for collateral should be 0");
     });
     
     it("should be able to set minting fee", async () => {
@@ -289,8 +235,8 @@ contract("OneToken V1 Main", accounts => {
 		})
 
         // ratio = 90, need 90 coll and 10 mem tokens
-        // with 10% minting fee, need 9 more coll token, so 99 coll tokens
-        // minus 15 liabilities, so need 84 coll tokens
+        // with 10% minting fee, need 10 more coll token, so 100 coll tokens
+        // minus 15 liabilities, so need 85 coll tokens
         let startCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
         let startMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
         let liabilities = parseInt((await oneToken.liabilities(collateralToken.address)).toString(10)); // assume only bob minted so far
@@ -300,7 +246,7 @@ contract("OneToken V1 Main", accounts => {
         let endCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
         let endMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
 
-        let reqCollateral = (100 * 90 / 100) * 110 / 100 - liabilities;
+        let reqCollateral = (100 * 90 + 100 * 10) / 100 - liabilities;
         let reqMember = 100 * 10 / 100;
 
         assert.strictEqual( reqCollateral, startCollBalance - endCollBalance, "user remaining collateral tokens should match");
@@ -341,8 +287,8 @@ contract("OneToken V1 Main", accounts => {
         let userCollateralBalance = await collateralToken.balanceOf(jane);
         let userMemberBalance = await memberToken.balanceOf(jane);
 
-        // should have 1911 collateral tokens left: 3000 - (1000 - 10) * 1.1 (low member allowance + fee)
-        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 1911, "user collateral token balance should be 1911");
+        // should have 1910 collateral tokens left: 3000 - (1000 - 10) - (1000 * 0.1) (low member allowance + fee)
+        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 1910, "user collateral token balance should be 1910");
         assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1990, "user member token balance should be 1990");
 
         // approving more member tokens for minting and minting 1000 more oneToken
@@ -351,8 +297,8 @@ contract("OneToken V1 Main", accounts => {
         userCollateralBalance = await collateralToken.balanceOf(jane);
         userMemberBalance = await memberToken.balanceOf(jane);
 
-        // should have 921 collateral tokens left: 1911 - (1000 - 100) * 1.1 (just fee)
-        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 921, "user collateral token balance should be 921");
+        // should have 910 collateral tokens left: 1910 - (1000 - 100) - (1000 * 0.1) (just fee)
+        assert.strictEqual(parseInt(userCollateralBalance.toString(10)), 910, "user collateral token balance should be 910");
         assert.strictEqual(parseInt(userMemberBalance.toString(10)), 1890, "user member token balance should be 1890");
 
         // checking the balance

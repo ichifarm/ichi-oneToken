@@ -14,6 +14,7 @@
     "test:mintMaster": "yarn test test/mintMaster.js",
     "test:factory": "yarn test test/factory.js",
     "test:integration": "yarn test test/integration.js",
+    "test:integrationDecimals": "yarn test test/integrationDecimals.js",
     "test:controller": "yarn test test/controller.js",
     "test:oneTokenMain": "hardhat test test/oneTokenV1-main.js",
     "test:oneTokenBase": "hardhat test test/oneTokenV1-base.js",

@@ -16,21 +16,11 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     uint public override redemptionFee; // defaults to 0%
 
     /**
-     @notice withdrawals are delayed for at least one block (resist flash loan attacks)
-     @dev collateral token => user => balance.
-     */
-    mapping(address => mapping(address => uint)) public override userBalances;
-    mapping(address => mapping(address => uint)) public override userCreditBlocks;
-
-    /**
      @notice sum of userBalances for each collateral token are not counted in treasury valuations
      @dev token => liability
      */
     mapping(address => uint) public liabilities;
-
-    event UserWithdrawal(address indexed sender, address indexed token, uint amount);
-    event UserBalanceIncreased(address indexed user, address indexed token, uint amount);
-    event UserBalanceDecreased(address indexed user, address indexed token, uint amount);    
+  
     event Minted(address indexed sender, address indexed collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
     event Redeemed(address indexed sender, address indexed collateral, uint amount);
     event NewMintingFee(address sender, uint fee);
@@ -39,68 +29,12 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     /// @dev there is no constructor for proxy deployment. Use init()
 
     /**
-     @notice returns the available user balance in a given token
-     @dev returns 0 if the balances was increased in this block
-     @param user user to report
-     @param token ERC20 asset to report
-     */    
-    function availableBalance(address user, address token) public view returns(uint) {
-        uint userBlock = userCreditBlocks[token][user];
-        // there is no case when userBlock is uninitialized and balance > 0
-        if(userBlock < block.number) return userBalances[token][user];
-        return 0;
-    }
-    
-    /**
-     @notice transfers collateral tokens to the user
-     @dev user withdrawals are delayed 1 block after any balance increase
-     @param token ERC20 token to transfer
-     @param amount amount to transfer
-     */
-    function withdraw(address token, uint amount) public override {
-        require(isCollateral(token), "OTV1: token isn't COLLAT");
-        require(amount > 0, "OTV1: amount must be > 0");
-        require(amount <= availableBalance(msg.sender, token), "OTV1: INSUF funds");
-        decreaseUserBalance(msg.sender, token, amount);
-        IERC20(token).safeTransfer(msg.sender, amount);
-        emit UserWithdrawal(msg.sender, token, amount);
-    }
-
-    /**
-     @notice records collateral token liabilities owed to user, e.g. oneToken redemption
-     @dev prevents any withdrawal of the token by the user for 1 block
-     @param user user balance to adjust
-     @param token ERC20 token
-     @param amount amount of increase
-     */    
-    function increaseUserBalance(address user, address token, uint amount) private {
-        userBalances[token][user] = userBalances[token][user].add(amount);
-        userCreditBlocks[token][user] = block.number;
-        liabilities[token] = liabilities[token].add(amount);
-        emit UserBalanceIncreased(user, token, amount);
-    }
-
-    /**
-     @notice reduces collateral token liabilities owed to user, e.g. withdrawal
-     @dev does not prevent further withdrawals including same block
-     @param user user balance to adjust
-     @param token ERC20 token
-     @param amount amount of decrease
-     */
-    function decreaseUserBalance(address user, address token, uint amount) private {
-        userBalances[token][user] = userBalances[token][user].sub(amount, "OTV1: INSUF funds");
-        liabilities[token] = liabilities[token].sub(amount);
-        emit UserBalanceDecreased(user, token, amount);        
-    }
-
-    /**
      @notice convert member tokens and collateral tokens into oneTokens. requires sufficient allowances for both tokens
      @dev takes the lessor of memberTokens allowance or the maximum allowed by the minting ratio and the balance in collateral
      @param collateralToken a registered ERC20 collateral token contract
      @param oneTokens exact number of oneTokens to receive
      */
 
-    // TODO: precision
     function mint(address collateralToken, uint oneTokens) external initialized override {
         require(collateralTokenSet.exists(collateralToken), "OTV1: offer a COLLAT token");
         require(oneTokens > 0, "OTV1: order must be > 0");
@@ -117,7 +51,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // compute the member token value and collateral value requirement
         uint collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
         uint memberTokensUSDValue = oneTokens.sub(collateralUSDValue);
-        collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
+        collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
 
         // compute the member tokens required
         (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
@@ -132,7 +66,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             // re-evaluate the memberToken value and collateral value required using the oracle rate already obtained
             memberTokensUSDValue = memberTokenRate.mul(memberTokensReq).div(PRECISION);
             collateralUSDValue = oneTokens.sub(memberTokensUSDValue);
-            collateralUSDValue = collateralUSDValue.add(collateralUSDValue.mul(mintingFee).div(PRECISION));
+            collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
         }
 
         require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: INSUF MEM token balance");
@@ -141,20 +75,12 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // a pegged oracle can be used to reduce the cost of this step but it will not account for price differences
         (uint collateralTokensReq, /* volatility */) = IOracle(assets[collateralToken].oracle).amountRequired(collateralToken, collateralUSDValue);
 
-        // draw from available user balance if possible
-        uint userCollateralBalance = availableBalance(msg.sender, collateralToken);
-        uint collateralFromBalance = (collateralTokensReq <= userCollateralBalance) ? 
-            collateralTokensReq : userCollateralBalance;
-        if(collateralFromBalance > 0) {
-            decreaseUserBalance(msg.sender, collateralToken, collateralFromBalance);
-        }
-
-        uint collateralTokensToTransfer = collateralTokensReq.sub(collateralFromBalance);
-        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensToTransfer, "OTV1: INSUF COLLAT token balance");
+        // uint collateralTokensToTransfer = collateralTokensReq.sub(collateralFromBalance);
+        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensReq, "OTV1: INSUF COLLAT token balance");
 
         // transfer tokens in
         IERC20(memberToken).safeTransferFrom(msg.sender, address(this), memberTokensReq);
-        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), collateralTokensToTransfer);
+        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), collateralTokensReq);
         
         // mint oneTokens
         _mint(msg.sender, oneTokens);
@@ -176,12 +102,14 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     function redeem(address collateral, uint amount) external override {
         require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
+        require(amount > 0, "OTV1: amount must be > 0");
+        require(balanceOf(msg.sender) >= amount, "OTV1: INSUF funds");
         IOracle(assets[collateral].oracle).update(collateral);
         // implied transfer approval and allowance
-        // transferFrom(msg.sender, address(this), amount);
         _transfer(msg.sender, address(this), amount);
         uint netTokens = amount.sub(amount.mul(redemptionFee).div(PRECISION));
-        increaseUserBalance(msg.sender, collateral, netTokens);
+        netTokens = IOracle(assets[collateral].oracle).normalizedToTokens(collateral, netTokens);
+        IERC20(collateral).safeTransfer(msg.sender, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
         // updates the oracle price history for oneToken, only
         updateMintingRatio(collateral);
