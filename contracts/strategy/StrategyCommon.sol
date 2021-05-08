@@ -94,23 +94,33 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      */
     function _closeAllPositions() internal virtual returns(bool success) {
         uint assetCount;
-        uint strategyBalance;
         success = true;
         assetCount = IOneTokenV1Base(oneToken).assetCount();
         for(uint i=0; i < assetCount; i++) {
             address thisAsset = IOneTokenV1Base(oneToken).assetAtIndex(i);
-            // this naive process returns funds on hand.
-            // override this to explicitly close external positions and return false if 1 or more positions cannot be closed at this time.
-            strategyBalance = IERC20(thisAsset).balanceOf(address(this));
-            if(strategyBalance > 0) {
-                _toVault(thisAsset, strategyBalance);
-            }
+            closePositions(thisAsset);
+        }
+    }
+
+    // TODO rename modifier to strategyOwnerOrController, QSP-12
+
+    function closePositions(address token) public strategyOwnerTokenOrController override virtual returns(bool success) {
+        // this naive process returns funds on hand.
+        // override this to explicitly close external positions and return false if 1 or more positions cannot be closed at this time.
+        success = true;
+        uint strategyBalance = IERC20(token).balanceOf(address(this));
+        if(strategyBalance > 0) {
+            _toVault(token, strategyBalance);
         }
     }
 
     /**
      @notice let's the oneToken controller instance send funds to the oneToken vault
+<<<<<<< HEAD
      @dev implementation must recover external positions, account for all assets, e.g. LP tokens, and return them to the vault.
+=======
+     @dev implementations must close external positions and return all related assets to the vault
+>>>>>>> add distinct closePositions function
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
@@ -119,7 +129,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     }
 
     /**
-     @notice send funds to the oneToken vault
+     @notice close external positions send all related funds to the oneToken vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
