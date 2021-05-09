@@ -31,9 +31,11 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     /**
      @dev oneToken governance has privileges that may be delegated to a controller
      */
-    modifier strategyOwnerOrController {
-        if(msg.sender != IOneTokenV1Base(oneToken).controller()) {
-            require(msg.sender == IOneTokenV1Base(oneToken).owner(), "StrategyCommon: not token controller or owner.");
+    modifier strategyOwnerTokenOrController {
+        if(msg.sender != oneToken) {
+            if(msg.sender != IOneTokenV1Base(oneToken).controller()) {
+                require(msg.sender == IOneTokenV1Base(oneToken).owner(), "StrategyCommon: not token controller or owner.");
+            }
         }
         _;
     }
@@ -62,10 +64,12 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     }
 
     /**
-     @notice a controller invokes execute() to trigger automated logic within the strategy. Governance is permitted 
+     @notice a controller invokes execute() to trigger logic within the strategy.
      @dev called from oneToken governance or the active controller
      */  
-    function execute() external virtual strategyOwnerOrController override {}  
+    function execute() external virtual strategyOwnerTokenOrController override {
+        emit StrategyExecuted(msg.sender, oneToken);
+    }  
         
     /**
      @notice gives the oneToken control of tokens deposited in the strategy
@@ -73,7 +77,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the asset
      @param amount the allowance. 0 = infinte
      */
-    function setAllowance(address token, uint amount) external strategyOwnerOrController override {
+    function setAllowance(address token, uint amount) external strategyOwnerTokenOrController override {
         if(amount == 0) amount = INFINITE;
         IERC20(token).safeApprove(oneToken, 0);
         IERC20(token).safeApprove(oneToken, amount);
@@ -84,7 +88,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @notice closes all positions and returns the funds to the oneToken vault
      @dev override this function to withdraw funds from external contracts. Return false if any funds are unrecovered.
      */
-    function closeAllPositions() external virtual strategyOwnerOrController override returns(bool success) {
+    function closeAllPositions() external virtual strategyOwnerTokenOrController override returns(bool success) {
         success = _closeAllPositions();
     }
 
@@ -102,8 +106,12 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
         }
     }
 
-    // TODO rename modifier to strategyOwnerOrController, QSP-12
-
+    /**
+     @notice closes token positions and returns the funds to the oneToken vault
+     @dev override this function to redeem and withdraw related funds from external contracts. Return false if any funds are unrecovered. 
+     @param token asset to recover
+     @param success true, complete success, false, 1 or more failed operations
+     */
     function closePositions(address token) public strategyOwnerTokenOrController override virtual returns(bool success) {
         // this naive process returns funds on hand.
         // override this to explicitly close external positions and return false if 1 or more positions cannot be closed at this time.
@@ -116,11 +124,11 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
 
     /**
      @notice let's the oneToken controller instance send funds to the oneToken vault
-     @dev implementation must recover external positions, account for all assets, e.g. LP tokens, and return them to the vault.
+     @dev implementations must close external positions and return all related assets to the vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function toVault(address token, uint amount) external strategyOwnerOrController override {
+    function toVault(address token, uint amount) external strategyOwnerTokenOrController override {
         _toVault(token, amount);
     }
 
@@ -139,7 +147,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function fromVault(address token, uint amount) external strategyOwnerOrController override {
+    function fromVault(address token, uint amount) external strategyOwnerTokenOrController override {
         _fromVault(token, amount);
     }
 
