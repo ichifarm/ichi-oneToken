@@ -150,16 +150,10 @@ contract("Controller", accounts => {
             strategy: arbitraryStrategy.address
         })
 
-        // test event from TestController
-		expectEvent.inTransaction(tx.tx, StrategyCommon, 'StrategyExecuted', {
-            sender: secondOneToken.address,
-            token: secondOneToken.address
-        })
-
         await secondOneToken.changeController(controller.address, { from: governance });
     });
 
-    it("should call execute", async () => {
+    /*it("should call execute", async () => {
         await secondOneToken.changeController(secondController.address, { from: governance });
         let tx = await secondController.testDirectExecute(arbitraryStrategy.address, { from: governance });
 
@@ -170,6 +164,6 @@ contract("Controller", accounts => {
         })
 
         await secondOneToken.changeController(controller.address, { from: governance });
-    });
+    });*/
 
 });
