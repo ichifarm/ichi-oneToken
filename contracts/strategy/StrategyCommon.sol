@@ -62,19 +62,12 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     }
 
     /**
-<<<<<<< HEAD
-     @notice a controller invokes execute() to trigger automated logic within the strategy. Governance is permitted 
-     @dev called from oneToken governance or the active controller
-     */  
-    function execute() external virtual strategyOwnerOrController override {}  
-=======
      @notice a controller invokes execute() to trigger logic within the strategy.
      @dev called from oneToken governance or the active controller. Overriding function should emit the event. 
      */  
     function execute() external virtual strategyOwnerTokenOrController override {
         // emit StrategyExecuted(msg.sender, oneToken);
     }  
->>>>>>> 4a3d00777e63c222baa77863e430cd2acb6f2853
         
     /**
      @notice gives the oneToken control of tokens deposited in the strategy
@@ -129,15 +122,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
 
     /**
      @notice let's the oneToken controller instance send funds to the oneToken vault
-<<<<<<< HEAD
-<<<<<<< HEAD
-     @dev implementation must recover external positions, account for all assets, e.g. LP tokens, and return them to the vault.
-=======
      @dev implementations must close external positions and return all related assets to the vault
->>>>>>> add distinct closePositions function
-=======
-     @dev implementations must close external positions and return all related assets to the vault
->>>>>>> 4a3d00777e63c222baa77863e430cd2acb6f2853
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
