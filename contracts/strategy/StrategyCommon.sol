@@ -65,10 +65,10 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
 
     /**
      @notice a controller invokes execute() to trigger logic within the strategy.
-     @dev called from oneToken governance or the active controller
+     @dev called from oneToken governance or the active controller. Overriding function should emit the event. 
      */  
     function execute() external virtual strategyOwnerTokenOrController override {
-        emit StrategyExecuted(msg.sender, oneToken);
+        // emit StrategyExecuted(msg.sender, oneToken);
     }  
         
     /**
