@@ -31,9 +31,11 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     /**
      @dev oneToken governance has privileges that may be delegated to a controller
      */
-    modifier strategyOwnerOrController {
-        if(msg.sender != IOneTokenV1Base(oneToken).controller()) {
-            require(msg.sender == IOneTokenV1Base(oneToken).owner(), "StrategyCommon: not token controller or owner.");
+    modifier strategyOwnerTokenOrController {
+        if(msg.sender != oneToken) {
+            if(msg.sender != IOneTokenV1Base(oneToken).controller()) {
+                require(msg.sender == IOneTokenV1Base(oneToken).owner(), "StrategyCommon: not token controller or owner.");
+            }
         }
         _;
     }
