@@ -77,7 +77,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the asset
      @param amount the allowance. 0 = infinte
      */
-    function setAllowance(address token, uint amount) external strategyOwnerOrController override {
+    function setAllowance(address token, uint amount) external strategyOwnerTokenOrController override {
         if(amount == 0) amount = INFINITE;
         IERC20(token).safeApprove(oneToken, 0);
         IERC20(token).safeApprove(oneToken, amount);
@@ -88,7 +88,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @notice closes all positions and returns the funds to the oneToken vault
      @dev override this function to withdraw funds from external contracts. Return false if any funds are unrecovered.
      */
-    function closeAllPositions() external virtual strategyOwnerOrController override returns(bool success) {
+    function closeAllPositions() external virtual strategyOwnerTokenOrController override returns(bool success) {
         success = _closeAllPositions();
     }
 
@@ -128,7 +128,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function toVault(address token, uint amount) external strategyOwnerOrController override {
+    function toVault(address token, uint amount) external strategyOwnerTokenOrController override {
         _toVault(token, amount);
     }
 
@@ -147,7 +147,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function fromVault(address token, uint amount) external strategyOwnerOrController override {
+    function fromVault(address token, uint amount) external strategyOwnerTokenOrController override {
         _fromVault(token, amount);
     }
 
