@@ -55,6 +55,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
         // compute the member tokens required
         (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
+        require(memberTokensReq > 0, "OTV1: order too small");
 
         // check the memberToken allowance - the maximum we can draw from the user
         uint memberTokenAllowance = IERC20(memberToken).allowance(msg.sender, address(this));
