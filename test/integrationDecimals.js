@@ -212,15 +212,16 @@ contract("Integration tests with 6/9 decimals", accounts => {
 
 		//console.log("collateral before minting = "+bobCollateralBalanceBefore.toString());
 		//console.log("member token before minting = "+bobMemberBalanceBefore.toString());
+		//console.log("oneToken before minting = "+bobOneTokenBalanceBefore.toString());
 
 		let theRatio = await oneToken.getMintingRatio(collateralToken.address);
  		//console.log("ratio before minting = "+theRatio[0].toString());
 
-		let readRes = await oneTokenOracle.read(oneToken.address, getBigNumber(1,18).toString());
+		let readRes = await oneTokenOracle.read(oneToken.address, getBigNumber(1,6).toString());
 		//console.log("quote from oneToken oracle = "+readRes[0].toString());
 
 		const mintingAmount = 1;
-		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,6), { from: bob });
+		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
 		
 		theRatio = await oneToken.getMintingRatio(collateralToken.address);
  		//console.log("ratio after minting = "+theRatio[0].toString());
@@ -231,9 +232,10 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		
 		//console.log("collateral after minting = "+bobCollateralBalanceAfter.toString());
 		//console.log("member token after minting = "+bobMemberBalanceAfter.toString());
+		//console.log("oneToken after minting = "+bobOneTokenBalanceAfter.toString());
 
 		// collateral spent = 1 * 0.9
-		/*assert.equal(
+		assert.equal(
 			bobCollateralBalanceBefore.sub(bobCollateralBalanceAfter).toString(),
 			getBigNumber(mintingAmount,18).mul(RATIO_90).div(PRECISION).div(10 ** 12).toString(),
 			`bobCollateralBalanceAfter wrong`);
@@ -247,7 +249,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		assert.equal(
 			bobOneTokenBalanceAfter.sub(bobOneTokenBalanceBefore).toString(),
 			getBigNumber(mintingAmount,18).toString(),
-			`bobOneTokenBalanceAfter wrong`);*/
+			`bobOneTokenBalanceAfter wrong`);
 	})
 	
 	it("Bob transfers some of her oneTokens to Alice", async () => {
@@ -291,10 +293,13 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const uniswapPair = await UniswapV2Pair.at(memberTokenUsdtUniswapPair);
 		await uniswapPair.sync();
 		await memberTokenOracle.update(memberToken.address)
+		// calling update the second time after sync and appropriate time period, so we get two clean points
+		await time.increase(TEST_TIME_PERIOD);
+		await memberTokenOracle.update(memberToken.address)
 		
 		const infoAfter = await memberTokenOracle.pairInfo(memberToken.address)
 
-/*		console.log(memberToken.address);
+		/*console.log(memberToken.address);
 
 		console.log(infoBefore.token0);
 		console.log(infoBefore.token1);
@@ -306,16 +311,25 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		console.log(infoAfter.price0Average.toString());
 		console.log(infoAfter.price1Average.toString());*/
 
-		//assert.isTrue(infoBefore.price1Average.eq(infoBefore.price0Average))
+
 		if (memberToken.address == infoBefore.token1.toString()) {
+			// accounting for possible rounding error in Uniswap oracle
+			assert.isTrue(Number(infoAfter.price1Average) == Number(infoAfter.price0Average) / 10**6 + 1 || 
+				Number(infoAfter.price1Average) == Number(infoAfter.price0Average) / 10**6 - 1 ||
+				infoAfter.price1Average.eq(infoAfter.price0Average / 10**6 ))
+
 			assert.isTrue(infoBefore.price0Average.lt(infoAfter.price0Average))
-			//assert.isTrue(infoBefore.price1Average.gt(infoAfter.price1Average))
-			//assert.isTrue(infoAfter.price0Average.gt(infoAfter.price1Average))
+			assert.isTrue(infoBefore.price1Average.gt(infoAfter.price1Average))
 		} else {
 			// flipped tokens in the pair
+
+			// accounting for possible rounding error in Uniswap oracle
+			assert.isTrue(Number(infoAfter.price0Average) == Number(infoAfter.price1Average) / 10**6 + 1 || 
+				Number(infoAfter.price0Average) == Number(infoAfter.price1Average) / 10**6 - 1 ||
+				infoAfter.price0Average.eq(infoAfter.price1Average / 10**6 ))
+
 			assert.isTrue(infoBefore.price0Average.gt(infoAfter.price0Average))
-			//assert.isTrue(infoBefore.price1Average.lt(infoAfter.price1Average))
-			//assert.isTrue(infoAfter.price0Average.lt(infoAfter.price1Average))
+			assert.isTrue(infoBefore.price1Average.lt(infoAfter.price1Average))
 		}
 	})
 	

@@ -134,7 +134,7 @@ contract("ICHICompositeOracle", accounts => {
 		let interimOracle = await compositeOracle_18_Dec.oracleAtIndex(0);
 		interimOracle = await ICHIPeggedOracle.at(interimOracle[0]);
 		let interimQuote = await interimOracle.read(token1.address, "1000");
-		assert.equal(interimQuote[0].toString(10), "1000", "ICHIPeggedOracle.read() should return proper amount");
+		assert.equal(interimQuote[0].toString(10), "1000000000000000000000", "ICHIPeggedOracle.read() should return proper amount");
 
 		interimOracle = await compositeOracle_0_Dec.oracleAtIndex(0);
 		interimOracle = await ICHIPeggedOracle.at(interimOracle[0]);
