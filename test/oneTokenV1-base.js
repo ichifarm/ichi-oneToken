@@ -566,6 +566,9 @@ contract("OneToken V1 Base", accounts => {
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the allowance wasn't set to 0 after closure");
 
+        getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
+        assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the initial allowance should be 0");
+
         expectEvent(tx, 'StrategyClosed', {
 			sender: governance,
             token: collateral,
