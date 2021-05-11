@@ -65,7 +65,7 @@ contract ICHICompositeOracle is OracleCommon {
      */
     function read(address /* token */ , uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
         uint compoundedVolatility;
-        uint amount = amountTokens;
+        uint amount = tokensToNormalized(interimTokens[0], amountTokens);
         volatility = 1;
         for(uint i=0; i<oracleContracts.length; i++) {
             ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], normalizedToTokens(interimTokens[i], amount));
@@ -82,8 +82,8 @@ contract ICHICompositeOracle is OracleCommon {
      */
     function amountRequired(address /* token */, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
         uint tokenToUsd;
-        (tokenToUsd, volatility) = read(NULL_ADDRESS, PRECISION); 
-        uint usdToTokens = PRECISION.mul(PRECISION).div(tokenToUsd);
+        (tokenToUsd, volatility) = read(NULL_ADDRESS, normalizedToTokens(indexToken, PRECISION)); 
+        uint usdToTokens = PRECISION.mul(tokenToUsd).div(PRECISION);
         amountTokens = PRECISION.mul(amountUsd).div(usdToTokens);
         amountTokens = normalizedToTokens(indexToken, amountTokens);
         volatility = 1;

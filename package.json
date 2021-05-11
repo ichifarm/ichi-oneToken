@@ -10,6 +10,7 @@
     "test:oracleSimple": "yarn test test/uniswapOracleSimple.js",
     "test:ichiPeggedOracle": "yarn test test/ichiPeggedOracle.js",
     "test:ichiCompositeOracle": "yarn test test/ichiCompositeOracle.js",
+    "test:ichiCompositeOracleDecimals": "yarn test test/ichiCompositeOracleDecimals.js",
     "test:strategy": "yarn test test/arbitraryStrategy.js",
     "test:mintMaster": "yarn test test/mintMaster.js",
     "test:factory": "yarn test test/factory.js",
