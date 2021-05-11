@@ -333,6 +333,31 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		}
 	})
 	
+	it("UniswapOracleSimple read returns correct prices", async () => {
+		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
+
+		// passing 1 memberToken, expecting 10 ** 18 back
+		const value = getBigNumber(1,18).toString();
+		const { amountUsd, volatility } = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		assert.isTrue( Number(amountUsd) == Number(value) )
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.read() should return proper volatility");
+	})
+
+	it("UniswapOracleSimple amountRequired returns correct prices", async () => {
+		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
+
+		// passing 10 ** 18, expecting 1 memberToken back
+		const value = getBigNumber(1,18).toString();
+		const { amountTokens, volatility } = await memberTokenOracle.amountRequired(memberToken.address, value);
+
+		const expectedValue = getBigNumber(1,9).toString();
+		assert.isTrue( Number(amountTokens) == Number(expectedValue) )
+
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.amountRequired() should return proper volatility");
+	})
+
 	it("Bob redeems tokens, gets collateral", async () => {
 		let reserve1 = 100;
 		let reserve2 = 200;
@@ -363,4 +388,42 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		assert.isTrue(bobMemberBalanceBefore.eq(bobMemberBalanceAfter))
 		assert.equal(BigNumber.from(bobOneTokenBalanceBefore.toString()).sub(redeemAmount).toString(), bobOneTokenBalanceAfter.toString())
 	})
+
+	it("UniswapOracleSimple read returns correct prices with 1:2 LP ratio", async () => {
+		let reserve1 = 100;
+		let reserve2 = 200;
+		await setupUniswapOracle(reserve1, reserve2);
+
+		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
+
+		// passing 1 memberToken, expecting 2 * 10 ** 18 back, have to account for rounding
+		const value = getBigNumber(2,18).toString();
+		const { amountUsd, volatility } = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		assert.isTrue(Number(amountUsd) == Number(value) + 10**12 || 
+			Number(amountUsd) + 10**12 == Number(value) ||
+			Number(amountUsd) == Number(value) )
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.read() should return proper volatility");
+	})
+
+	it("UniswapOracleSimple amountRequired returns correct prices with 1:2 LP ratio", async () => {
+		let reserve1 = 100;
+		let reserve2 = 200;
+		await setupUniswapOracle(reserve1, reserve2);
+
+		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
+		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
+
+		// passing 10 ** 18, expecting 0.5 memberToken back, have to account for rounding
+		const value = getBigNumber(1,18).toString();
+		const { amountTokens, volatility } = await memberTokenOracle.amountRequired(memberToken.address, value);
+
+		const expectedValue = getBigNumber(5,8).toString(); //half
+		assert.isTrue(Number(amountTokens) == Number(expectedValue) + 10**3 || 
+			Number(amountTokens) + 10**3 == Number(expectedValue) ||
+			Number(amountTokens) == Number(expectedValue) )
+
+		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.amountRequired() should return proper volatility");
+	})
+
 });
