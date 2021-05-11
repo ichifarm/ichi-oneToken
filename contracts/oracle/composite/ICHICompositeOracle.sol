@@ -83,8 +83,7 @@ contract ICHICompositeOracle is OracleCommon {
     function amountRequired(address /* token */, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
         uint tokenToUsd;
         (tokenToUsd, volatility) = read(NULL_ADDRESS, normalizedToTokens(indexToken, PRECISION)); 
-        uint usdToTokens = PRECISION.mul(tokenToUsd).div(PRECISION);
-        amountTokens = PRECISION.mul(amountUsd).div(usdToTokens);
+        amountTokens = PRECISION.mul(amountUsd).div(tokenToUsd);
         amountTokens = normalizedToTokens(indexToken, amountTokens);
         volatility = 1;
     }
