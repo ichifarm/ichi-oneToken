@@ -160,6 +160,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         emit MintMasterChanged(msg.sender, mintMaster_, oneTokenOracle_);
     }
 
+    function changeMemberTokenOracle(address memberTokenOracle) external onlyOwner override;
+
     /**
      @notice governance can add an asset
      @dev asset inventory helps evaluate local holdings and enables strategy assignment
