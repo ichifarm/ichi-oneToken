@@ -39,10 +39,10 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         require(collateralTokenSet.exists(collateralToken), "OTV1: offer a COLLAT token");
         require(oneTokens > 0, "OTV1: order must be > 0");
         
-        // update collateral oracle
+        // update collateral and memberToken oracles
         IOracle(assets[collateralToken].oracle).update(collateralToken);
+        IOracle(assets[memberToken].oracle).update(memberToken);
         
-        // this will also update the member token oracle price history
         (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio(collateralToken);
 
         // future mintmasters may return a maximum order volume to tamp down on possible manipulation
