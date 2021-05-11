@@ -554,8 +554,17 @@ contract("OneToken V1 Base", accounts => {
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url")
         await factory.admitModule(strategy_2.address, moduleType.strategy, "strategy name 2", "url")
         await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
-        // setting new strategy results in old one being removed and closeStrategy event fired
+
+        // set strategy allowance to 10 (to be closed below)
+        await oneToken.setStrategyAllowance(collateral, allowance);
+        getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
+        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
+
+        // setting new strategy results in old one being closed, its allowance set to 0 and closeStrategy event fired
         let tx = await oneToken.setStrategy(collateral, strategy.address, allowance, { from: governance });
+
+        getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
+        assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the allowance wasn't set to 0 after closure");
 
         expectEvent(tx, 'StrategyClosed', {
 			sender: governance,
