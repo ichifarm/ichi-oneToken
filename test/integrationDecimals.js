@@ -3,6 +3,7 @@ const { expectEvent } = require("@openzeppelin/test-helpers");
 const { getBigNumber } = require("./utilities");
 const time = require("@openzeppelin/test-helpers/src/time");
 const { BigNumber } = require("ethers");
+const truffleAssert = require('truffle-assertions');
 
 const OneTokenFactory = artifacts.require("OneTokenFactory");
 const OneToken = artifacts.require("OneTokenV1");
@@ -196,6 +197,8 @@ contract("Integration tests with 6/9 decimals", accounts => {
 	}
 	
 	it("Bob should be able to mint one Token with Uniswap Oracle simple", async () => {
+		let msg1 = "OTV1: order too small";
+
 		let reserve1 = 100;
 		let reserve2 = 200;
 		await setupUniswapOracle(reserve1, reserve2);
@@ -219,6 +222,9 @@ contract("Integration tests with 6/9 decimals", accounts => {
 
 		let readRes = await oneTokenOracle.read(oneToken.address, getBigNumber(1,6).toString());
 		//console.log("quote from oneToken oracle = "+readRes[0].toString());
+
+		// shouldn't be able to mint such small quantities that collateral req goes to 0
+		await truffleAssert.reverts(oneToken.mint(collateralToken.address, getBigNumber(1,6), { from: bob }), msg1);
 
 		const mintingAmount = 1;
 		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
