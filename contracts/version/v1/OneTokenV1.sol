@@ -55,7 +55,6 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
         // compute the member tokens required
         (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
-        require(memberTokensReq > 0, "OTV1: order too small");
 
         // check the memberToken allowance - the maximum we can draw from the user
         uint memberTokenAllowance = IERC20(memberToken).allowance(msg.sender, address(this));
@@ -76,8 +75,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // a pegged oracle can be used to reduce the cost of this step but it will not account for price differences
         (uint collateralTokensReq, /* volatility */) = IOracle(assets[collateralToken].oracle).amountRequired(collateralToken, collateralUSDValue);
 
-        // uint collateralTokensToTransfer = collateralTokensReq.sub(collateralFromBalance);
         require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensReq, "OTV1: INSUF COLLAT token balance");
+        require(collateralTokensReq > 0, "OTV1: order too small");
 
         // transfer tokens in
         IERC20(memberToken).safeTransferFrom(msg.sender, address(this), memberTokensReq);
@@ -85,9 +84,6 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         
         // mint oneTokens
         _mint(msg.sender, oneTokens);
-
-        /// avoiding the controller reduces transaction cost for minting
-        // IController(controller).periodic();
 
         emit Minted(msg.sender, collateralToken, oneTokens, memberTokensReq, collateralTokensReq);
     }
