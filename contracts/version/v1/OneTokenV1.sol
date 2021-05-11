@@ -43,6 +43,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         IOracle(assets[collateralToken].oracle).update(collateralToken);
         IOracle(assets[memberToken].oracle).update(memberToken);
         
+        // update oneToken oracle and evaluate
         (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio(collateralToken);
 
         // future mintmasters may return a maximum order volume to tamp down on possible manipulation
