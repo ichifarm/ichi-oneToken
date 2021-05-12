@@ -17,7 +17,8 @@ interface IOneTokenV1Base is IICHICommon, IERC20 {
     function executeStrategy(address token) external;
     function removeStrategy(address token) external;
     function closeStrategy(address token) external;
-    function setStrategyAllowance(address token, uint amount) external;
+    function increaseStrategyAllowance(address token, uint amount) external;
+    function decreaseStrategyAllowance(address token, uint amount) external;
     function setFactory(address newFactory) external;
 
     function MODULE_TYPE() external view returns(bytes32);
