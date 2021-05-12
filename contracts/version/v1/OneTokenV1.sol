@@ -90,19 +90,16 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     }
 
     /**
-     @notice redeem oneTokens for collateral tokens - applies fee %
-     @dev first grant allowances, then redeem. Consider infinite collateral and a sufficient memberToken allowance.
+     @notice redeem oneTokens for collateral tokens at 1:1 - applies fee %
+     @dev first grant allowances, then redeem. Consider infinite collateral allowance and a sufficient memberToken allowance. Updates ratio and triggers controller.
      @param collateral form of ERC20 stable token to receive
      @param amount oneTokens to redeem equals collateral tokens to receive
      */
-
-    // TODO - precision
 
     function redeem(address collateral, uint amount) external override {
         require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
         require(amount > 0, "OTV1: amount must be > 0");
         require(balanceOf(msg.sender) >= amount, "OTV1: INSUF funds");
-        IOracle(assets[collateral].oracle).update(collateral);
         // implied transfer approval and allowance
         _transfer(msg.sender, address(this), amount);
         uint netTokens = amount.sub(amount.mul(redemptionFee).div(PRECISION));
