@@ -309,14 +309,23 @@ contract("MintMaster", accounts => {
         await factory.assignOracle(oneToken.address, testOracle.address);
         await truffleAssert.reverts(mintMaster.changeOracle(oneToken.address, badAddress, { from: governance }), msg5);
         //await truffleAssert.reverts(mintMaster.changeOracle(oneToken.address, controller.address, { from: governance }), msg4);
-        
+
+        // test events from TestOracle - proves that oracle's update was called via changeMintMaster
+        tx = await oneToken.changeMintMaster(mintMaster.address, testOracle.address, { from: governance });
+        expectEvent.inTransaction(tx.tx, TestOracle, 'Updated', {
+			sender: oneToken.address
+		})
+        // mintMaster is reset after changeMintMaster, so have to set parameters again
+        await mintMaster.setParams(oneToken.address, 
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+
         tx = await mintMaster.changeOracle(oneToken.address, testOracle.address, { from: governance });
         expectEvent(tx, 'OneTokenOracleChanged', {
 			sender: governance,
             oneToken: oneToken.address,
             oracle: testOracle.address
 		})
-        
+
         await mintMaster.setMaxRatio(oneToken.address, RATIO_95, { from: governance });
         await mintMaster.setStepSize(oneToken.address, STEP_002, { from: governance });
         theRatio = await mintMaster.getMintingRatio2(oneToken.address, collateralToken.address, { from: commonUser });

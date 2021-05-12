@@ -386,14 +386,16 @@ contract("UniswapOracleSimple", accounts => {
 		await truffleAssert.reverts(uniswapOracleSimple.read(newCollateralToken.address, 100), "UniswapOracleSimple: INVALID_TOKEN");
 
 		await oneTokenFactory.admitForeignToken(newCollateralToken.address, true, uniswapOracleSimple.address)
+		
+		amountOut = await uniswapOracleSimple.read(newCollateralToken.address, 100)
+		// now it works because update was called via admitForeignToken
+		assert.equal(amountOut[0].toString(10), "100");
 
 		await time.increase(TEST_TIME_PERIOD)
-		// still no update call
-		await truffleAssert.reverts(uniswapOracleSimple.read(newCollateralToken.address, 100), "UniswapOracleSimple: Gathering history. Try again later");
 
 		await oneToken.addAsset(newCollateralToken.address, uniswapOracleSimple.address)
 		amountOut = await uniswapOracleSimple.read(newCollateralToken.address, 100)
-		// now it works because update was called via addAsset
+		// continues working after another update from addAsset
 		assert.equal(amountOut[0].toString(10), "100");
 	});
 

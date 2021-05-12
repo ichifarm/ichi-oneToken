@@ -14,6 +14,7 @@ contract TestOracle is OracleCommon {
 
     event Deployed(address sender);
     event Initialized(address sender, address baseToken, address indexToken);
+    event Updated(address sender);
     
     /**
     @dev should the oracle get off center up or down
@@ -44,7 +45,9 @@ contract TestOracle is OracleCommon {
      @notice update is called when a oneToken wants to persist observations
      @dev there is nothing to do in this case
      */
-    function update(address /* token */) external override {}
+    function update(address /* token */) external override {
+        emit Updated(msg.sender);
+    }
 
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
