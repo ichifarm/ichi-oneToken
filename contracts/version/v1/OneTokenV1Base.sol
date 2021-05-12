@@ -155,6 +155,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(IOneTokenFactory(oneTokenFactory).isModule(mintMaster_), "OTV1B: unregistered mint master");
         require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unk mint master");
         require(IOneTokenFactory(oneTokenFactory).isOracle(address(this), oneTokenOracle_), "OTV1B: unregistered oneToken oracle");
+        IOracle(oneTokenOracle_).update(address(this));
         IMintMaster(mintMaster_).init(oneTokenOracle_);
         mintMaster = mintMaster_;
         emit MintMasterChanged(msg.sender, mintMaster_, oneTokenOracle_);

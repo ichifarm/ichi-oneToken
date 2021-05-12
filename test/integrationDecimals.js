@@ -463,13 +463,13 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const bobMemberBalanceAfter = await memberToken.balanceOf(bob);
 		const bobOneTokenBalanceAfter = await oneToken.balanceOf(bob);
 
-		console.log(bobCollateralBalanceBefore.toString());
+		/*console.log(bobCollateralBalanceBefore.toString());
 		console.log(bobMemberBalanceBefore.toString());
 		console.log(bobOneTokenBalanceBefore.toString());
 
 		console.log(bobCollateralBalanceAfter.toString());
 		console.log(bobMemberBalanceAfter.toString());
-		console.log(bobOneTokenBalanceAfter.toString());
+		console.log(bobOneTokenBalanceAfter.toString());*/
 
 		// should be 90
 		assert.isTrue(Number(bobCollateralBalanceBefore) - Number(bobCollateralBalanceAfter) == 90 * 10 ** 6);
