@@ -432,4 +432,51 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.amountRequired() should return proper volatility");
 	})
 
+	it("memberToken oracle update update should be called from mint function", async () => {
+		let reserve1 = 100;
+		let reserve2 = 100;
+		await setupUniswapOracle(reserve1, reserve2);
+		
+		const amount = 100;
+		await transferSomeTokensToBob(amount);
+
+		let reserve1IncreaseAmount = 100;
+		await memberToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve1IncreaseAmount,9))
+		await time.increase(TEST_TIME_PERIOD);
+		const uniswapPair = await UniswapV2Pair.at(memberTokenUsdtUniswapPair);
+		await uniswapPair.sync();
+		await memberTokenOracle.update(memberToken.address)
+		// not calling update the second time - expect it to ne called from mint
+		await time.increase(TEST_TIME_PERIOD);
+		
+		const bobCollateralBalanceBefore = await collateralToken.balanceOf(bob);
+		const bobMemberBalanceBefore = await memberToken.balanceOf(bob);
+		const bobOneTokenBalanceBefore = await oneToken.balanceOf(bob);
+
+		await incrementalMintMaster.setParams(oneToken.address,
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+		
+		const mintingAmount = 100;
+		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
+		
+		const bobCollateralBalanceAfter = await collateralToken.balanceOf(bob);
+		const bobMemberBalanceAfter = await memberToken.balanceOf(bob);
+		const bobOneTokenBalanceAfter = await oneToken.balanceOf(bob);
+
+		console.log(bobCollateralBalanceBefore.toString());
+		console.log(bobMemberBalanceBefore.toString());
+		console.log(bobOneTokenBalanceBefore.toString());
+
+		console.log(bobCollateralBalanceAfter.toString());
+		console.log(bobMemberBalanceAfter.toString());
+		console.log(bobOneTokenBalanceAfter.toString());
+
+		// should be 90
+		assert.isTrue(Number(bobCollateralBalanceBefore) - Number(bobCollateralBalanceAfter) == 90 * 10 ** 6);
+		// should be 10 * 2, because the ration is 1:2 after update in mint
+		assert.isTrue(Number(bobMemberBalanceBefore) - Number(bobMemberBalanceAfter) == 20 * 10 ** 9);
+
+	})
+
+
 });
