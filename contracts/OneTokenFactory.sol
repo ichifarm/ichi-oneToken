@@ -202,6 +202,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         require(isValidModuleType(oracle, ModuleType.Oracle), "OneTokenFactory, Set: unknown oracle");
         IOracle o = IOracle(oracle);
         o.init(foreignToken);
+        o.update(foreignToken);
         foreignTokenSet.insert(foreignToken, "OneTokenFactory: foreign token is already admitted");
         ForeignToken storage f = foreignTokens[foreignToken];
         f.isCollateral = collateral;
