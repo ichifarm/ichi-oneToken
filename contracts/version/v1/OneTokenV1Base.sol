@@ -220,8 +220,9 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         Asset storage a = assets[token];
         closeStrategy(token);
 
-        // initialize the new strategy, set local allowance to infinite
+        // initialize the new strategy
         IStrategy(strategy).init();
+        IERC20(token).safeApprove(strategy, allowance);
 
         // appoint the new strategy
         a.strategy = strategy;
@@ -299,8 +300,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     @notice governance can set an allowance for a token strategy
-     @dev computes the net allowance, new allowance - current holdings
+     @notice governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
      @param token ERC20 asset
      @param amount allowance increase
      */
@@ -313,8 +314,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     @notice governance can set an allowance for a token strategy
-     @dev computes the net allowance, new allowance - current holdings
+     @notice governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
      @param token ERC20 asset
      @param amount allowance decrease
      */    
