@@ -230,7 +230,7 @@ contract("Arbitrary strategy", accounts => {
 		})
 
 		let allowance = await collateralToken.allowance(oneToken.address, strategy.address)
-		assert.equal(allowance.toString(), "1", "should have allowance set to 1");
+		assert.equal(allowance.toString(), "2", "should have allowance set to 2"); // initial + 1
 
 		tx = await oneToken.decreaseStrategyAllowance(collateralToken.address, transferAmount)
 
@@ -242,7 +242,7 @@ contract("Arbitrary strategy", accounts => {
 		})
 
 		allowance = await collateralToken.allowance(oneToken.address, strategy.address)
-		assert.equal(allowance.toString(), "0", "should have allowance set to 0");
+		assert.equal(allowance.toString(), "1", "should have allowance set to 1");
 
 		await strategy.closeAllPositions();
 	})
@@ -251,7 +251,7 @@ contract("Arbitrary strategy", accounts => {
 		const factory = await Factory.deployed();
 		let strategy = await NullStrategy.new(factory.address, oneToken.address, "strategy name");
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url")
-        await oneToken.setStrategy(collateralToken.address, strategy.address, 1, { from: governance });
+        await oneToken.setStrategy(collateralToken.address, strategy.address, 0, { from: governance });
 
 		const transferAmount = 1;
 		await oneToken.increaseStrategyAllowance(collateralToken.address, transferAmount)
