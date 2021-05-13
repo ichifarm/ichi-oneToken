@@ -25,6 +25,9 @@ const
     FEE =          "2000000000000000"; // 0.2%
     FEE_20 =     "200000000000000000"; // 20%
     FEE_10 =     "100000000000000000"; // 10%
+    MAX_ORDER =      "10000000000000000000000"; // 10000
+    DBL_MAX_ORDER =  "20000000000000000000000"; // 20000
+    BIG_ORDER =      "10000000000000000001000"; // 10000 + some
 
 const moduleType = {
     version: 0,
@@ -304,6 +307,39 @@ contract("OneToken V1 Main", accounts => {
         // checking the balance
         let userBalance = await oneToken.balanceOf(jane, { from: jane });
         assert.strictEqual(parseInt(userBalance.toString(10)), 2000, "user balance should be 2000 for oneToken");
+    });
+
+    it("should adhere to mintMaster's maxOrder setting", async () => {
+        let msg1 = "OTV1: order exceeds max limit";
+
+        await oneToken.changeMintMaster(mintMaster.address, oracle.address, { from: governance });
+        // has to setParams after changeMintMaster - because it's relinitialized
+        await mintMaster.setParams(oneToken.address,
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_ORDER, { from: governance });
+
+        // adding allowance for member token
+        await memberToken.approve(oneToken.address, DBL_MAX_ORDER, { from: jane });
+
+        // adding allowance for collateral token
+        await collateralToken.approve(oneToken.address, DBL_MAX_ORDER, { from: jane });
+
+        // transferring some member and collateral tokens to jane to work with
+        await collateralToken.approve(jane, DBL_MAX_ORDER, { from: governance });
+        await memberToken.approve(jane, DBL_MAX_ORDER, { from: governance });
+        await collateralToken.transfer(jane, DBL_MAX_ORDER, { from: governance });
+        await memberToken.transfer(jane, DBL_MAX_ORDER, { from: governance });
+        
+        let startUserBalance = await oneToken.balanceOf(jane, { from: jane });
+
+        // should fail because we exceed maxOrderLimit
+        await truffleAssert.reverts(oneToken.mint(collateralToken.address, 
+            BIG_ORDER, { from: jane }), msg1);
+
+        // minting 1000 oneTokens!
+        await oneToken.mint(collateralToken.address, 1000, { from: jane });
+
+        let endUserBalance = await oneToken.balanceOf(jane, { from: jane });
+        assert.strictEqual(parseInt(endUserBalance.toString(10)) - parseInt(startUserBalance.toString(10)), 1000, "user balance should have increased by 1000 oneToken");
     });
 
 });
