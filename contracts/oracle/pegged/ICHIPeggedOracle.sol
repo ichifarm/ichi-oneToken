@@ -27,7 +27,7 @@ contract ICHIPeggedOracle is OracleCommon {
      @param amountUsd US dollar equivalentm, precision 18
      @param volatility metric for future use-cases
      */
-    function read(address token, uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
+    function read(address token, uint amountTokens) external view override returns(uint amountUsd, uint volatility) {
         amountUsd = tokensToNormalized(token, amountTokens);
         volatility = 1;
     }

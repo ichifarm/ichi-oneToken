@@ -202,7 +202,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param stepSize the step size must be smaller than the difference of min and max
      */
-    function setStepSize(address oneToken, uint stepSize) public onlyTokenOwner(oneToken) {
+    function setStepSize(address oneToken, uint stepSize) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(stepSize < p.maxRatio - p.minRatio || stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
         p.stepSize = stepSize;
@@ -216,7 +216,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param minRatio the new lower bound for the minting ratio
      */    
-    function setMinRatio(address oneToken, uint minRatio) public onlyTokenOwner(oneToken) {
+    function setMinRatio(address oneToken, uint minRatio) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(minRatio <= p.maxRatio, "Incremental: minRatio must be <= maxRatio");
         require(p.stepSize < p.maxRatio - minRatio || p.stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
@@ -232,7 +232,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param maxRatio the new upper bound for the minting ratio
      */ 
-    function setMaxRatio(address oneToken, uint maxRatio) public onlyTokenOwner(oneToken) {
+    function setMaxRatio(address oneToken, uint maxRatio) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(maxRatio >= p.minRatio, "Incremental: maxRatio must be >= minRatio");
         require(maxRatio <= PRECISION, "Incremental: maxRatio must <= 100%");

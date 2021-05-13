@@ -62,7 +62,7 @@ contract UniswapOracleSimple is OracleCommon {
      @dev initializes the first time, then does no work. Initialized from the Factory when assigned to an asset.
      @param token the base token. index is established at deployment time and cannot be changed
      */
-    function init(address token) public onlyModuleOrFactory override {
+    function init(address token) external onlyModuleOrFactory override {
         require(token != NULL_ADDRESS, "UniswapOracleSimple: token cannot be null");
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         // this condition is never false

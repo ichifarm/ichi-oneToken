@@ -95,7 +95,7 @@ contract ICHICompositeOracle is OracleCommon {
     /**
      @param count number of interim oracles
      */
-    function oracleCount() public view returns(uint count) {
+    function oracleCount() external view returns(uint count) {
         return oracleContracts.length;
     }
 
@@ -105,7 +105,7 @@ contract ICHICompositeOracle is OracleCommon {
      @param oracle interim token oracle address
      */
 
-    function oracleAtIndex(uint index) public view returns(address oracle, address token) {
+    function oracleAtIndex(uint index) external view returns(address oracle, address token) {
         return(oracleContracts[index], interimTokens[index]);
     }
 }
