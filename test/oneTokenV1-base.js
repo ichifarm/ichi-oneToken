@@ -556,7 +556,7 @@ contract("OneToken V1 Base", accounts => {
         await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
 
         // set strategy allowance to 10 (to be closed below)
-        await oneToken.setStrategyAllowance(collateral, allowance);
+        await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
 
@@ -576,31 +576,30 @@ contract("OneToken V1 Base", accounts => {
 		})
 
         // access control
-        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, allowance, { from: badAddress }), msg1);
+        await truffleAssert.reverts(oneToken.increaseStrategyAllowance(collateral, allowance, { from: badAddress }), msg1);
 
         // adjust allowance
-        tx = await oneToken.setStrategyAllowance(collateral, allowance);
+        tx = await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
 
-        expectEvent(tx, 'StrategyAllowanceSet', {
+        expectEvent(tx, 'StrategyAllowanceIncreased', {
 			sender: governance,
             token: collateral,
             strategy: strategy.address,
             amount: allowance
 		})
 
-        await erc20Collateral.transfer(strategy.address, 1);
-        in_vault_and_strategies = in_vault_and_strategies + 1;
-        await oneToken.setStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance) - 1, "the initial allowance was not set");
+        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
 
-        await erc20Collateral.transfer(strategy.address, 20);
-        in_vault_and_strategies = in_vault_and_strategies + 20;
-        await oneToken.setStrategyAllowance(collateral, allowance);
+        // the strategy allowance should not change due to direct transfers to the strategy
+        // it changes only when the strategy itself obtains funds from the vault
+        await erc20Collateral.transfer(strategy.address, 21);
+        in_vault_and_strategies = in_vault_and_strategies + 21;
+        await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the initial allowance should be 0");
+        assert.strictEqual(parseInt(getAllowance.toString(10)), 20, "the allowance should be 20");
 
         // quick separate check for strategy balance
         let initialBalance = await oneToken.getHoldings(collateral);
@@ -752,7 +751,7 @@ contract("OneToken V1 Base", accounts => {
         let msg1 = "OTV1B: no strategy";
         let collateral = await oneToken.collateralTokenAtIndex(0);
 
-        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, "1000", { from: governance }), msg1);
+        await truffleAssert.reverts(oneToken.increaseStrategyAllowance(collateral, "1000", { from: governance }), msg1);
     });
     
 });
