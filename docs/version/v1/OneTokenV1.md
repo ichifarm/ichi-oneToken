@@ -5,24 +5,6 @@
 
 
 
-### `availableBalance(address user, address token) → uint256` (public)
-
-returns the available user balance in a given token
-     @dev returns 0 if the balances was increased in this block
-     @param user user to report
-     @param token ERC20 asset to report
-
-
-
-### `withdraw(address token, uint256 amount)` (public)
-
-transfers collateral tokens to the user
-     @dev user withdrawals are delayed 1 block after any balance increase
-     @param token ERC20 token to transfer
-     @param amount amount to transfer
-
-
-
 ### `mint(address collateralToken, uint256 oneTokens)` (external)
 
 convert member tokens and collateral tokens into oneTokens. requires sufficient allowances for both tokens
@@ -34,8 +16,8 @@ convert member tokens and collateral tokens into oneTokens. requires sufficient 
 
 ### `redeem(address collateral, uint256 amount)` (external)
 
-redeem oneTokens for collateral tokens - applies fee %
-     @dev first grant allowances, then redeem. Consider infinite collateral and a sufficient memberToken allowance.
+redeem oneTokens for collateral tokens at 1:1 - applies fee %
+     @dev first grant allowances, then redeem. Consider infinite collateral allowance and a sufficient memberToken allowance. Updates ratio and triggers controller.
      @param collateral form of ERC20 stable token to receive
      @param amount oneTokens to redeem equals collateral tokens to receive
 
@@ -44,14 +26,14 @@ redeem oneTokens for collateral tokens - applies fee %
 ### `setMintingFee(uint256 fee)` (external)
 
 governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
 
 
 
 ### `setRedemptionFee(uint256 fee)` (external)
 
 governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
 
 
 
@@ -59,6 +41,9 @@ governance sets the adjustable fee
 
 adjust the minting ratio
      @dev acceptable for gas-paying external actors to call this function
+     @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
 
 
 
@@ -66,6 +51,8 @@ adjust the minting ratio
 
 read the minting ratio and maximum order volume prescribed by the mintMaster
      @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
 
 
 
@@ -74,24 +61,8 @@ read the minting ratio and maximum order volume prescribed by the mintMaster
 read the vault balance and strategy balance of a given token
      @dev not restricted to registered assets
      @param token ERC20 asset to report
-
-
-
-
-### `UserWithdrawal(address sender, address token, uint256 amount)`
-
-
-
-
-
-### `UserBalanceIncreased(address user, address token, uint256 amount)`
-
-
-
-
-
-### `UserBalanceDecreased(address user, address token, uint256 amount)`
-
+     @param vaultBalance tokens held in this vault
+     @param strategyBalance tokens in assigned strategy
 
 
 

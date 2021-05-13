@@ -59,7 +59,13 @@
 
 
 
-### `setStrategyAllowance(address token, uint256 amount)` (external)
+### `increaseStrategyAllowance(address token, uint256 amount)` (external)
+
+
+
+
+
+### `decreaseStrategyAllowance(address token, uint256 amount)` (external)
 
 
 

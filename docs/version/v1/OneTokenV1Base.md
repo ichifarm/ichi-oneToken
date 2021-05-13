@@ -19,7 +19,7 @@ initializes a proxied instance of the implementation
      @param symbol_ ERC20 symbol value
      @param oneTokenOracle_ a deployed, compatible oracle supporting the minimum interface
      @param controller_ a deployed, compatible controller supporting the minimum interface
-     @param mintMaster_ a deployed, compatible mintMast supporting the minimum interface
+     @param mintMaster_ a deployed, compatible mintMaster supporting the minimum interface
      @param memberToken_ a deployed, registered (in the factory) ERC20 token supporting the minimum interface
      @param collateral_ a deployed, registered (in the factory) usd-pegged ERC20 token supporting the minimum interface
 
@@ -81,8 +81,7 @@ governance can remove a strategy
 
 governance can close a strategy and return funds to the vault
      @dev strategy remains assigned the asset with allowance set to 0.
-       Emits positionsClosed: false if strategy reports < 100% funds recovery, e.g. funds are locked elsewhere.
-     @param token ERC20 asset with a strategy to close. Sweeps all registered assets.
+     @param token ERC20 asset with a strategy to close. Strategy should sweep all registered assets.
 
 
 
@@ -107,20 +106,27 @@ governance can transfer assets from the vault to a strategy
 ### `fromStrategy(address strategy, address token, uint256 amount)` (external)
 
 governance can transfer assets from the strategy to this vault
-     @dev funds are normally pushed from strategy. This is an alternative in case of an errant strategy.
-       Relies on allowance that is usually set to infinite when the strategy is assigned
      @param strategy receiving address must match the assigned strategy
      @param token ERC20 asset
      @param amount amount to draw from the strategy
 
 
 
-### `setStrategyAllowance(address token, uint256 amount)` (public)
+### `increaseStrategyAllowance(address token, uint256 amount)` (external)
 
-governance can set an allowance for a token strategy
-     @dev computes the net allowance, new allowance - current holdings
+governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
      @param token ERC20 asset
-     @param amount new allowance
+     @param amount allowance increase
+
+
+
+### `decreaseStrategyAllowance(address token, uint256 amount)` (external)
+
+governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
+     @param token ERC20 asset
+     @param amount allowance decrease
 
 
 
@@ -135,6 +141,7 @@ adopt a new factory
 ### `balances(address token) → uint256 inVault, uint256 inStrategy` (public)
 
 returns the local balance and funds held in the assigned strategy, if any
+     @param token to inspect
 
 
 
@@ -148,12 +155,14 @@ point
 ### `collateralTokenAtIndex(uint256 index) → address` (external)
 
 returns the address of an ERC20 token collateral contract at the index
+     @param index row to inspect
 
 
 
 ### `isCollateral(address token) → bool` (public)
 
 returns true if the token contract is recognized collateral
+     @param token token to inspect
 
 
 
@@ -166,12 +175,14 @@ returns the count of registered ERC20 asset contracts that not collateral
 ### `otherTokenAtIndex(uint256 index) → address` (external)
 
 returns the non-collateral token contract at the index
+     @param index row to inspect
 
 
 
 ### `isOtherToken(address token) → bool` (external)
 
 returns true if the token contract is registered and is not collateral
+     @param token token to inspect
 
 
 
@@ -184,12 +195,14 @@ returns the sum of collateral and non-collateral ERC20 token contracts
 ### `assetAtIndex(uint256 index) → address` (external)
 
 returns the ERC20 contract address at the index
+     @param index row to inspect
 
 
 
 ### `isAsset(address token) → bool` (external)
 
 returns true if the token contract is a registered asset of either type
+     @param token token to inspect
 
 
 
@@ -230,7 +243,7 @@ returns true if the token contract is a registered asset of either type
 
 
 
-### `StrategyClosed(address sender, address token, address strategy, bool success)`
+### `StrategyClosed(address sender, address token, address strategy)`
 
 
 
@@ -248,7 +261,13 @@ returns true if the token contract is a registered asset of either type
 
 
 
-### `StrategyAllowanceSet(address sender, address token, address strategy, uint256 amount)`
+### `StrategyAllowanceIncreased(address sender, address token, address strategy, uint256 amount)`
+
+
+
+
+
+### `StrategyAllowanceDecreased(address sender, address token, address strategy, uint256 amount)`
 
 
 
