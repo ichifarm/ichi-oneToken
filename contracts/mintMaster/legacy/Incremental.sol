@@ -15,13 +15,15 @@ contract Incremental is MintMasterCommon {
     
     uint constant DEFAULT_RATIO = 10 ** 18; // 100%
     uint constant DEFAULT_STEP_SIZE = 0;
+    uint constant DEFAULT_MAX_ORDER_VOLUME = INFINITE;
 
     struct Parameters {
         bool set;
         uint minRatio;
         uint maxRatio;
         uint stepSize;
-        uint lastRatio;      
+        uint lastRatio;  
+        uint maxOrderVolume;    
     }
 
     uint lastUpdatedBlock;
@@ -29,7 +31,7 @@ contract Incremental is MintMasterCommon {
     mapping(address => Parameters) public parameters;
 
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
-    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio);
+    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio, uint maxOrderVolume);
     event UpdateMintingRatio(address sender, address oneToken, uint newRatio, uint maxOrderVolume);
     event StepSizeSet(address sender, address oneToken, uint stepSize);
     event MinRatioSet(address sender, address oneToken, uint minRatio);
@@ -45,7 +47,7 @@ contract Incremental is MintMasterCommon {
      @param oneTokenOracle gets the exchange rate of the oneToken
      */
     function init(address oneTokenOracle) external onlyKnownToken override {
-        _setParams(msg.sender, DEFAULT_RATIO, DEFAULT_RATIO, DEFAULT_STEP_SIZE, DEFAULT_RATIO);
+        _setParams(msg.sender, DEFAULT_RATIO, DEFAULT_RATIO, DEFAULT_STEP_SIZE, DEFAULT_RATIO, DEFAULT_MAX_ORDER_VOLUME);
         _initMintMaster(msg.sender, oneTokenOracle);
         lastUpdatedBlock = block.number;
         emit MintMasterInitialized(msg.sender, msg.sender, oneTokenOracle);
@@ -77,12 +79,13 @@ contract Incremental is MintMasterCommon {
         uint minRatio, 
         uint maxRatio, 
         uint stepSize, 
-        uint initialRatio
+        uint initialRatio,
+        uint maxOrderVolume
     ) 
         external
         onlyTokenOwner(oneToken)
     {
-        _setParams(oneToken, minRatio, maxRatio, stepSize, initialRatio);
+        _setParams(oneToken, minRatio, maxRatio, stepSize, initialRatio, maxOrderVolume);
     }
 
     function _setParams(
@@ -90,7 +93,8 @@ contract Incremental is MintMasterCommon {
         uint minRatio, 
         uint maxRatio, 
         uint stepSize, 
-        uint initialRatio
+        uint initialRatio,
+        uint maxOrderVolume
     ) 
         private
     {
@@ -106,8 +110,9 @@ contract Incremental is MintMasterCommon {
         p.maxRatio = maxRatio;
         p.stepSize = stepSize;
         p.lastRatio = initialRatio;
+        p.maxOrderVolume = maxOrderVolume;
         p.set = true;
-        emit SetParams(msg.sender, oneToken, minRatio, maxRatio, stepSize, initialRatio);
+        emit SetParams(msg.sender, oneToken, minRatio, maxRatio, stepSize, initialRatio, maxOrderVolume);
     }
  
     /**
@@ -141,9 +146,9 @@ contract Incremental is MintMasterCommon {
         // Both OneToken and oracle response are in precision 18. No conversion is necessary.
         (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
         ratio = p.lastRatio;        
-        if(quote == PRECISION) return(ratio, INFINITE);
+        if(quote == PRECISION) return(ratio, p.maxOrderVolume);
         uint stepSize = p.stepSize;
-        maxOrderVolume = INFINITE;
+        maxOrderVolume = p.maxOrderVolume;
         if(quote < PRECISION && ratio < p.maxRatio) {
             ratio += stepSize;
             if (ratio > p.maxRatio) {
@@ -252,4 +257,5 @@ contract Incremental is MintMasterCommon {
         p.lastRatio = ratio;
         emit RatioSet(msg.sender, oneToken, ratio);
     }
+
 }
