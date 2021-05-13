@@ -25,7 +25,8 @@ const
     RATIO_949 =  "949000000000000000", // 94.9%
     RATIO_100 = "1000000000000000000", // 100%
     RATIO_110 = "1100000000000000000", // 110% - invalid
-    STEP_002 =     "2000000000000000" // 0.2%
+    STEP_002 =     "2000000000000000", // 0.2%
+    MAX_VOL = "9999999999999999999999999999999999999999999999999"; // approximately unlimited
 
 const moduleType = {
     version: 0, 
@@ -166,20 +167,20 @@ contract("MintMaster", accounts => {
             msg6 = "Incremental: initial ratio must be <= max ratio.";
         
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: badAddress }), msg1);
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: badAddress }), msg1);
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_100, RATIO_95, STEP_002, RATIO_90, { from: governance }), msg2);
+            RATIO_100, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance }), msg2);
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_110, STEP_002, RATIO_90, { from: governance }), msg3);
+            RATIO_50, RATIO_110, STEP_002, RATIO_90, MAX_VOL, { from: governance }), msg3);
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, RATIO_90, RATIO_90, { from: governance }), msg4);
+            RATIO_50, RATIO_95, RATIO_90, RATIO_90, MAX_VOL, { from: governance }), msg4);
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_90, RATIO_95, STEP_002, RATIO_50, { from: governance }), msg5);
+            RATIO_90, RATIO_95, STEP_002, RATIO_50, MAX_VOL, { from: governance }), msg5);
         await truffleAssert.reverts(mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_100, { from: governance }), msg6);
+            RATIO_50, RATIO_95, STEP_002, RATIO_100, MAX_VOL, { from: governance }), msg6);
                             
         let tx = await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 
         // minting ratio should be updated, without the updateMintingRatio call, and params has changed
         parameters = await mintMaster.parameters(oneToken.address, { from: commonUser });
@@ -201,7 +202,8 @@ contract("MintMaster", accounts => {
             minRatio: RATIO_50,
             maxRatio: RATIO_95,
             stepSize: STEP_002,
-            initialRatio: RATIO_90
+            initialRatio: RATIO_90,
+            maxOrderVolume: MAX_VOL
 		})
 
     });
@@ -317,7 +319,7 @@ contract("MintMaster", accounts => {
 		})
         // mintMaster is reset after changeMintMaster, so have to set parameters again
         await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 
         tx = await mintMaster.changeOracle(oneToken.address, testOracle.address, { from: governance });
         expectEvent(tx, 'OneTokenOracleChanged', {
@@ -350,7 +352,7 @@ contract("MintMaster", accounts => {
 
         // set ratio to 94.9
         await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_949, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_949, MAX_VOL, { from: governance });
 
         // try to step over maxRatio
         await testOracle.setAdjustUp(false, { from: governance });
@@ -360,7 +362,7 @@ contract("MintMaster", accounts => {
 
         // set ratio to 95
         await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_95, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_95, MAX_VOL, { from: governance });
 
         // try to step over maxRatio
         await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
@@ -369,7 +371,7 @@ contract("MintMaster", accounts => {
 
         // set ratio to 50.1
         await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_501, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_501, MAX_VOL, { from: governance });
 
         // try to step over mixRatio
         await testOracle.setAdjustUp(true, { from: governance });
@@ -379,7 +381,7 @@ contract("MintMaster", accounts => {
 
         // set ratio to 50
         await mintMaster.setParams(oneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_50, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_50, MAX_VOL, { from: governance });
 
         // try to step over mixRatio
         await oneToken.updateMintingRatio(collateralToken.address, { from: governance });
@@ -428,7 +430,7 @@ contract("MintMaster", accounts => {
 
         // set ratio to 90 for the second oneToken
         let tx = await mintMaster.setParams(secondOneToken.address, 
-            RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+            RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 
         // set ratio to 50 for the first oneToken
         tx = await mintMaster.setRatio(oneToken.address, RATIO_50, { from: governance });

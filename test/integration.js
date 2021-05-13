@@ -23,7 +23,8 @@ const
 	RATIO_50 = "500000000000000000", // 50%
 	RATIO_95 = "950000000000000000", // 95%
 	RATIO_90 = "900000000000000000", // 90%
-	STEP_002 = "2000000000000000" // 0.2%
+	STEP_002 = "2000000000000000", // 0.2%
+	MAX_VOL = "9999999999999999999999999999999999999999999999999"; // approximately unlimited
 
 const url = "#"
 
@@ -196,7 +197,7 @@ contract("Integration tests", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const bobCollateralBalanceBefore = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceBefore = await memberToken.balanceOf(bob);
@@ -234,7 +235,7 @@ contract("Integration tests", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const mintingAmount = getBigNumber(1);
 		await oneToken.mint(collateralToken.address, mintingAmount, { from: bob });
@@ -291,7 +292,7 @@ contract("Integration tests", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const mintingAmount = getBigNumber(1);
 		await oneToken.mint(collateralToken.address, mintingAmount, { from: bob });

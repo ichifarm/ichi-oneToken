@@ -8,6 +8,6 @@ contract MemberToken is ICHIERC20 {
 
     constructor() {
         initERC20("Member Token", "MTTest");
-        _mint(msg.sender, 1000 * 10 ** 18);
+        _mint(msg.sender, 100000 * 10 ** 18);
     }
 }
