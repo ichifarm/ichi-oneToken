@@ -104,7 +104,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         co.update(collateral);
 
         // implied transfer approval and allowance
-        _transfer(msg.sender, address(this), amount);
+        _burn(msg.sender, amount);
 
         uint netUsd = amount.sub(amount.mul(redemptionFee).div(PRECISION));
         (uint netTokens, /* uint volatility */)  = co.amountRequired(collateral, netUsd);
