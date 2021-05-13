@@ -23,16 +23,16 @@ import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol';
 
 contract UniswapOracleSimple is OracleCommon {
     using FixedPoint for *;
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
-    uint public immutable PERIOD;
+    uint256 public immutable PERIOD;
     address public immutable uniswapFactory;
 
     struct Pair {
         address token0;
         address token1;
-        uint    price0CumulativeLast;
-        uint    price1CumulativeLast;
+        uint256    price0CumulativeLast;
+        uint256    price1CumulativeLast;
         uint32  blockTimestampLast;
         FixedPoint.uq112x112 price0Average;
         FixedPoint.uq112x112 price1Average;
@@ -47,7 +47,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param indexToken_ the index token to use for valuations. If not a useToken then the Oracle should not be registed.
      @param period_ the averaging period to use for price smoothing
      */
-    constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint period_)
+    constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint256 period_)
         OracleCommon(oneTokenFactory_, "ICHI Simple Uniswap Oracle", indexToken_)
     {
         require(uniswapFactory_ != NULL_ADDRESS, "UniswapOracleSimple: uniswapFactory cannot be empty");
@@ -90,7 +90,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param amountUsd US dollar equivalent, precision 18
      @param volatility metric for future use-cases 
      */
-    function read(address token, uint amountTokens) external view override returns(uint amountUsd, uint volatility) {
+    function read(address token, uint256 amountTokens) external view override returns(uint256 amountUsd, uint256 volatility) {
         amountUsd = tokensToNormalized(indexToken, consult(token, amountTokens));
         volatility = 1;
     }
@@ -103,7 +103,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param amountUsd US dollar equivalent, precision 18
      @param volatility metric for future use-cases
      */
-    function amountRequired(address token, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
+    function amountRequired(address token, uint256 amountUsd) external view override returns(uint256 amountTokens, uint256 volatility) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         require(token == p.token0 || token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
@@ -122,7 +122,7 @@ contract UniswapOracleSimple is OracleCommon {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         if(p.token0 != NULL_ADDRESS) {
-            (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
+            (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) =
                 UniswapV2OracleLibrary.currentCumulativePrices(address(_pair));
             uint32 timeElapsed = blockTimestamp - p.blockTimestampLast; // overflow is desired
 
@@ -152,7 +152,7 @@ contract UniswapOracleSimple is OracleCommon {
      @param amountTokens amount in token native precision
      @param amountOut anount in tokens, reciprocal token
      */
-    function consult(address token, uint amountTokens) public view returns (uint amountOut) {
+    function consult(address token, uint256 amountTokens) public view returns (uint256 amountOut) {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
         Pair storage p = pairs[address(_pair)];
         require(token == p.token0 || token == p.token1, 'UniswapOracleSimple: INVALID_TOKEN');
@@ -171,10 +171,10 @@ contract UniswapOracleSimple is OracleCommon {
     (
         address token0,
         address token1,
-        uint    price0CumulativeLast,
-        uint    price1CumulativeLast,
-        uint    price0Average,
-        uint    price1Average,
+        uint256    price0CumulativeLast,
+        uint256    price1CumulativeLast,
+        uint256    price0Average,
+        uint256    price1Average,
         uint32  blockTimestampLast
     )
     {

@@ -18,7 +18,7 @@ contract Arbitrary is StrategyCommon {
     @param signature the function signature
     @param data abi-encodeded bytecode of the parameter values to send
     */
-    function executeTransaction(address target, uint value, string memory signature, bytes memory data) external onlyOwner returns (bytes memory) {
+    function executeTransaction(address target, uint256 value, string memory signature, bytes memory data) external onlyOwner returns (bytes memory) {
         bytes memory callData;
 
         if (bytes(signature).length == 0) {

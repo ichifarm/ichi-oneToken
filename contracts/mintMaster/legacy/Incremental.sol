@@ -13,30 +13,30 @@ import "../../interface/IOracle.sol";
 
 contract Incremental is MintMasterCommon {
     
-    uint constant DEFAULT_RATIO = 10 ** 18; // 100%
-    uint constant DEFAULT_STEP_SIZE = 0;
-    uint constant DEFAULT_MAX_ORDER_VOLUME = INFINITE;
+    uint256 constant DEFAULT_RATIO = 10 ** 18; // 100%
+    uint256 constant DEFAULT_STEP_SIZE = 0;
+    uint256 constant DEFAULT_MAX_ORDER_VOLUME = INFINITE;
 
     struct Parameters {
         bool set;
-        uint minRatio;
-        uint maxRatio;
-        uint stepSize;
-        uint lastRatio;  
-        uint maxOrderVolume;    
+        uint256 minRatio;
+        uint256 maxRatio;
+        uint256 stepSize;
+        uint256 lastRatio;  
+        uint256 maxOrderVolume;    
     }
 
-    uint lastUpdatedBlock;
+    uint256 lastUpdatedBlock;
 
     mapping(address => Parameters) public parameters;
 
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
-    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio, uint maxOrderVolume);
-    event UpdateMintingRatio(address sender, address oneToken, uint newRatio, uint maxOrderVolume);
-    event StepSizeSet(address sender, address oneToken, uint stepSize);
-    event MinRatioSet(address sender, address oneToken, uint minRatio);
-    event MaxRatioSet(address sender, address oneToken, uint maxRatio);
-    event RatioSet(address sender, address oneToken, uint ratio);
+    event SetParams(address sender, address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio, uint256 maxOrderVolume);
+    event UpdateMintingRatio(address sender, address oneToken, uint256 newRatio, uint256 maxOrderVolume);
+    event StepSizeSet(address sender, address oneToken, uint256 stepSize);
+    event MinRatioSet(address sender, address oneToken, uint256 minRatio);
+    event MaxRatioSet(address sender, address oneToken, uint256 maxRatio);
+    event RatioSet(address sender, address oneToken, uint256 ratio);
    
     constructor(address oneTokenFactory_, string memory description_) 
         MintMasterCommon(oneTokenFactory_, description_) {}
@@ -76,11 +76,11 @@ contract Incremental is MintMasterCommon {
      */
     function setParams(
         address oneToken, 
-        uint minRatio, 
-        uint maxRatio, 
-        uint stepSize, 
-        uint initialRatio,
-        uint maxOrderVolume
+        uint256 minRatio, 
+        uint256 maxRatio, 
+        uint256 stepSize, 
+        uint256 initialRatio,
+        uint256 maxOrderVolume
     ) 
         external
         onlyTokenOwner(oneToken)
@@ -90,11 +90,11 @@ contract Incremental is MintMasterCommon {
 
     function _setParams(
         address oneToken, 
-        uint minRatio, 
-        uint maxRatio, 
-        uint stepSize, 
-        uint initialRatio,
-        uint maxOrderVolume
+        uint256 minRatio, 
+        uint256 maxRatio, 
+        uint256 stepSize, 
+        uint256 initialRatio,
+        uint256 maxOrderVolume
     ) 
         private
     {
@@ -119,7 +119,7 @@ contract Incremental is MintMasterCommon {
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
      */
-    function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
+    function getMintingRatio(address /* collateralToken */) external view override returns(uint256 ratio, uint256 maxOrderVolume) {
         return getMintingRatio2(msg.sender, NULL_ADDRESS);
     }
 
@@ -128,7 +128,7 @@ contract Incremental is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
      @param oneToken oneToken implementation to inspect
      */    
-    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint256 ratio, uint256 maxOrderValue) {
         address oracle = oneTokenOracles[oneToken];
         return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
@@ -139,15 +139,15 @@ contract Incremental is MintMasterCommon {
      @param oneToken oneToken implementation to inspect
      @param oneTokenOracle explicit oracle selection
      */   
-    function getMintingRatio4(address oneToken, address oneTokenOracle, address /* collateralToken */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {
+    function getMintingRatio4(address oneToken, address oneTokenOracle, address /* collateralToken */, address /* collateralOracle */) public override view returns(uint256 ratio, uint256 maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
         
         // Both OneToken and oracle response are in precision 18. No conversion is necessary.
-        (uint quote, /* uint volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
+        (uint256 quote, /* uint256 volatility */ ) = IOracle(oneTokenOracle).read(oneToken, PRECISION);
         ratio = p.lastRatio;        
         if(quote == PRECISION) return(ratio, p.maxOrderVolume);
-        uint stepSize = p.stepSize;
+        uint256 stepSize = p.stepSize;
         maxOrderVolume = p.maxOrderVolume;
         if(quote < PRECISION && ratio < p.maxRatio) {
             ratio += stepSize;
@@ -167,7 +167,7 @@ contract Incremental is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
      */
-    function updateMintingRatio(address /* collateralToken */) external override returns(uint ratio, uint maxOrderVolume) {
+    function updateMintingRatio(address /* collateralToken */) external override returns(uint256 ratio, uint256 maxOrderVolume) {
         if (lastUpdatedBlock >= block.number) {
             (ratio, maxOrderVolume) = getMintingRatio2(msg.sender, NULL_ADDRESS);
         } else {
@@ -181,7 +181,7 @@ contract Incremental is MintMasterCommon {
      @dev internal use only
      @param oneToken the oneToken implementation to evaluate
      */    
-    function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint ratio, uint maxOrderVolume) {
+    function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint256 ratio, uint256 maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
         require(p.set, "Incremental: mintmaster is not initialized");
         address o = oneTokenOracles[oneToken];
@@ -202,7 +202,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param stepSize the step size must be smaller than the difference of min and max
      */
-    function setStepSize(address oneToken, uint stepSize) external onlyTokenOwner(oneToken) {
+    function setStepSize(address oneToken, uint256 stepSize) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(stepSize < p.maxRatio - p.minRatio || stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
         p.stepSize = stepSize;
@@ -216,7 +216,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param minRatio the new lower bound for the minting ratio
      */    
-    function setMinRatio(address oneToken, uint minRatio) external onlyTokenOwner(oneToken) {
+    function setMinRatio(address oneToken, uint256 minRatio) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(minRatio <= p.maxRatio, "Incremental: minRatio must be <= maxRatio");
         require(p.stepSize < p.maxRatio - minRatio || p.stepSize == 0, "Incremental: stepSize must be < (max - min) or zero.");
@@ -232,7 +232,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param maxRatio the new upper bound for the minting ratio
      */ 
-    function setMaxRatio(address oneToken, uint maxRatio) external onlyTokenOwner(oneToken) {
+    function setMaxRatio(address oneToken, uint256 maxRatio) external onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(maxRatio >= p.minRatio, "Incremental: maxRatio must be >= minRatio");
         require(maxRatio <= PRECISION, "Incremental: maxRatio must <= 100%");
@@ -248,7 +248,7 @@ contract Incremental is MintMasterCommon {
      @param oneToken the implementation to work with
      @param ratio must be in the min-max range
      */
-    function setRatio(address oneToken, uint ratio) public onlyTokenOwner(oneToken) {
+    function setRatio(address oneToken, uint256 ratio) public onlyTokenOwner(oneToken) {
         Parameters storage p = parameters[oneToken];
         require(ratio > 0, "Incremental: ratio must be > 0");
         require(ratio <= PRECISION, "Incremental: ratio must be <= 100%");

@@ -9,8 +9,8 @@ import "../interface/IICHICommon.sol";
 
 contract ICHICommon is IICHICommon, ICHIOwnable, ICHIInitializable {
 
-    uint constant PRECISION = 10 ** 18;
-    uint constant INFINITE = uint(0-1);
+    uint256 constant PRECISION = 10 ** 18;
+    uint256 constant INFINITE = uint256(0-1);
     address constant NULL_ADDRESS = address(0);
     
     // @dev internal fingerprints help prevent deployment-time governance errors

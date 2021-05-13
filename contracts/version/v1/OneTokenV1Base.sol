@@ -39,14 +39,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     event Initialized(address sender, string name, string symbol, address controller, address mintMaster, address memberToken, address collateral);
     event ControllerChanged(address sender, address controller);
     event MintMasterChanged(address sender, address mintMaster, address oneTokenOracle);
-    event StrategySet(address sender, address token, address strategy, uint allowance);
+    event StrategySet(address sender, address token, address strategy, uint256 allowance);
     event StrategyExecuted(address indexed sender, address indexed token, address indexed strategy);
     event StrategyRemoved(address sender, address token, address strategy);
     event StrategyClosed(address sender, address token, address strategy);
-    event ToStrategy(address sender, address strategy, address token, uint amount);
-    event FromStrategy(address sender, address strategy, address token, uint amount);
-    event StrategyAllowanceIncreased(address sender, address token, address strategy, uint amount);
-    event StrategyAllowanceDecreased(address sender, address token, address strategy, uint amount);
+    event ToStrategy(address sender, address strategy, address token, uint256 amount);
+    event FromStrategy(address sender, address strategy, address token, uint256 amount);
+    event StrategyAllowanceIncreased(address sender, address token, address strategy, uint256 amount);
+    event StrategyAllowanceDecreased(address sender, address token, address strategy, uint256 amount);
     event AssetAdded(address sender, address token, address oracle);
     event AssetRemoved(address sender, address token);
     event NewFactory(address sender, address factory);
@@ -170,7 +170,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function addAsset(address token, address oracle) external onlyOwner override {
         require(IOneTokenFactory(oneTokenFactory).isOracle(token, oracle), "OTV1B: unk oracle or token");
-        (bool isCollateral_, /* uint oracleCount */) = IOneTokenFactory(oneTokenFactory).foreignTokenInfo(token);
+        (bool isCollateral_, /* uint256 oracleCount */) = IOneTokenFactory(oneTokenFactory).foreignTokenInfo(token);
         Asset storage a = assets[token];
         a.oracle = oracle;
         IOracle(oracle).update(token);
@@ -189,7 +189,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 token
      */
     function removeAsset(address token) external onlyOwner override {
-        (uint inVault, uint inStrategy) = balances(token);
+        (uint256 inVault, uint256 inStrategy) = balances(token);
         require(inVault == 0, "OTV1B: can't remove token with vault balance > 0");
         require(inStrategy == 0, "OTV1B: can't remove asset with strategy balance > 0");
         require(assetSet.exists(token), "OTV1B: unk token");
@@ -207,7 +207,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param strategy deployed strategy contract that is registered with the factor
      @param allowance ERC20 allowance sets a limit on funds to transfer to the strategy
      */
-    function setStrategy(address token, address strategy, uint allowance) external onlyOwner override {
+    function setStrategy(address token, address strategy, uint256 allowance) external onlyOwner override {
 
         require(assetSet.exists(token), "OTV1B: unk token");
         require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unregistered strategy");
@@ -278,7 +278,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 asset
      @param amount amount to send
      */
-    function toStrategy(address strategy, address token, uint amount) external onlyOwnerOrController {
+    function toStrategy(address strategy, address token, uint256 amount) external onlyOwnerOrController {
         Asset storage a = assets[token];
         require(a.strategy == strategy, "OTV1B: not the token strategy");
         IERC20(token).safeTransfer(strategy, amount);
@@ -293,7 +293,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 asset
      @param amount amount to draw from the strategy
      */
-    function fromStrategy(address strategy, address token, uint amount) external onlyOwnerOrController {
+    function fromStrategy(address strategy, address token, uint256 amount) external onlyOwnerOrController {
         Asset storage a = assets[token];
         require(a.strategy == strategy, "OTV1B: not the token strategy");
         IStrategy(strategy).toVault(token, amount);
@@ -306,7 +306,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 asset
      @param amount allowance increase
      */
-    function increaseStrategyAllowance(address token, uint amount) external onlyOwnerOrController override {
+    function increaseStrategyAllowance(address token, uint256 amount) external onlyOwnerOrController override {
         Asset storage a = assets[token];
         address strategy = a.strategy;
         require(a.strategy != NULL_ADDRESS, "OTV1B: no strategy");
@@ -320,7 +320,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 asset
      @param amount allowance decrease
      */    
-    function decreaseStrategyAllowance(address token, uint amount) external onlyOwnerOrController override {
+    function decreaseStrategyAllowance(address token, uint256 amount) external onlyOwnerOrController override {
         Asset storage a = assets[token];
         address strategy = a.strategy;
         require(a.strategy != NULL_ADDRESS, "OTV1B: no strategy");
@@ -346,7 +346,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**
      @notice returns the local balance and funds held in the assigned strategy, if any
      */
-    function balances(address token) public view override returns(uint inVault, uint inStrategy) {
+    function balances(address token) public view override returns(uint256 inVault, uint256 inStrategy) {
         IERC20 asset = IERC20(token);
         inVault = asset.balanceOf(address(this));
         inStrategy = asset.balanceOf(assets[token].strategy);
@@ -355,14 +355,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**point
      @notice returns the number of acceptable collateral token contracts
      */
-    function collateralTokenCount() external view override returns(uint) {
+    function collateralTokenCount() external view override returns(uint256) {
         return collateralTokenSet.count();
     }
 
     /**
      @notice returns the address of an ERC20 token collateral contract at the index
      */
-    function collateralTokenAtIndex(uint index) external view override returns(address) {
+    function collateralTokenAtIndex(uint256 index) external view override returns(address) {
         return collateralTokenSet.keyAtIndex(index);
     }
 
@@ -376,14 +376,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**
      @notice returns the count of registered ERC20 asset contracts that not collateral
      */
-    function otherTokenCount() external view override returns(uint) {
+    function otherTokenCount() external view override returns(uint256) {
         return otherTokenSet.count();
     }
 
     /**
      @notice returns the non-collateral token contract at the index
      */
-    function otherTokenAtIndex(uint index) external view override returns(address) {
+    function otherTokenAtIndex(uint256 index) external view override returns(address) {
         return otherTokenSet.keyAtIndex(index);
     }
 
@@ -397,14 +397,14 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**
      @notice returns the sum of collateral and non-collateral ERC20 token contracts
      */
-    function assetCount() external view override returns(uint) {
+    function assetCount() external view override returns(uint256) {
         return assetSet.count();
     }
 
     /**
      @notice returns the ERC20 contract address at the index
      */
-    function assetAtIndex(uint index) external view override returns(address) {
+    function assetAtIndex(uint256 index) external view override returns(address) {
         return assetSet.keyAtIndex(index);
     }
 

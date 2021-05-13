@@ -12,7 +12,7 @@ pragma solidity 0.7.6;
 library AddressSet {
     
     struct Set {
-        mapping(address => uint) keyPointers;
+        mapping(address => uint256) keyPointers;
         address[] keyList;
     }
 
@@ -36,8 +36,8 @@ library AddressSet {
      */    
     function remove(Set storage self, address key, string memory errorMessage) internal {
         require(exists(self, key), errorMessage);
-        uint last = count(self) - 1;
-        uint rowToReplace = self.keyPointers[key];
+        uint256 last = count(self) - 1;
+        uint256 rowToReplace = self.keyPointers[key];
         address keyToMove = self.keyList[last];
         self.keyPointers[keyToMove] = rowToReplace;
         self.keyList[rowToReplace] = keyToMove;
@@ -49,7 +49,7 @@ library AddressSet {
      @notice count the keys.
      @param self storage pointer to a Set. 
      */       
-    function count(Set storage self) internal view returns(uint) {
+    function count(Set storage self) internal view returns(uint256) {
         return(self.keyList.length);
     }
 
@@ -69,7 +69,7 @@ library AddressSet {
      @param self storage pointer to a Set.
      @param index row to enumerate. Must be < count() - 1.
      */      
-    function keyAtIndex(Set storage self, uint index) internal view returns(address) {
+    function keyAtIndex(Set storage self, uint256 index) internal view returns(address) {
         return self.keyList[index];
     }
 }
