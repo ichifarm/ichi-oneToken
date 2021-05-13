@@ -14,13 +14,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     uint public override mintingFee; // defaults to 0%
     uint public override redemptionFee; // defaults to 0%
-
-    /**
-     @notice sum of userBalances for each collateral token are not counted in treasury valuations
-     @dev token => liability
-     */
-    mapping(address => uint) public liabilities;
-  
+ 
     event Minted(address indexed sender, address indexed collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
     event Redeemed(address indexed sender, address indexed collateral, uint amount);
     event NewMintingFee(address sender, uint fee);
@@ -109,17 +103,19 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         uint netUsd = amount.sub(amount.mul(redemptionFee).div(PRECISION));
         (uint netTokens, /* uint volatility */)  = co.amountRequired(collateral, netUsd);
 
-        // netTokens = IOracle(assets[collateral].oracle).normalizedToTokens(collateral, netTokens);
         IERC20(collateral).safeTransfer(msg.sender, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
-        // updates the oracle price history for oneToken, only
+        
+        // updates the oneToken oracle price history
         updateMintingRatio(collateral);
+
+        // periodic automated processes
         IController(controller).periodic();
     }
 
     /**
      @notice governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
     function setMintingFee(uint fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
@@ -129,7 +125,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     /**
      @notice governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
     function setRedemptionFee(uint fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
@@ -140,6 +136,9 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     /**
      @notice adjust the minting ratio
      @dev acceptable for gas-paying external actors to call this function
+     @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
      */
     function updateMintingRatio(address collateralToken) public override returns(uint ratio, uint maxOrderVolume) {
         return IMintMaster(mintMaster).updateMintingRatio(collateralToken);
@@ -148,6 +147,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     /**
      @notice read the minting ratio and maximum order volume prescribed by the mintMaster
      @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
      */
     function getMintingRatio(address collateralToken) external view override returns(uint ratio, uint maxOrderVolume) {
         return IMintMaster(mintMaster).getMintingRatio(collateralToken);
@@ -157,6 +158,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @notice read the vault balance and strategy balance of a given token
      @dev not restricted to registered assets
      @param token ERC20 asset to report
+     @param vaultBalance tokens held in this vault
+     @param strategyBalance tokens in assigned strategy
      */
     function getHoldings(address token) external view override returns(uint vaultBalance, uint strategyBalance) {   
         IERC20 t = IERC20(token);

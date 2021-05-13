@@ -7,8 +7,7 @@ import "../../interface/IOneTokenV1.sol";
 import "../../interface/IOracle.sol";
 
 /**
- * @notice Separate ownable instances can be managed by separate governing authorities.
- * Immutable windowSize and granularity changes require a new oracle contract. 
+ * @notice Multi-tenant implementation with parameters managed by separate governing authorities.
  */
 
 contract Incremental is MintMasterCommon {
@@ -118,6 +117,9 @@ contract Incremental is MintMasterCommon {
     /**
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
      */
     function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
         return getMintingRatio2(msg.sender, NULL_ADDRESS);
@@ -127,8 +129,11 @@ contract Incremental is MintMasterCommon {
      @notice returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
      @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
      @param oneToken oneToken implementation to inspect
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited     
      */    
-    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderVolume) {
         address oracle = oneTokenOracles[oneToken];
         return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
@@ -138,6 +143,9 @@ contract Incremental is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio based on arbitry oracles
      @param oneToken oneToken implementation to inspect
      @param oneTokenOracle explicit oracle selection
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited     
      */   
     function getMintingRatio4(address oneToken, address oneTokenOracle, address /* collateralToken */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
@@ -166,6 +174,9 @@ contract Incremental is MintMasterCommon {
     /**
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
      */
     function updateMintingRatio(address /* collateralToken */) external override returns(uint ratio, uint maxOrderVolume) {
         if (lastUpdatedBlock >= block.number) {
@@ -180,6 +191,9 @@ contract Incremental is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev internal use only
      @param oneToken the oneToken implementation to evaluate
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
      */    
     function _updateMintingRatio(address oneToken, address /* collateralToken */) private returns(uint ratio, uint maxOrderVolume) {
         Parameters storage p = parameters[oneToken];
@@ -188,8 +202,7 @@ contract Incremental is MintMasterCommon {
         IOracle(o).update(oneToken);
         (ratio, maxOrderVolume) = getMintingRatio2(oneToken, NULL_ADDRESS);
         p.lastRatio = ratio;
-        /// @notice no event is emitted to save gas
-        // emit UpdateMintingRatio(msg.sender, oneToken, ratio, maxOrderVolume);
+        emit UpdateMintingRatio(msg.sender, oneToken, ratio, maxOrderVolume);
     }
 
     /**

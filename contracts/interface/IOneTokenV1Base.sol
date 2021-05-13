@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Unlicensed
 
 pragma solidity 0.7.6;
-pragma abicoder v2;
 
 import "./IICHICommon.sol";
 import "./IERC20Extended.sol";

@@ -18,7 +18,7 @@ import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol';
  Periodicity is fixed at deployment time. Index (usually USD) token is fixed at deployment time.
  A single deployment can be shared by multiple oneToken clients and can observe multiple base tokens.
  Non-USD index tokens are possible. Such deployments can used as interim oracles in Composite Oracles. They should
- NOT be registed because they are not, by definition, valid sources of USD quotes.
+ NOT be registered because they are not, by definition, valid sources of USD quotes.
  */
 
 contract UniswapOracleSimple is OracleCommon {
@@ -44,7 +44,7 @@ contract UniswapOracleSimple is OracleCommon {
      @notice the indexToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
      @dev deploy multiple instances to support different configurations
      @param uniswapFactory_ external factory contract needed by the uniswap library
-     @param indexToken_ the index token to use for valuations. If not a useToken then the Oracle should not be registed.
+     @param indexToken_ the index token to use for valuations. If not a usd collateral token then the Oracle should not be registered in the factory but it can be used by CompositeOracles.
      @param period_ the averaging period to use for price smoothing
      */
     constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint period_)
@@ -65,21 +65,20 @@ contract UniswapOracleSimple is OracleCommon {
     function init(address token) public onlyModuleOrFactory override {
         require(token != NULL_ADDRESS, "UniswapOracleSimple: token cannot be null");
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
-        // this condition is never false
-        // if(address(_pair) != NULL_ADDRESS) {
-            Pair storage p = pairs[address(_pair)];
-            if(p.token0 == NULL_ADDRESS) {
-                p.token0 = _pair.token0();
-                p.token1 = _pair.token1();
-                p.price0CumulativeLast = _pair.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
-                p.price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
-                uint112 reserve0;
-                uint112 reserve1;
-                (reserve0, reserve1, p.blockTimestampLast) = _pair.getReserves();
-                require(reserve0 != 0 && reserve1 != 0, 'UniswapOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
-                emit OracleInitialized(msg.sender, token, indexToken);
-            }
-        //}
+        // this condition should never be false
+        require(address(_pair) != NULL_ADDRESS, "UniswapOracleSimple: unknown pair");
+        Pair storage p = pairs[address(_pair)];
+        if(p.token0 == NULL_ADDRESS) {
+            p.token0 = _pair.token0();
+            p.token1 = _pair.token1();
+            p.price0CumulativeLast = _pair.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
+            p.price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
+            uint112 reserve0;
+            uint112 reserve1;
+            (reserve0, reserve1, p.blockTimestampLast) = _pair.getReserves();
+            require(reserve0 != 0 && reserve1 != 0, 'UniswapOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
+            emit OracleInitialized(msg.sender, token, indexToken);
+        }
     }
 
     /**
@@ -114,7 +113,7 @@ contract UniswapOracleSimple is OracleCommon {
     }
 
     /**
-     @notice updates price history observation historym if necessary
+     @notice updates price observation history, if necessary
      @dev it is permissible for anyone to supply gas and update the oracle's price history.
      @param token baseToken to update
      */
@@ -145,6 +144,7 @@ contract UniswapOracleSimple is OracleCommon {
 
     // note this will always return 0 before update has been called successfully for the first time.
     // this will return an average over a long period of time unless someone calls the update() function.
+    
     /**
      @notice returns equivalent indexTokens for amountIn, token
      @dev always returns 0 before update(token) has been called successfully for the first time.

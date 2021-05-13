@@ -68,9 +68,9 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @param version address of a oneToken deployed implementation that emits the expected fingerprint
      @param controller deployed controller must be registered
      @param mintMaster deployed mintMaster must be registered
+     @param oneTokenOracle deployed oracle must be registered and will be used to check the oneToken peg     
      @param memberToken deployed ERC20 contract must be registered with at least one associated oracle
      @param collateral deployed ERC20 contract must be registered with at least one associated oracle
-     @param oneTokenOracle deployed oracle must be registered and will be used to check the oneToken peg
      */
     function deployOneTokenProxy(
         string memory name,
@@ -225,8 +225,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice factory governance can de-register a foreignToken
-     @dev de-registering prevents future assignment but has no effect on existing oneToken
-       instances that rely on the foreignToken
+     @dev de-registering prevents future assignment but has no effect on existing oneToken instances that rely on the foreignToken
     @param foreignToken the ERC20 contract address to de-register
      */
     function removeForeignToken(address foreignToken) external onlyOwner override {
@@ -278,6 +277,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns the address of the deployed/initialized oneToken instance at the index
+     @param index row to inspect
      */
     function oneTokenAtIndex(uint index) external view override returns(address) {
         return oneTokenSet.keyAtIndex(index);
@@ -285,6 +285,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice return true if given address is a deployed and initialized oneToken instance
+     @param oneToken oneToken to inspect
      */
     function isOneToken(address oneToken) external view override returns(bool) {
         return oneTokenSet.exists(oneToken);
@@ -301,6 +302,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns the address of the registered module at the index
+     @param index row to inspect
      */
     function moduleAtIndex(uint index) external view override returns(address module) {
         return moduleSet.keyAtIndex(index);
@@ -309,6 +311,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     /**
      @notice returns metadata about the module at the given address
      @dev returns null values if the given address is not a registered module
+     @param module module to inspect
      */
     function moduleInfo(address module) external view override returns(string memory name, string memory url, ModuleType moduleType) {
         Module storage m = modules[module];
@@ -319,6 +322,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns true the given address is a registered module
+     @param module module to inspect     
      */
     function isModule(address module) public view override returns(bool) {
         return moduleSet.exists(module);
@@ -326,6 +330,8 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns true the address given is a registered module of the expected type
+     @param module module to inspect  
+     @param moduleType module type to confirm
      */
     function isValidModuleType(address module, ModuleType moduleType) public view override returns(bool) {
         IModule m = IModule(module);
@@ -363,6 +369,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns the address of the foreignToken at the index
+     @param index row to inspect
      */
     function foreignTokenAtIndex(uint index) external view override returns(address) {
         return foreignTokenSet.keyAtIndex(index);
@@ -370,6 +377,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns foreignToken metadata for the given foreignToken
+     @param foreignToken token to inspect
      */
     function foreignTokenInfo(address foreignToken) external view override returns(bool collateral, uint oracleCount) {
         ForeignToken storage f = foreignTokens[foreignToken];
@@ -379,6 +387,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns the count of oracles registered for the given foreignToken
+     @param foreignToken token to inspect
      */
     function foreignTokenOracleCount(address foreignToken) external view override returns(uint) {
         return foreignTokens[foreignToken].oracleSet.count();
@@ -386,6 +395,8 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns the foreignToken oracle address at the index
+     @param foreignToken token to inspect
+     @param index oracle row to inspect     
      */
     function foreignTokenOracleAtIndex(address foreignToken, uint index) external view override returns(address) {
         return foreignTokens[foreignToken].oracleSet.keyAtIndex(index);
@@ -393,6 +404,8 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns true if the given oracle address is associated with the foreignToken
+     @param foreignToken token to inspect
+     @param oracle oracle to inspect
      */
     function isOracle(address foreignToken, address oracle) external view override returns(bool) {
         return foreignTokens[foreignToken].oracleSet.exists(oracle);
@@ -400,6 +413,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns true if the given foreignToken is registered in the factory
+     @param foreignToken token to inspect     
      */
     function isForeignToken(address foreignToken) external view override returns(bool) {
         return foreignTokenSet.exists(foreignToken);
@@ -407,6 +421,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
 
     /**
      @notice returns true if the given foreignToken is marked collateral
+     @param foreignToken token to inspect     
      */
     function isCollateral(address foreignToken) external view override returns(bool) {
         return foreignTokens[foreignToken].isCollateral;
