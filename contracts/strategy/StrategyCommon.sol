@@ -16,7 +16,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     address public override oneToken;
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Strategy Implementation"));
 
-    event StrategyDeployed(address sender);
+    event StrategyDeployed(address sender, address oneTokenFactory, address oneToken_, string description);
     event StrategyInitialized(address sender);
     event StrategyExecuted(address indexed sender, address indexed token);
     event VaultAllowance(address indexed sender, address indexed token, uint amount);
@@ -51,7 +51,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
         require(oneToken_ != NULL_ADDRESS, "StrategyCommon: oneToken cannot be NULL");
         require(IOneTokenFactory(IOneTokenV1Base(oneToken_).oneTokenFactory()).isOneToken(oneToken_), "StrategyCommon: oneToken is unknown");
         oneToken = oneToken_;
-        emit StrategyDeployed(msg.sender);
+        emit StrategyDeployed(msg.sender, oneTokenFactory_, oneToken_, description);
     }
 
     /**
