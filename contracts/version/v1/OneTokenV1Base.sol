@@ -45,7 +45,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     event StrategyClosed(address sender, address token, address strategy);
     event ToStrategy(address sender, address strategy, address token, uint amount);
     event FromStrategy(address sender, address strategy, address token, uint amount);
-    event StrategyAllowanceSet(address sender, address token, address strategy, uint amount);
+    event StrategyAllowanceIncreased(address sender, address token, address strategy, uint amount);
+    event StrategyAllowanceDecreased(address sender, address token, address strategy, uint amount);
     event AssetAdded(address sender, address token, address oracle);
     event AssetRemoved(address sender, address token);
     event NewFactory(address sender, address factory);
@@ -220,8 +221,9 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         Asset storage a = assets[token];
         closeStrategy(token);
 
-        // initialize the new strategy, set local allowance to infinite
+        // initialize the new strategy
         IStrategy(strategy).init();
+        IERC20(token).safeApprove(strategy, allowance);
 
         // appoint the new strategy
         a.strategy = strategy;
@@ -299,23 +301,31 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     @notice governance can set an allowance for a token strategy
-     @dev computes the net allowance, new allowance - current holdings
+     @notice governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
      @param token ERC20 asset
-     @param amount new allowance
+     @param amount allowance increase
      */
-    function setStrategyAllowance(address token, uint amount) public onlyOwnerOrController override {
+    function increaseStrategyAllowance(address token, uint amount) external onlyOwnerOrController override {
         Asset storage a = assets[token];
         address strategy = a.strategy;
         require(a.strategy != NULL_ADDRESS, "OTV1B: no strategy");
-        uint strategyCurrentBalance = IERC20(token).balanceOf(a.strategy);
-        if(strategyCurrentBalance < amount) {
-            IERC20(token).safeApprove(strategy, 0);
-            IERC20(token).safeApprove(strategy, amount - strategyCurrentBalance);
-        } else {
-            IERC20(token).safeApprove(strategy, 0);
-        }
-        emit StrategyAllowanceSet(msg.sender, token, strategy, amount);
+        IERC20(token).safeIncreaseAllowance(strategy, amount);
+        emit StrategyAllowanceIncreased(msg.sender, token, strategy, amount);
+    }
+
+    /**
+     @notice governance can manage an allowance for a token strategy
+     @dev adjusts the remaining allowance for automated transfers executed by the controller
+     @param token ERC20 asset
+     @param amount allowance decrease
+     */    
+    function decreaseStrategyAllowance(address token, uint amount) external onlyOwnerOrController override {
+        Asset storage a = assets[token];
+        address strategy = a.strategy;
+        require(a.strategy != NULL_ADDRESS, "OTV1B: no strategy");
+        IERC20(token).safeDecreaseAllowance(strategy, amount);
+        emit StrategyAllowanceDecreased(msg.sender, token, strategy, amount);
     }
 
     /**
