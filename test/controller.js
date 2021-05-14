@@ -4,7 +4,6 @@ const { expectEvent } = require("@openzeppelin/test-helpers");
 
 const 
     ArbitraryStrategy = artifacts.require("Arbitrary"),
-	StrategyCommon = artifacts.require("StrategyCommon"),
 	OneTokenV1Base = artifacts.require("OneTokenV1Base"),
     OneToken = artifacts.require("OneTokenV1"),
     Factory = artifacts.require("OneTokenFactory"),

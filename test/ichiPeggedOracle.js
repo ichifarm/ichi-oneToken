@@ -11,7 +11,6 @@ const
 
 const
 	newName = "Renamed Oracle",
-	failedName = "I should not be here",
     NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const moduleType = {

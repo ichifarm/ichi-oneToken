@@ -30,7 +30,6 @@ const moduleType = {
 	
 let governance,
 	bob,
-	alice, 
 	memberToken,
 	collateralToken,
 	compositeOracle, 
