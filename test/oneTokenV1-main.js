@@ -88,11 +88,11 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to mint", async () => {
-        let msg1 = "OTV1: offer a COLLAT token",
+        let msg1 = "OTV1: offer a collateral token",
             msg2 = "OTV1: order must be > 0",
-            msg3 = "OTV1: order exceeds max limit",
-            msg4 = "OTV1: INSUF MEM token balance",
-            msg5 = "OTV1: INSUF COLLAT token balance";
+            msg3 = "OTV1: order exceeds limit",
+            msg4 = "OTV1: NSF: member token",
+            msg5 = "OTV1: NSF: collateral token";
 
         await truffleAssert.reverts(oneToken.mint(memberToken.address, 1, { from: bob }), msg1);
         await truffleAssert.reverts(oneToken.mint(collateralToken.address, 0, { from: bob }), msg2);
@@ -164,9 +164,9 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should be able to redeem", async () => {
-        let msg1 = "OTV1: INSUF funds",
+        let msg1 = "OTV1: NSF: oneToken",
             msg2 = "OTV1: amount must be > 0",
-            msg3 = "OTV1: unrecognized COLLAT";
+            msg3 = "OTV1: unknown collateral";
 
         // set fee to 20%
         let tx = await oneToken.setRedemptionFee(FEE_20, { from: governance });
@@ -305,7 +305,7 @@ contract("OneToken V1 Main", accounts => {
     });
 
     it("should adhere to mintMaster's maxOrder setting", async () => {
-        let msg1 = "OTV1: order exceeds max limit";
+        let msg1 = "OTV1: order exceeds limit";
 
         await oneToken.changeMintMaster(mintMaster.address, oracle.address, { from: governance });
         // has to setParams after changeMintMaster - because it's relinitialized

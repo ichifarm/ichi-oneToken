@@ -137,7 +137,7 @@ contract("Controller", accounts => {
     });
 
     it("should call executeStrategy", async () => {
-        let msg1 = "OTV1B:es: unk token";
+        let msg1 = "OTV1B:es: unknown token";
 
         await secondOneToken.changeController(secondController.address, { from: governance });
         await truffleAssert.reverts(secondController.executeStrategy(secondOneToken.address, badAddress, { from: governance }), msg1);
