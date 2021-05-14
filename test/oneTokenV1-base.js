@@ -150,7 +150,7 @@ contract("OneToken V1 Base", accounts => {
 
         msg1 = "ICHIOwnable: caller is not the owner";
         msg2 = "OTV1B: unregistered controller";
-        msg3 = "OTV1B: unk controller";
+        msg3 = "OTV1B: unknown controller";
 
         let tx = await oneToken.changeController(controller.address, { from: governance });
         await truffleAssert.reverts(oneToken.changeController(badAddress, { from: badAddress }), msg1);
@@ -196,7 +196,7 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OTV1B: unregistered mint master",
-            msg3 = "OTV1B: unk mint master",
+            msg3 = "OTV1B: unknown mint master",
             msg4 = "OTV1B: unregistered oneToken oracle";
 
         //await factory.assignOracle(oneToken.address, oracle.address);
@@ -239,8 +239,8 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding an asset", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
-        let msg3 = "OTV1B: COLLAT already exists";
+        let msg2 = "OTV1B: unknown oracle or token";
+        let msg3 = "OTV1B: collateral already exists";
         
         // deploy a new token
         let newToken = await CollateralToken.new();
@@ -286,7 +286,7 @@ contract("OneToken V1 Base", accounts => {
         let newCount;
         let delta;
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk token";
+        let msg2 = "OTV1B: unknown token";
 
         await truffleAssert.reverts(oneToken.removeAsset(collateralToken.address, { from: badAddress }), msg1);
         const unknownToken = await CollateralToken.new();
@@ -345,7 +345,7 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding a non-collateral (other) asset/token", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
+        let msg2 = "OTV1B: unknown oracle or token";
         let msg3 = "OTV1B: token already exists";
         
         // deploy a new token
@@ -409,11 +409,10 @@ contract("OneToken V1 Base", accounts => {
             erc20Collateral = await IERC20Extended.at(collateral);
 
         let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: unregistered strategy"
-            msg4 = "OTV1B: unk strategy",
+            msg2 = "OTV1B: unknown token",
+            msg3 = "OTV1B: unknown strategy"
             msg5 = "OTV1B: can't assign strategy that doesn't recognize this vault",
-            msg6 = "OTV1B: unk strategy owner",
+            msg6 = "OTV1B: unknown strategy owner",
             msg7 = "OTV1B: not the token strategy",
             msg8 = "OTV1B: can't remove token with vault balance > 0",
             msg9 = "OTV1B: can't remove asset with strategy balance > 0";
@@ -424,7 +423,7 @@ contract("OneToken V1 Base", accounts => {
         await truffleAssert.reverts(oneToken.setStrategy(collateral, strategy.address, allowance, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(badAddress, strategy.address, allowance, { from: governance }), msg2);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, badAddress, allowance, { from: governance }), msg3);
-        await truffleAssert.reverts(oneToken.setStrategy(collateral, mintMaster.address, allowance, { from: governance }), msg4);
+        await truffleAssert.reverts(oneToken.setStrategy(collateral, mintMaster.address, allowance, { from: governance }), msg3);
 
         // this whole section is to test msg5 pre-condition check
         await factory.deployOneTokenProxy(
@@ -616,9 +615,9 @@ contract("OneToken V1 Base", accounts => {
             erc20Collateral = await IERC20Extended.at(collateral);
 
         let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: unregistered strategy",
-            msg4 = "OTV1B:cs: unk token";
+            msg2 = "OTV1B: unknown token",
+            msg3 = "OTV1B: unknown strategy",
+            msg4 = "OTV1B:cs: unknown token";
 
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");
 

@@ -34,9 +34,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param collateralToken a registered ERC20 collateral token contract
      @param oneTokens exact number of oneTokens to receive
      */
-
     function mint(address collateralToken, uint256 oneTokens) external initialized override {
-        require(collateralTokenSet.exists(collateralToken), "OTV1: offer a COLLAT token");
+        require(collateralTokenSet.exists(collateralToken), "OTV1: offer a collateral token");
         require(oneTokens > 0, "OTV1: order must be > 0");
         
         // update collateral and memberToken oracles
@@ -47,7 +46,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         (uint256 mintingRatio, uint256 maxOrderVolume) = updateMintingRatio(collateralToken);
 
         // future mintmasters may return a maximum order volume to tamp down on possible manipulation
-        require(oneTokens <= maxOrderVolume, "OTV1: order exceeds max limit");
+        require(oneTokens <= maxOrderVolume, "OTV1: order exceeds limit");
 
         // compute the member token value and collateral value requirement
         uint256 collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
@@ -70,13 +69,13 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
             collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
         }
 
-        require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: INSUF MEM token balance");
+        require(IERC20(memberToken).balanceOf(msg.sender) >= memberTokensReq, "OTV1: NSF: member token");
 
         // compute actual collateral tokens required in case of imperfect collateral pegs
         // a pegged oracle can be used to reduce the cost of this step but it will not account for price differences
         (uint256 collateralTokensReq, /* volatility */) = IOracle(assets[collateralToken].oracle).amountRequired(collateralToken, collateralUSDValue);
 
-        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensReq, "OTV1: INSUF COLLAT token balance");
+        require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensReq, "OTV1: NSF: collateral token");
         require(collateralTokensReq > 0, "OTV1: order too small");
 
         // transfer tokens in
@@ -95,11 +94,10 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param collateral form of ERC20 stable token to receive
      @param amount oneTokens to redeem equals collateral tokens to receive
      */
-
     function redeem(address collateral, uint256 amount) external override {
-        require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
+        require(isCollateral(collateral), "OTV1: unknown collateral");
         require(amount > 0, "OTV1: amount must be > 0");
-        require(balanceOf(msg.sender) >= amount, "OTV1: INSUF funds");
+        require(balanceOf(msg.sender) >= amount, "OTV1: NSF: oneToken");
         IOracle co = IOracle(assets[collateral].oracle);
         co.update(collateral);
 

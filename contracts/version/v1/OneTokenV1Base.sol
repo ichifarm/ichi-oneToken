@@ -92,11 +92,11 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         require(bytes(name_).length > 0 && bytes(symbol_).length > 0, "OTV1B: name and symbol are RQD");
 
         // Confirm the modules are known and valid
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(oneTokenOracle_, ModuleType.Oracle), "OTV1B: unk oracle");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unk controller");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unk mint master");
-        require(IOneTokenFactory(oneTokenFactory).isForeignToken(memberToken_), "OTV1B: unk MEM token");
-        require(IOneTokenFactory(oneTokenFactory).isCollateral(collateral_), "OTV1B: unk COLLAT");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(oneTokenOracle_, ModuleType.Oracle), "OTV1B: unknown oracle");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unknown controller");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unknown mint master");
+        require(IOneTokenFactory(oneTokenFactory).isForeignToken(memberToken_), "OTV1B: unknown MEM token");
+        require(IOneTokenFactory(oneTokenFactory).isCollateral(collateral_), "OTV1B: unknown collateral");
 
         // register the modules
         controller = controller_;
@@ -106,9 +106,9 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         memberToken = memberToken_;
 
         // register the first acceptable collateral and note the existance of the member token
-        collateralTokenSet.insert(collateral_, "OTV1B: ERR inserting COLLAT");
+        collateralTokenSet.insert(collateral_, "OTV1B: ERR inserting collateral");
         otherTokenSet.insert(memberToken_, "OTV1B: ERR inserting MEM token");
-        assetSet.insert(collateral_, "OTV1B: ERR inserting COLLAT as asset");
+        assetSet.insert(collateral_, "OTV1B: ERR inserting collateral as asset");
         assetSet.insert(memberToken_, "OTV1B: ERR inserting MEM token as asset");
 
         // instantiate the memberToken and collateralToken records
@@ -140,7 +140,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function changeController(address controller_) external onlyOwner override {
         require(IOneTokenFactory(oneTokenFactory).isModule(controller_), "OTV1B: unregistered controller");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unk controller");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(controller_, ModuleType.Controller), "OTV1B: unknown controller");
         IController(controller_).init();
         controller = controller_;
         emit ControllerChanged(msg.sender, controller_);
@@ -154,7 +154,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function changeMintMaster(address mintMaster_, address oneTokenOracle_) external onlyOwner override {
         require(IOneTokenFactory(oneTokenFactory).isModule(mintMaster_), "OTV1B: unregistered mint master");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unk mint master");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(mintMaster_, ModuleType.MintMaster), "OTV1B: unknown mint master");
         require(IOneTokenFactory(oneTokenFactory).isOracle(address(this), oneTokenOracle_), "OTV1B: unregistered oneToken oracle");
         IOracle(oneTokenOracle_).update(address(this));
         IMintMaster(mintMaster_).init(oneTokenOracle_);
@@ -169,13 +169,13 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param oracle oracle to use for usd valuation. Must be registered in the factory and associated with token.
      */
     function addAsset(address token, address oracle) external onlyOwner override {
-        require(IOneTokenFactory(oneTokenFactory).isOracle(token, oracle), "OTV1B: unk oracle or token");
+        require(IOneTokenFactory(oneTokenFactory).isOracle(token, oracle), "OTV1B: unknown oracle or token");
         (bool isCollateral_, /* uint256 oracleCount */) = IOneTokenFactory(oneTokenFactory).foreignTokenInfo(token);
         Asset storage a = assets[token];
         a.oracle = oracle;
         IOracle(oracle).update(token);
         if(isCollateral_) {
-            collateralTokenSet.insert(token, "OTV1B: COLLAT already exists");
+            collateralTokenSet.insert(token, "OTV1B: collateral already exists");
         } else {
             otherTokenSet.insert(token, "OTV1B: token already exists");
         }
@@ -192,8 +192,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         (uint256 inVault, uint256 inStrategy) = balances(token);
         require(inVault == 0, "OTV1B: can't remove token with vault balance > 0");
         require(inStrategy == 0, "OTV1B: can't remove asset with strategy balance > 0");
-        require(assetSet.exists(token), "OTV1B: unk token");
-        if(collateralTokenSet.exists(token)) collateralTokenSet.remove(token, "OTV1B: ERR removing COLLAT token");
+        require(assetSet.exists(token), "OTV1B: unknown token");
+        if(collateralTokenSet.exists(token)) collateralTokenSet.remove(token, "OTV1B: ERR removing collateral token");
         if(otherTokenSet.exists(token)) otherTokenSet.remove(token, "OTV1B: ERR removing MEM token");
         assetSet.remove(token, "OTV1B: ERR removing asset");
         delete assets[token];
@@ -209,11 +209,11 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function setStrategy(address token, address strategy, uint256 allowance) external onlyOwner override {
 
-        require(assetSet.exists(token), "OTV1B: unk token");
-        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unregistered strategy");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(strategy, ModuleType.Strategy), "OTV1B: unk strategy");
+        require(assetSet.exists(token), "OTV1B: unknown token");
+        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unknown strategy");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(strategy, ModuleType.Strategy), "OTV1B: unknown strategy");
         require(IStrategy(strategy).oneToken() == address(this), "OTV1B: can't assign strategy that doesn't recognize this vault");
-        require(IStrategy(strategy).owner() == owner(), "OTV1B: unk strategy owner");
+        require(IStrategy(strategy).owner() == owner(), "OTV1B: unknown strategy owner");
 
         // close the old strategy, may not be possible to recover all funds, e.g. locked tokens
         // the old strategy continues to respect oneToken goverancea and controller for manual token recovery
@@ -244,12 +244,12 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     @notice governance can close a strategy and return funds to the vault
+     @notice governance can close a strategy
      @dev strategy remains assigned the asset with allowance set to 0.
-     @param token ERC20 asset with a strategy to close. Strategy should sweep all registered assets. 
+     @param token ERC20 asset with a strategy to close. 
      */
     function closeStrategy(address token) public override onlyOwnerOrController {
-        require(assetSet.exists(token), "OTV1B:cs: unk token");
+        require(assetSet.exists(token), "OTV1B:cs: unknown token");
         Asset storage a = assets[token];
         address oldStrategy = a.strategy;
         if(oldStrategy != NULL_ADDRESS) IERC20(token).safeApprove(oldStrategy, 0);
@@ -262,7 +262,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token the token strategy to execute
      */
     function executeStrategy(address token) external onlyOwnerOrController override {
-        require(assetSet.exists(token), "OTV1B:es: unk token");
+        require(assetSet.exists(token), "OTV1B:es: unknown token");
         Asset storage a = assets[token];
         address strategy = a.strategy;
         IStrategy(strategy).execute();

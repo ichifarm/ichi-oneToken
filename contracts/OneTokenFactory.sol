@@ -50,6 +50,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      */
 
     event OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address oneTokenOracle, address memberToken, address collateral);
+    event OneTokenAdmin(address sender, address newOneTokenProxy, address proxyAdmin);
     event ModuleAdmitted(address sender, address module, ModuleType moduleType, string name, string url);
     event ModuleUpdated(address sender, address module, string name, string url);
     event ModuleRemoved(address sender, address module);
@@ -133,6 +134,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         oneToken.transferOwnership(governance);
 
         emitDeploymentEvent(newOneTokenProxy, name, symbol, governance, version, controller, mintMaster, oneTokenOracle, memberToken, collateral);
+        emit OneTokenAdmin(msg.sender, newOneTokenProxy, proxyAdmin);
     }
 
     function emitDeploymentEvent(
@@ -306,18 +308,6 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      */
     function moduleAtIndex(uint256 index) external view override returns(address module) {
         return moduleSet.keyAtIndex(index);
-    }
-
-    /**
-     @notice returns metadata about the module at the given address
-     @dev returns null values if the given address is not a registered module
-     @param module module to inspect
-     */
-    function moduleInfo(address module) external view override returns(string memory name, string memory url, ModuleType moduleType) {
-        Module storage m = modules[module];
-        name = m.name;
-        url = m.url;
-        moduleType = m.moduleType;
     }
 
     /**

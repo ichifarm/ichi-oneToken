@@ -75,10 +75,10 @@ contract("Factory", accounts => {
         let oracleIsModule = await factory.isModule(oracle.address);
         let versionIsModule = await factory.isModule(version.address);
 
-        let controllerInfo = await factory.moduleInfo(controller.address);
-        let mintMasterInfo = await factory.moduleInfo(mintMaster.address);
-        let oracleInfo = await factory.moduleInfo(oracle.address);
-        let versionInfo = await factory.moduleInfo(version.address);
+        let controllerInfo = await factory.modules(controller.address);
+        let mintMasterInfo = await factory.modules(mintMaster.address);
+        let oracleInfo = await factory.modules(oracle.address);
+        let versionInfo = await factory.modules(version.address);
 
         let isContoller = await factory.isValidModuleType(controller.address, moduleType.controller);
         let isMintMaster = await factory.isValidModuleType(mintMaster.address, moduleType.mintMaster);
@@ -154,7 +154,7 @@ contract("Factory", accounts => {
         await truffleAssert.reverts(factory.updateModule(badAddress, newVersionName, url), msg1);
 
         let tx = await factory.updateModule(version.address, newVersionName, url);
-        let versionInfo = await factory.moduleInfo(version.address);
+        let versionInfo = await factory.modules(version.address);
         assert.strictEqual(versionInfo["name"], newVersionName, "version was not renamed");
         assert.strictEqual(versionInfo["url"], url, "url was overwritten");
 
