@@ -244,9 +244,9 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     }
 
     /**
-     @notice governance can close a strategy and return funds to the vault
+     @notice governance can close a strategy
      @dev strategy remains assigned the asset with allowance set to 0.
-     @param token ERC20 asset with a strategy to close. Strategy should sweep all registered assets. 
+     @param token ERC20 asset with a strategy to close. 
      */
     function closeStrategy(address token) public override onlyOwnerOrController {
         require(assetSet.exists(token), "OTV1B:cs: unknown token");
