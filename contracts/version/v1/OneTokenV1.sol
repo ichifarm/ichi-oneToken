@@ -9,16 +9,22 @@ import "./OneTokenV1Base.sol";
 contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     using AddressSet for AddressSet.Set;
-    using SafeMath for uint;
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint public override mintingFee; // defaults to 0%
-    uint public override redemptionFee; // defaults to 0%
- 
-    event Minted(address indexed sender, address indexed collateral, uint oneTokens, uint memberTokens, uint collateralTokens);
-    event Redeemed(address indexed sender, address indexed collateral, uint amount);
-    event NewMintingFee(address sender, uint fee);
-    event NewRedemptionFee(address sender, uint fee);
+    uint256 public override mintingFee; // defaults to 0%
+    uint256 public override redemptionFee; // defaults to 0%
+
+    /**
+     @notice sum of userBalances for each collateral token are not counted in treasury valuations
+     @dev token => liability
+     */
+    mapping(address => uint256) public liabilities;
+  
+    event Minted(address indexed sender, address indexed collateral, uint256 oneTokens, uint256 memberTokens, uint256 collateralTokens);
+    event Redeemed(address indexed sender, address indexed collateral, uint256 amount);
+    event NewMintingFee(address sender, uint256 fee);
+    event NewRedemptionFee(address sender, uint256 fee);
     
     /// @dev there is no constructor for proxy deployment. Use init()
 
@@ -29,7 +35,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param oneTokens exact number of oneTokens to receive
      */
 
-    function mint(address collateralToken, uint oneTokens) external initialized override {
+    function mint(address collateralToken, uint256 oneTokens) external initialized override {
         require(collateralTokenSet.exists(collateralToken), "OTV1: offer a COLLAT token");
         require(oneTokens > 0, "OTV1: order must be > 0");
         
@@ -38,25 +44,25 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         IOracle(assets[memberToken].oracle).update(memberToken);
         
         // update oneToken oracle and evaluate
-        (uint mintingRatio, uint maxOrderVolume) = updateMintingRatio(collateralToken);
+        (uint256 mintingRatio, uint256 maxOrderVolume) = updateMintingRatio(collateralToken);
 
         // future mintmasters may return a maximum order volume to tamp down on possible manipulation
         require(oneTokens <= maxOrderVolume, "OTV1: order exceeds max limit");
 
         // compute the member token value and collateral value requirement
-        uint collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
-        uint memberTokensUSDValue = oneTokens.sub(collateralUSDValue);
+        uint256 collateralUSDValue = oneTokens.mul(mintingRatio).div(PRECISION);
+        uint256 memberTokensUSDValue = oneTokens.sub(collateralUSDValue);
         collateralUSDValue = collateralUSDValue.add(oneTokens.mul(mintingFee).div(PRECISION));
 
         // compute the member tokens required
-        (uint memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
+        (uint256 memberTokensReq, /* volatility */) = IOracle(assets[memberToken].oracle).amountRequired(memberToken, memberTokensUSDValue);
 
         // check the memberToken allowance - the maximum we can draw from the user
-        uint memberTokenAllowance = IERC20(memberToken).allowance(msg.sender, address(this));
+        uint256 memberTokenAllowance = IERC20(memberToken).allowance(msg.sender, address(this));
 
         // increase collateral required if the memberToken allowance is too low
         if(memberTokensReq > memberTokenAllowance) {
-            uint memberTokenRate = memberTokensUSDValue.mul(PRECISION).div(memberTokensReq);
+            uint256 memberTokenRate = memberTokensUSDValue.mul(PRECISION).div(memberTokensReq);
             memberTokensReq = memberTokenAllowance;
             // re-evaluate the memberToken value and collateral value required using the oracle rate already obtained
             memberTokensUSDValue = memberTokenRate.mul(memberTokensReq).div(PRECISION);
@@ -68,7 +74,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
         // compute actual collateral tokens required in case of imperfect collateral pegs
         // a pegged oracle can be used to reduce the cost of this step but it will not account for price differences
-        (uint collateralTokensReq, /* volatility */) = IOracle(assets[collateralToken].oracle).amountRequired(collateralToken, collateralUSDValue);
+        (uint256 collateralTokensReq, /* volatility */) = IOracle(assets[collateralToken].oracle).amountRequired(collateralToken, collateralUSDValue);
 
         require(IERC20(collateralToken).balanceOf(msg.sender) >= collateralTokensReq, "OTV1: INSUF COLLAT token balance");
         require(collateralTokensReq > 0, "OTV1: order too small");
@@ -90,7 +96,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param amount oneTokens to redeem equals collateral tokens to receive
      */
 
-    function redeem(address collateral, uint amount) external override {
+    function redeem(address collateral, uint256 amount) external override {
         require(isCollateral(collateral), "OTV1: unrecognized COLLAT");
         require(amount > 0, "OTV1: amount must be > 0");
         require(balanceOf(msg.sender) >= amount, "OTV1: INSUF funds");
@@ -100,8 +106,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         // implied transfer approval and allowance
         _burn(msg.sender, amount);
 
-        uint netUsd = amount.sub(amount.mul(redemptionFee).div(PRECISION));
-        (uint netTokens, /* uint volatility */)  = co.amountRequired(collateral, netUsd);
+        uint256 netUsd = amount.sub(amount.mul(redemptionFee).div(PRECISION));
+        (uint256 netTokens, /* uint256 volatility */)  = co.amountRequired(collateral, netUsd);
 
         IERC20(collateral).safeTransfer(msg.sender, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
@@ -117,7 +123,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @notice governance sets the adjustable fee
      @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
-    function setMintingFee(uint fee) external onlyOwner override {
+    function setMintingFee(uint256 fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
         mintingFee = fee;
         emit NewMintingFee(msg.sender, fee);
@@ -127,7 +133,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @notice governance sets the adjustable fee
      @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
-    function setRedemptionFee(uint fee) external onlyOwner override {
+    function setRedemptionFee(uint256 fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
         redemptionFee = fee;
         emit NewRedemptionFee(msg.sender, fee);
@@ -140,7 +146,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param ratio minting ratio
      @param maxOrderVolume maximum order size
      */
-    function updateMintingRatio(address collateralToken) public override returns(uint ratio, uint maxOrderVolume) {
+    function updateMintingRatio(address collateralToken) public override returns(uint256 ratio, uint256 maxOrderVolume) {
         return IMintMaster(mintMaster).updateMintingRatio(collateralToken);
     }
 
@@ -150,7 +156,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param ratio minting ratio
      @param maxOrderVolume maximum order size
      */
-    function getMintingRatio(address collateralToken) external view override returns(uint ratio, uint maxOrderVolume) {
+    function getMintingRatio(address collateralToken) external view override returns(uint256 ratio, uint256 maxOrderVolume) {
         return IMintMaster(mintMaster).getMintingRatio(collateralToken);
     }
 
@@ -161,7 +167,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param vaultBalance tokens held in this vault
      @param strategyBalance tokens in assigned strategy
      */
-    function getHoldings(address token) external view override returns(uint vaultBalance, uint strategyBalance) {   
+    function getHoldings(address token) external view override returns(uint256 vaultBalance, uint256 strategyBalance) {   
         IERC20 t = IERC20(token);
         vaultBalance = t.balanceOf(address(this));
         Asset storage a = assets[token];

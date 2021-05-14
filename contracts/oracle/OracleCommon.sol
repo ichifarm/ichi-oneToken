@@ -7,13 +7,12 @@ import "../common/ICHIModuleCommon.sol";
 
 abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
-    uint constant NORMAL = 18;
+    uint256 constant NORMAL = 18;
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Oracle Implementation"));
     address public override indexToken;
 
     event OracleDeployed(address sender, string description, address indexToken);
     event OracleInitialized(address sender, address baseToken, address indexToken);
-    event OracleUpdated(address sender);
     
     /**
      @notice records the oracle description and the index that will be used for all quotes
@@ -44,9 +43,9 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
      @param amountNormal quantity in precision-18
      @param amountTokens quantity scaled to token decimals()
      */    
-    function normalizedToTokens(address token, uint amountNormal) public view override returns(uint amountTokens) {
+    function normalizedToTokens(address token, uint256 amountNormal) public view override returns(uint256 amountTokens) {
         IERC20Extended t = IERC20Extended(token);
-        uint nativeDecimals = t.decimals();
+        uint256 nativeDecimals = t.decimals();
         require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
         if(nativeDecimals == NORMAL) return amountNormal;
         // round 1/2 values up
@@ -59,9 +58,9 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
      @param amountTokens quantity scaled to token decimals
      @param amountNormal quantity in precision-18
      */  
-    function tokensToNormalized(address token, uint amountTokens) public view override returns(uint amountNormal) {
+    function tokensToNormalized(address token, uint256 amountTokens) public view override returns(uint256 amountNormal) {
         IERC20Extended t = IERC20Extended(token);
-        uint nativeDecimals = t.decimals();
+        uint256 nativeDecimals = t.decimals();
         require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
         if(nativeDecimals == NORMAL) return amountTokens;
         return amountTokens * ( 10 ** (NORMAL - nativeDecimals));

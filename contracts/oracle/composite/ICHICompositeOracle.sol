@@ -12,7 +12,7 @@ import "../../_openzeppelin/math/SafeMath.sol";
 
 contract ICHICompositeOracle is OracleCommon {
 
-    using SafeMath for uint;
+    using SafeMath for uint256;
     
     address[] public oracleContracts;
     address[] public interimTokens;
@@ -39,7 +39,7 @@ contract ICHICompositeOracle is OracleCommon {
      @dev there is nothing to do. Deploy separate instances configured for distinct baseTokens
      */
     function init(address baseToken) external onlyModuleOrFactory override {
-        for(uint i=0; i<oracleContracts.length; i++) {
+        for(uint256 i=0; i<oracleContracts.length; i++) {
             IOracle(oracleContracts[i]).init(interimTokens[i]);
         }
         emit OracleInitialized(msg.sender, baseToken, indexToken);
@@ -51,7 +51,7 @@ contract ICHICompositeOracle is OracleCommon {
      //param token composite oracles are always single-tenant, The token context is ignored.
      */
     function update(address /* token */) external override {
-        for(uint i=0; i<oracleContracts.length; i++) {
+        for(uint256 i=0; i<oracleContracts.length; i++) {
             IOracle(oracleContracts[i]).update(interimTokens[i]);
         }
     }
@@ -64,11 +64,11 @@ contract ICHICompositeOracle is OracleCommon {
      @param amountUsd index tokens required, precision 18
      @param volatility overall volatility metric - for future use-caeses
      */
-    function read(address /* token */ , uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
-        uint compoundedVolatility;
-        uint amount = tokensToNormalized(interimTokens[0], amountTokens);
+    function read(address /* token */ , uint256 amountTokens) public view override returns(uint256 amountUsd, uint256 volatility) {
+        uint256 compoundedVolatility;
+        uint256 amount = tokensToNormalized(interimTokens[0], amountTokens);
         volatility = 1;
-        for(uint i=0; i<oracleContracts.length; i++) {
+        for(uint256 i=0; i<oracleContracts.length; i++) {
             ( amount, compoundedVolatility ) = IOracle(oracleContracts[i]).read(interimTokens[i], normalizedToTokens(interimTokens[i], amount));
             volatility = volatility.mul(compoundedVolatility);
         }
@@ -82,8 +82,8 @@ contract ICHICompositeOracle is OracleCommon {
      @param amountTokens tokens required in tokens native precision
      @param volatility metric for future use-cases
      */
-    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
-        uint tokenToUsd;
+    function amountRequired(address /* token */, uint256 amountUsd) external view override returns(uint256 amountTokens, uint256 volatility) {
+        uint256 tokenToUsd;
         (tokenToUsd, volatility) = read(NULL_ADDRESS, normalizedToTokens(indexToken, PRECISION)); 
         amountTokens = PRECISION.mul(amountUsd).div(tokenToUsd);
         amountTokens = normalizedToTokens(indexToken, amountTokens);
@@ -97,7 +97,7 @@ contract ICHICompositeOracle is OracleCommon {
     /**
      @param count number of interim oracles
      */
-    function oracleCount() public view returns(uint count) {
+    function oracleCount() external view returns(uint256 count) {
         return oracleContracts.length;
     }
 
@@ -106,7 +106,9 @@ contract ICHICompositeOracle is OracleCommon {
      @param oracle interim token oracle address
      @param token interim token address     
      */
-    function oracleAtIndex(uint index) public view returns(address oracle, address token) {
+
+    function oracleAtIndex(uint256 index) external view returns(address oracle, address token) {
         return(oracleContracts[index], interimTokens[index]);
     }
+
 }

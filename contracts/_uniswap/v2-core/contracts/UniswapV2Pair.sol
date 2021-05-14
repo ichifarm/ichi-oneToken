@@ -9,10 +9,10 @@ import "./libraries/UniSafeMath.sol";
 import "../../../_openzeppelin/token/ERC20/IERC20.sol";
 
 contract UniswapV2Pair is IUniswapV2Pair {
-    using UniSafeMath  for uint;
+    using UniSafeMath  for uint256;
     using UQ112x112 for uint224;
 
-    uint public constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factory;
@@ -23,9 +23,9 @@ contract UniswapV2Pair is IUniswapV2Pair {
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
     uint32  private blockTimestampLast; // uses single storage slot, accessible via getReserves
 
-    uint public _price0CumulativeLast;
-    uint public _price1CumulativeLast;
-    uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
+    uint256 public _price0CumulativeLast;
+    uint256 public _price1CumulativeLast;
+    uint256 public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
     constructor() {
         factory = msg.sender;
@@ -52,22 +52,22 @@ contract UniswapV2Pair is IUniswapV2Pair {
         return _token1;
     }
 
-    function price0CumulativeLast() override external view returns (uint){
+    function price0CumulativeLast() override external view returns (uint256){
         return _price0CumulativeLast;
     }
-    function price1CumulativeLast() override external view returns (uint){
+    function price1CumulativeLast() override external view returns (uint256){
         return _price1CumulativeLast;
     }
 
     // update reserves and, on the first call per block, price accumulators
-    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
+    function _update(uint256 balance0, uint256 balance1, uint112 _reserve0, uint112 _reserve1) private {
         require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'UniswapV2: OVERFLOW');
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
             // * never overflows, and + overflow is desired
-            _price0CumulativeLast += uint(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
-            _price1CumulativeLast += uint(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            _price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
+            _price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
         }
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);

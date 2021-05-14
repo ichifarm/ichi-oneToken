@@ -13,18 +13,18 @@ import "../interface/IOracle.sol";
 
 contract DummyMintMaster is MintMasterCommon {
     
-    uint constant DEFAULT_RATIO = 10 ** 18; // 100%
-    uint constant MAX_VOLUME = 1000;
+    uint256 constant DEFAULT_RATIO = 10 ** 18; // 100%
+    uint256 constant MAX_VOLUME = 1000;
 
     event Deployed(address sender, string description);
     event Initialized(address sender, address oneTokenOracle);
     event OneTokenOracleChanged(address sender, address oneToken, address oracle);
-    event SetParams(address sender, address oneToken, uint minRatio, uint maxRatio, uint stepSize, uint initialRatio);
-    event UpdateMintingRatio(address sender, uint volatility, uint newRatio, uint maxOrderVolume);
-    event StepSizeSet(address sender, uint stepSize);
-    event MinRatioSet(address sender, uint minRatio);
-    event MaxRatioSet(address sender, uint maxRatio);
-    event RatioSet(address sender, uint ratio);
+    event SetParams(address sender, address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio);
+    event UpdateMintingRatio(address sender, uint256 volatility, uint256 newRatio, uint256 maxOrderVolume);
+    event StepSizeSet(address sender, uint256 stepSize);
+    event MinRatioSet(address sender, uint256 minRatio);
+    event MaxRatioSet(address sender, uint256 maxRatio);
+    event RatioSet(address sender, uint256 ratio);
    
     constructor(address oneTokenFactory_, string memory description_) 
         MintMasterCommon(oneTokenFactory_, description_)
@@ -54,10 +54,10 @@ contract DummyMintMaster is MintMasterCommon {
      */
     function setParams(
         address oneToken, 
-        uint minRatio, 
-        uint maxRatio, 
-        uint stepSize, 
-        uint initialRatio
+        uint256 minRatio, 
+        uint256 maxRatio, 
+        uint256 stepSize, 
+        uint256 initialRatio
     ) 
         external
         onlyTokenOwner(oneToken)
@@ -69,7 +69,7 @@ contract DummyMintMaster is MintMasterCommon {
      @notice returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
      */
-    function getMintingRatio(address /* collateralToken */) external view override returns(uint ratio, uint maxOrderVolume) {
+    function getMintingRatio(address /* collateralToken */) external view override returns(uint256 ratio, uint256 maxOrderVolume) {
         return getMintingRatio2(msg.sender, NULL_ADDRESS);
     }
 
@@ -78,7 +78,7 @@ contract DummyMintMaster is MintMasterCommon {
      @dev anyone calls this to inspect any oneToken minting ratio
      @param oneToken oneToken implementation to inspect
      */    
-    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint ratio, uint maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint256 ratio, uint256 maxOrderValue) {
         address oracle = oneTokenOracles[oneToken];
         return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
@@ -87,7 +87,7 @@ contract DummyMintMaster is MintMasterCommon {
      @notice returns an adjusted minting ratio
      @dev anyone calls this to inspect any oneToken minting ratio
      */   
-    function getMintingRatio4(address /* oneToken */, address /* oneTokenOracle */, address /* collateral */, address /* collateralOracle */) public override view returns(uint ratio, uint maxOrderVolume) {       
+    function getMintingRatio4(address /* oneToken */, address /* oneTokenOracle */, address /* collateral */, address /* collateralOracle */) public override view returns(uint256 ratio, uint256 maxOrderVolume) {       
         this; // suppress state mutability warning
         return(DEFAULT_RATIO, MAX_VOLUME);
     }
@@ -96,7 +96,7 @@ contract DummyMintMaster is MintMasterCommon {
      @notice records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
      */
-    function updateMintingRatio(address collateralToken) external override returns(uint ratio, uint maxOrderVolume) {
+    function updateMintingRatio(address collateralToken) external override returns(uint256 ratio, uint256 maxOrderVolume) {
     }
 
     /**
@@ -109,7 +109,7 @@ contract DummyMintMaster is MintMasterCommon {
      @param oneToken the implementation to work with
      @param stepSize the step size must be smaller than the difference of min and max
      */
-    function setStepSize(address oneToken, uint stepSize) public onlyTokenOwner(oneToken) {
+    function setStepSize(address oneToken, uint256 stepSize) public onlyTokenOwner(oneToken) {
         emit StepSizeSet(msg.sender, stepSize);
     }
 
@@ -120,7 +120,7 @@ contract DummyMintMaster is MintMasterCommon {
      @param oneToken the implementation to work with
      @param minRatio the new lower bound for the minting ratio
      */    
-    function setMinRatio(address oneToken, uint minRatio) public onlyTokenOwner(oneToken) {
+    function setMinRatio(address oneToken, uint256 minRatio) public onlyTokenOwner(oneToken) {
         emit MinRatioSet(msg.sender, minRatio);
     }
 
@@ -131,7 +131,7 @@ contract DummyMintMaster is MintMasterCommon {
      @param oneToken the implementation to work with
      @param maxRatio the new upper bound for the minting ratio
      */ 
-    function setMaxRatio(address oneToken, uint maxRatio) public onlyTokenOwner(oneToken) {
+    function setMaxRatio(address oneToken, uint256 maxRatio) public onlyTokenOwner(oneToken) {
         emit MaxRatioSet(msg.sender, maxRatio);
     }
 
@@ -141,7 +141,7 @@ contract DummyMintMaster is MintMasterCommon {
      @param oneToken the implementation to work with
      @param ratio must be in the min-max range
      */
-    function setRatio(address oneToken, uint ratio) public onlyTokenOwner(oneToken) {
+    function setRatio(address oneToken, uint256 ratio) public onlyTokenOwner(oneToken) {
         emit RatioSet(msg.sender, ratio);
     }
 }

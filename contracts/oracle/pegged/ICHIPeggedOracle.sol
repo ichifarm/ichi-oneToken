@@ -11,8 +11,13 @@ import "../../interface/IERC20Extended.sol";
 
 contract ICHIPeggedOracle is OracleCommon {
 
-    constructor(address oneTokenFactory_, string memory description, address indexToken_)
-        OracleCommon(oneTokenFactory_, description, indexToken_) {}
+    /** 
+     @param oneTokenFactory_ oneToken factory to bind to
+     @param description_ description has no bearing on logic
+     @param indexToken_ token to use for price quotes
+     */
+    constructor(address oneTokenFactory_, string memory description_, address indexToken_)
+        OracleCommon(oneTokenFactory_, description_, indexToken_) {}
 
     /**
      @notice update is called when a oneToken wants to persist observations
@@ -28,7 +33,7 @@ contract ICHIPeggedOracle is OracleCommon {
      @param amountUsd US dollar equivalentm, precision 18
      @param volatility metric for future use-cases
      */
-    function read(address token, uint amountTokens) public view override returns(uint amountUsd, uint volatility) {
+    function read(address token, uint256 amountTokens) external view override returns(uint256 amountUsd, uint256 volatility) {
         amountUsd = tokensToNormalized(token, amountTokens);
         volatility = 1;
     }
@@ -41,7 +46,7 @@ contract ICHIPeggedOracle is OracleCommon {
      @param amountTokens tokens required, token native precision
      @param volatility metric for future use-cases
      */
-    function amountRequired(address token, uint amountUsd) external view override returns(uint amountTokens, uint volatility) {
+    function amountRequired(address token, uint256 amountUsd) external view override returns(uint256 amountTokens, uint256 volatility) {
         amountTokens = normalizedToTokens(token, amountUsd);
         volatility = 1;
     }

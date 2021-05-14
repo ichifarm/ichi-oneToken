@@ -271,7 +271,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     /**
      @notice returns the count of deployed and initialized oneToken instances
      */
-    function oneTokenCount() external view override returns(uint) {
+    function oneTokenCount() external view override returns(uint256) {
         return oneTokenSet.count();
     }
 
@@ -279,7 +279,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns the address of the deployed/initialized oneToken instance at the index
      @param index row to inspect
      */
-    function oneTokenAtIndex(uint index) external view override returns(address) {
+    function oneTokenAtIndex(uint256 index) external view override returns(address) {
         return oneTokenSet.keyAtIndex(index);
     }
 
@@ -296,7 +296,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     /**
      @notice returns the count of the registered modules
      */
-    function moduleCount() external view override returns(uint) {
+    function moduleCount() external view override returns(uint256) {
         return moduleSet.count();
     }
 
@@ -304,7 +304,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns the address of the registered module at the index
      @param index row to inspect
      */
-    function moduleAtIndex(uint index) external view override returns(address module) {
+    function moduleAtIndex(uint256 index) external view override returns(address module) {
         return moduleSet.keyAtIndex(index);
     }
 
@@ -363,7 +363,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns count of foreignTokens registered with the factory
      @dev includes memberTokens, otherTokens and collateral tokens but not oneTokens
      */
-    function foreignTokenCount() external view override returns(uint) {
+    function foreignTokenCount() external view override returns(uint256) {
         return foreignTokenSet.count();
     }
 
@@ -371,7 +371,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns the address of the foreignToken at the index
      @param index row to inspect
      */
-    function foreignTokenAtIndex(uint index) external view override returns(address) {
+    function foreignTokenAtIndex(uint256 index) external view override returns(address) {
         return foreignTokenSet.keyAtIndex(index);
     }
 
@@ -379,7 +379,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns foreignToken metadata for the given foreignToken
      @param foreignToken token to inspect
      */
-    function foreignTokenInfo(address foreignToken) external view override returns(bool collateral, uint oracleCount) {
+    function foreignTokenInfo(address foreignToken) external view override returns(bool collateral, uint256 oracleCount) {
         ForeignToken storage f = foreignTokens[foreignToken];
         collateral = f.isCollateral;
         oracleCount = f.oracleSet.count();
@@ -389,7 +389,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @notice returns the count of oracles registered for the given foreignToken
      @param foreignToken token to inspect
      */
-    function foreignTokenOracleCount(address foreignToken) external view override returns(uint) {
+    function foreignTokenOracleCount(address foreignToken) external view override returns(uint256) {
         return foreignTokens[foreignToken].oracleSet.count();
     }
 
@@ -398,7 +398,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      @param foreignToken token to inspect
      @param index oracle row to inspect     
      */
-    function foreignTokenOracleAtIndex(address foreignToken, uint index) external view override returns(address) {
+    function foreignTokenOracleAtIndex(address foreignToken, uint256 index) external view override returns(address) {
         return foreignTokens[foreignToken].oracleSet.keyAtIndex(index);
     }
 

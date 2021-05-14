@@ -16,6 +16,7 @@ contract NullStrategy is StrategyCommon {
      @param oneToken_ bind this instance to one oneToken vault
      @param description_ metadata has no impact on logic
      */
+
     constructor(address oneTokenFactory_, address oneToken_, string memory description_) 
         StrategyCommon(oneTokenFactory_, oneToken_, description_)
     {}

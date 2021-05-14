@@ -12,12 +12,12 @@ interface IOneTokenV1Base is IICHICommon, IERC20 {
     function changeMintMaster(address mintMaster_, address oneTokenOracle) external;
     function addAsset(address token, address oracle) external;
     function removeAsset(address token) external;
-    function setStrategy(address token, address strategy, uint allowance) external;
+    function setStrategy(address token, address strategy, uint256 allowance) external;
     function executeStrategy(address token) external;
     function removeStrategy(address token) external;
     function closeStrategy(address token) external;
-    function increaseStrategyAllowance(address token, uint amount) external;
-    function decreaseStrategyAllowance(address token, uint amount) external;
+    function increaseStrategyAllowance(address token, uint256 amount) external;
+    function decreaseStrategyAllowance(address token, uint256 amount) external;
     function setFactory(address newFactory) external;
 
     function MODULE_TYPE() external view returns(bytes32);
@@ -26,14 +26,14 @@ interface IOneTokenV1Base is IICHICommon, IERC20 {
     function mintMaster() external view returns(address);
     function memberToken() external view returns(address);
     function assets(address) external view returns(address, address);
-    function balances(address token) external view returns(uint inVault, uint inStrategy);
-    function collateralTokenCount() external view returns(uint);
-    function collateralTokenAtIndex(uint index) external view returns(address);
+    function balances(address token) external view returns(uint256 inVault, uint256 inStrategy);
+    function collateralTokenCount() external view returns(uint256);
+    function collateralTokenAtIndex(uint256 index) external view returns(address);
     function isCollateral(address token) external view returns(bool);
-    function otherTokenCount() external view  returns(uint);
-    function otherTokenAtIndex(uint index) external view returns(address); 
+    function otherTokenCount() external view  returns(uint256);
+    function otherTokenAtIndex(uint256 index) external view returns(address); 
     function isOtherToken(address token) external view returns(bool);
-    function assetCount() external view returns(uint);
-    function assetAtIndex(uint index) external view returns(address); 
+    function assetCount() external view returns(uint256);
+    function assetAtIndex(uint256 index) external view returns(address); 
     function isAsset(address token) external view returns(bool);
 }

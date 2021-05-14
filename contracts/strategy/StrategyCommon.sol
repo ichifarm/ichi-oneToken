@@ -16,12 +16,12 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     address public override oneToken;
     bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked("ICHI V1 Strategy Implementation"));
 
-    event StrategyDeployed(address sender);
+    event StrategyDeployed(address sender, address oneTokenFactory, address oneToken_, string description);
     event StrategyInitialized(address sender);
     event StrategyExecuted(address indexed sender, address indexed token);
-    event VaultAllowance(address indexed sender, address indexed token, uint amount);
-    event FromVault(address indexed sender, address indexed token, uint amount);
-    event ToVault(address indexed sender, address indexed token, uint amount);
+    event VaultAllowance(address indexed sender, address indexed token, uint256 amount);
+    event FromVault(address indexed sender, address indexed token, uint256 amount);
+    event ToVault(address indexed sender, address indexed token, uint256 amount);
 
     modifier onlyToken {
         require(msg.sender == oneToken, "StrategyCommon: initialize from oneToken instance");
@@ -52,7 +52,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
         require(oneToken_ != NULL_ADDRESS, "StrategyCommon: oneToken cannot be NULL");
         require(IOneTokenFactory(IOneTokenV1Base(oneToken_).oneTokenFactory()).isOneToken(oneToken_), "StrategyCommon: oneToken is unknown");
         oneToken = oneToken_;
-        emit StrategyDeployed(msg.sender);
+        emit StrategyDeployed(msg.sender, oneTokenFactory_, oneToken_, description_);
     }
 
     /**
@@ -78,7 +78,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the asset
      @param amount the allowance. 0 = infinte
      */
-    function setAllowance(address token, uint amount) external strategyOwnerTokenOrController override {
+    function setAllowance(address token, uint256 amount) external strategyOwnerTokenOrController override {
         if(amount == 0) amount = INFINITE;
         IERC20(token).safeApprove(oneToken, 0);
         IERC20(token).safeApprove(oneToken, amount);
@@ -98,10 +98,10 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @dev override this function to withdraw funds from external contracts. Return false if any funds are unrecovered.
      */
     function _closeAllPositions() internal virtual returns(bool success) {
-        uint assetCount;
+        uint256 assetCount;
         success = true;
         assetCount = IOneTokenV1Base(oneToken).assetCount();
-        for(uint i=0; i < assetCount; i++) {
+        for(uint256 i=0; i < assetCount; i++) {
             address thisAsset = IOneTokenV1Base(oneToken).assetAtIndex(i);
             closePositions(thisAsset);
         }
@@ -117,7 +117,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
         // this naive process returns funds on hand.
         // override this to explicitly close external positions and return false if 1 or more positions cannot be closed at this time.
         success = true;
-        uint strategyBalance = IERC20(token).balanceOf(address(this));
+        uint256 strategyBalance = IERC20(token).balanceOf(address(this));
         if(strategyBalance > 0) {
             _toVault(token, strategyBalance);
         }
@@ -129,7 +129,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function toVault(address token, uint amount) external strategyOwnerTokenOrController override {
+    function toVault(address token, uint256 amount) external strategyOwnerTokenOrController override {
         _toVault(token, amount);
     }
 
@@ -138,7 +138,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function _toVault(address token, uint amount) internal {
+    function _toVault(address token, uint256 amount) internal {
         IERC20(token).safeTransfer(oneToken, amount);
         emit ToVault(msg.sender, token, amount);
     }
@@ -148,7 +148,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function fromVault(address token, uint amount) external strategyOwnerTokenOrController override {
+    function fromVault(address token, uint256 amount) external strategyOwnerTokenOrController override {
         _fromVault(token, amount);
     }
 
@@ -157,7 +157,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
      */
-    function _fromVault(address token, uint amount) internal {
+    function _fromVault(address token, uint256 amount) internal {
         IERC20(token).safeTransferFrom(oneToken, address(this), amount);
         emit FromVault(msg.sender, token, amount);
     }
