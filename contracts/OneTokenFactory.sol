@@ -309,18 +309,6 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
     }
 
     /**
-     @notice returns metadata about the module at the given address
-     @dev returns null values if the given address is not a registered module
-     @param module module to inspect
-     */
-    function moduleInfo(address module) external view override returns(string memory name, string memory url, ModuleType moduleType) {
-        Module storage m = modules[module];
-        name = m.name;
-        url = m.url;
-        moduleType = m.moduleType;
-    }
-
-    /**
      @notice returns true the given address is a registered module
      @param module module to inspect     
      */
