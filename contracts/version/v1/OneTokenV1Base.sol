@@ -192,7 +192,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
         (uint256 inVault, uint256 inStrategy) = balances(token);
         require(inVault == 0, "OTV1B: can't remove token with vault balance > 0");
         require(inStrategy == 0, "OTV1B: can't remove asset with strategy balance > 0");
-        require(assetSet.exists(token), "OTV1B: unk token");
+        require(assetSet.exists(token), "OTV1B: unknown token");
         if(collateralTokenSet.exists(token)) collateralTokenSet.remove(token, "OTV1B: ERR removing COLLAT token");
         if(otherTokenSet.exists(token)) otherTokenSet.remove(token, "OTV1B: ERR removing MEM token");
         assetSet.remove(token, "OTV1B: ERR removing asset");
@@ -209,11 +209,11 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      */
     function setStrategy(address token, address strategy, uint256 allowance) external onlyOwner override {
 
-        require(assetSet.exists(token), "OTV1B: unk token");
-        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unregistered strategy");
-        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(strategy, ModuleType.Strategy), "OTV1B: unk strategy");
+        require(assetSet.exists(token), "OTV1B: unknown token");
+        require(IOneTokenFactory(oneTokenFactory).isModule(strategy), "OTV1B: unknown strategy");
+        require(IOneTokenFactory(oneTokenFactory).isValidModuleType(strategy, ModuleType.Strategy), "OTV1B: unknown strategy");
         require(IStrategy(strategy).oneToken() == address(this), "OTV1B: can't assign strategy that doesn't recognize this vault");
-        require(IStrategy(strategy).owner() == owner(), "OTV1B: unk strategy owner");
+        require(IStrategy(strategy).owner() == owner(), "OTV1B: unknown strategy owner");
 
         // close the old strategy, may not be possible to recover all funds, e.g. locked tokens
         // the old strategy continues to respect oneToken goverancea and controller for manual token recovery
@@ -249,7 +249,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token ERC20 asset with a strategy to close. Strategy should sweep all registered assets. 
      */
     function closeStrategy(address token) public override onlyOwnerOrController {
-        require(assetSet.exists(token), "OTV1B:cs: unk token");
+        require(assetSet.exists(token), "OTV1B:cs: unknown token");
         Asset storage a = assets[token];
         address oldStrategy = a.strategy;
         if(oldStrategy != NULL_ADDRESS) IERC20(token).safeApprove(oldStrategy, 0);
@@ -262,7 +262,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param token the token strategy to execute
      */
     function executeStrategy(address token) external onlyOwnerOrController override {
-        require(assetSet.exists(token), "OTV1B:es: unk token");
+        require(assetSet.exists(token), "OTV1B:es: unknown token");
         Asset storage a = assets[token];
         address strategy = a.strategy;
         IStrategy(strategy).execute();
