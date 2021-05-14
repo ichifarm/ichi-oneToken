@@ -17,11 +17,12 @@
 oneToken governance has privileges that may be delegated to a controller
 
 
-### `constructor(address oneTokenFactory_, address oneToken_, string description)` (internal)
+### `constructor(address oneTokenFactory_, address oneToken_, string description_)` (internal)
 
 a strategy is dedicated to exactly one oneToken instance
+     @param oneTokenFactory_ bind this instance to oneTokenFactory instance
      @param oneToken_ bind this instance to one oneToken vault
-     @param description metadata has no impact on logic
+     @param description_ metadata has no impact on logic
 
 
 
@@ -33,8 +34,8 @@ a strategy is dedicated to exactly one oneToken instance and must be re-initiali
 
 ### `execute()` (external)
 
-a controller invokes execute() to trigger logic within the strategy.
-     @dev called from oneToken governance or the active controller
+a controller invokes execute() to trigger automated logic within the strategy.
+     @dev called from oneToken governance or the active controller. Overriding function should emit the event.
 
 
 
@@ -61,9 +62,19 @@ closes all positions and returns the funds to the oneToken vault
 
 
 
+### `closePositions(address token) → bool success` (public)
+
+closes token positions and returns the funds to the oneToken vault
+     @dev override this function to redeem and withdraw related funds from external contracts. Return false if any funds are unrecovered. 
+     @param token asset to recover
+     @param success true, complete success, false, 1 or more failed operations
+
+
+
 ### `toVault(address token, uint256 amount)` (external)
 
 let's the oneToken controller instance send funds to the oneToken vault
+     @dev implementations must close external positions and return all related assets to the vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
 
@@ -71,7 +82,7 @@ let's the oneToken controller instance send funds to the oneToken vault
 
 ### `_toVault(address token, uint256 amount)` (internal)
 
-send funds to the oneToken vault
+close external positions send all related funds to the oneToken vault
      @param token the ecr20 token to send
      @param amount the amount of tokens to send
 

@@ -5,21 +5,22 @@
 
 
 
-### `constructor(address oneTokenFactory_, address oneToken, string description)` (public)
+### `constructor(address oneTokenFactory_, address oneToken_, string description_)` (public)
+
+a strategy is dedicated to exactly one oneToken instance
+     @param oneTokenFactory_ bind this instance to oneTokenFactory instance
+     @param oneToken_ bind this instance to one oneToken vault
+     @param description_ metadata has no impact on logic
 
 
 
-
-
-### `executeTransaction(address target, uint256 value, string signature, bytes data) → bytes` (public)
+### `executeTransaction(address target, uint256 value, string signature, bytes data) → bytes` (external)
 
 Governance can work with collateral and treasury assets. Can swap assets.
-           Add assets with oracles to include newly acquired tokens in inventory for reporting/accounting functions.
     @param target address/smart contract you are interacting with
     @param value msg.value (amount of eth in WEI you are sending. Most of the time it is 0)
-    @param signature the function signature (name of the function and the types of the arguments)
-           for example: "transfer(address,uint256)", or "approve(address,uint256)"
-    @param data abi-encodeded byte-code of the parameter values you are sending.
+    @param signature the function signature
+    @param data abi-encodeded bytecode of the parameter values to send
 
 
 

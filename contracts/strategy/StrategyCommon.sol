@@ -42,6 +42,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
 
     /**
      @notice a strategy is dedicated to exactly one oneToken instance
+     @param oneTokenFactory_ bind this instance to oneTokenFactory instance
      @param oneToken_ bind this instance to one oneToken vault
      @param description_ metadata has no impact on logic
      */
@@ -64,7 +65,7 @@ abstract contract StrategyCommon is IStrategy, ICHIModuleCommon {
     }
 
     /**
-     @notice a controller invokes execute() to trigger logic within the strategy.
+     @notice a controller invokes execute() to trigger automated logic within the strategy.
      @dev called from oneToken governance or the active controller. Overriding function should emit the event. 
      */  
     function execute() external virtual strategyOwnerTokenOrController override {

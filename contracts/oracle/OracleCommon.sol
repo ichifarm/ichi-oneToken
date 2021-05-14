@@ -17,7 +17,9 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
     /**
      @notice records the oracle description and the index that will be used for all quotes
      @dev oneToken implementations can share oracles
-     @param description_ all modules have a description. No processing or validation. 
+     @param oneTokenFactory_ oneTokenFactory to bind to
+     @param description_ all modules have a description. No processing or validation
+     @param indexToken_ every oracle has an index token for reporting the value of a base token
      */
     constructor(address oneTokenFactory_, string memory description_, address indexToken_) 
         ICHIModuleCommon(oneTokenFactory_, ModuleType.Oracle, description_) 
@@ -29,6 +31,7 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
     /**
      @notice oneTokens can share Oracles. Oracles must be re-initializable. They are initialized from the Factory.
+     @param baseToken oracles _can be_ multi-tenant with separately initialized baseTokens
      */
     function init(address baseToken) external onlyModuleOrFactory virtual override {
         emit OracleInitialized(msg.sender, baseToken, indexToken);
@@ -45,15 +48,15 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
         uint256 nativeDecimals = t.decimals();
         require(nativeDecimals <= 18, "OracleCommon: unsupported token precision (greater than 18)");
         if(nativeDecimals == NORMAL) return amountNormal;
-        // round up if needed
+        // round 1/2 values up
         return (((amountNormal * 10) + 5) / ( 10 ** (NORMAL - nativeDecimals))) / 10;
     }
 
     /**
      @notice converts token native precision amounts to normalized precision 18 amounts
      @param token ERC20 token contract
+     @param amountTokens quantity scaled to token decimals
      @param amountNormal quantity in precision-18
-     @param amountTokens quantity scaled to token decimals()
      */  
     function tokensToNormalized(address token, uint256 amountTokens) public view override returns(uint256 amountNormal) {
         IERC20Extended t = IERC20Extended(token);

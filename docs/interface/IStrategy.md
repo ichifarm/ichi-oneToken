@@ -41,6 +41,12 @@
 
 
 
+### `closePositions(address token) → bool success` (external)
+
+
+
+
+
 ### `oneToken() → address` (external)
 
 

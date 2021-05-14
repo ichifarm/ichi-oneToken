@@ -168,10 +168,6 @@ contract("OneToken V1 Main", accounts => {
             msg2 = "OTV1: amount must be > 0",
             msg3 = "OTV1: unrecognized COLLAT";
 
-        // initial liabilities are 0
-        let liabilities = await oneToken.liabilities(collateralToken.address);
-        assert.strictEqual(parseInt(liabilities.toString(10)), 0, "oneToken liabilities for collateral should be 0");
-
         // set fee to 20%
         let tx = await oneToken.setRedemptionFee(FEE_20, { from: governance });
 
@@ -242,14 +238,13 @@ contract("OneToken V1 Main", accounts => {
         // minus 15 liabilities, so need 85 coll tokens
         let startCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
         let startMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
-        let liabilities = parseInt((await oneToken.liabilities(collateralToken.address)).toString(10)); // assume only bob minted so far
-
+        
         tx = await oneToken.mint(collateralToken.address, 100, { from: bob });
 
         let endCollBalance = parseInt((await collateralToken.balanceOf(bob)).toString(10));
         let endMemBalance = parseInt((await memberToken.balanceOf(bob)).toString(10));
 
-        let reqCollateral = (100 * 90 + 100 * 10) / 100 - liabilities;
+        let reqCollateral = (100 * 90 + 100 * 10) / 100;
         let reqMember = 100 * 10 / 100;
 
         assert.strictEqual( reqCollateral, startCollBalance - endCollBalance, "user remaining collateral tokens should match");

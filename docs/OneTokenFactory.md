@@ -15,9 +15,9 @@ factory governance can deploy a oneToken instance via new proxy using existing d
      @param version address of a oneToken deployed implementation that emits the expected fingerprint
      @param controller deployed controller must be registered
      @param mintMaster deployed mintMaster must be registered
+     @param oneTokenOracle deployed oracle must be registered and will be used to check the oneToken peg     
      @param memberToken deployed ERC20 contract must be registered with at least one associated oracle
      @param collateral deployed ERC20 contract must be registered with at least one associated oracle
-     @param oneTokenOracle deployed oracle must be registered and will be used to check the oneToken peg
 
 
 
@@ -69,8 +69,7 @@ factory governance can update asset metadata
 ### `removeForeignToken(address foreignToken)` (external)
 
 factory governance can de-register a foreignToken
-     @dev de-registering prevents future assignment but has no effect on existing oneToken
-       instances that rely on the foreignToken
+     @dev de-registering prevents future assignment but has no effect on existing oneToken instances that rely on the foreignToken
     @param foreignToken the ERC20 contract address to de-register
 
 
@@ -102,12 +101,14 @@ returns the count of deployed and initialized oneToken instances
 ### `oneTokenAtIndex(uint256 index) → address` (external)
 
 returns the address of the deployed/initialized oneToken instance at the index
+     @param index row to inspect
 
 
 
 ### `isOneToken(address oneToken) → bool` (external)
 
 return true if given address is a deployed and initialized oneToken instance
+     @param oneToken oneToken to inspect
 
 
 
@@ -120,6 +121,7 @@ returns the count of the registered modules
 ### `moduleAtIndex(uint256 index) → address module` (external)
 
 returns the address of the registered module at the index
+     @param index row to inspect
 
 
 
@@ -127,18 +129,22 @@ returns the address of the registered module at the index
 
 returns metadata about the module at the given address
      @dev returns null values if the given address is not a registered module
+     @param module module to inspect
 
 
 
 ### `isModule(address module) → bool` (public)
 
 returns true the given address is a registered module
+     @param module module to inspect
 
 
 
 ### `isValidModuleType(address module, enum InterfaceCommon.ModuleType moduleType) → bool` (public)
 
 returns true the address given is a registered module of the expected type
+     @param module module to inspect  
+     @param moduleType module type to confirm
 
 
 
@@ -152,42 +158,51 @@ returns count of foreignTokens registered with the factory
 ### `foreignTokenAtIndex(uint256 index) → address` (external)
 
 returns the address of the foreignToken at the index
+     @param index row to inspect
 
 
 
 ### `foreignTokenInfo(address foreignToken) → bool collateral, uint256 oracleCount` (external)
 
 returns foreignToken metadata for the given foreignToken
+     @param foreignToken token to inspect
 
 
 
 ### `foreignTokenOracleCount(address foreignToken) → uint256` (external)
 
 returns the count of oracles registered for the given foreignToken
+     @param foreignToken token to inspect
 
 
 
 ### `foreignTokenOracleAtIndex(address foreignToken, uint256 index) → address` (external)
 
 returns the foreignToken oracle address at the index
+     @param foreignToken token to inspect
+     @param index oracle row to inspect
 
 
 
 ### `isOracle(address foreignToken, address oracle) → bool` (external)
 
 returns true if the given oracle address is associated with the foreignToken
+     @param foreignToken token to inspect
+     @param oracle oracle to inspect
 
 
 
 ### `isForeignToken(address foreignToken) → bool` (external)
 
 returns true if the given foreignToken is registered in the factory
+     @param foreignToken token to inspect
 
 
 
 ### `isCollateral(address foreignToken) → bool` (external)
 
 returns true if the given foreignToken is marked collateral
+     @param foreignToken token to inspect
 
 
 

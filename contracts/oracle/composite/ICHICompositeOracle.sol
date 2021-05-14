@@ -18,11 +18,12 @@ contract ICHICompositeOracle is OracleCommon {
     address[] public interimTokens;
 
     /**
-     @notice addresses and oracles define a chain of currency conversions (e.g. through ETH) that will be executed in order of declation
+     @notice addresses and oracles define a chain of currency conversions (e.g. X:ETH, ETH:BTC: BTC:USDC => X:USDC) that will be executed in order of declaration
      @dev output of oracles is used as input for the next oracle. 
      @param description_ human-readable name has no bearing on internal logic
      @param indexToken_ a registered usdToken to use for quote indexed
-     @param oracles_ a sequential list of unregisted contracts that support the IOracle interface and return quotes in any currency
+     @param interimTokens_ a sequential list of base tokens to query the oracles, starting with the base token for the composite oracle, e.g. X
+     @param oracles_ a sequential list of unregisted contracts that support the IOracle interface, ending with a collateral token, e.g. USDC
      */
     constructor(address oneTokenFactory_, string memory description_, address indexToken_, address[] memory interimTokens_, address[] memory oracles_)
         OracleCommon(oneTokenFactory_, description_, indexToken_)
@@ -47,18 +48,18 @@ contract ICHICompositeOracle is OracleCommon {
     /**
      @notice update is called when a oneToken wants to persist observations
      @dev chain length is constrained by gas
+     //param token composite oracles are always single-tenant, The token context is ignored.
      */
     function update(address /* token */) external override {
         for(uint256 i=0; i<oracleContracts.length; i++) {
             IOracle(oracleContracts[i]).update(interimTokens[i]);
         }
-        // no event, for gas optimization
     }
 
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
      @dev volatility is the product of interim volatility measurements
-     // param token TODO
+     //param token composite oracles are always single-tenant, The token context is ignored.
      @param amountTokens quantity of tokens, token precision
      @param amountUsd index tokens required, precision 18
      @param volatility overall volatility metric - for future use-caeses
@@ -76,6 +77,7 @@ contract ICHICompositeOracle is OracleCommon {
 
     /**
      @notice returns the tokens needed to reach a target usd value
+     //param token composite oracles are always single-tenant, The token context is ignored.     
      @param amountUsd Usd required in 10**18 precision
      @param amountTokens tokens required in tokens native precision
      @param volatility metric for future use-cases
@@ -101,11 +103,12 @@ contract ICHICompositeOracle is OracleCommon {
 
     /**
      @param index oracle contract to retrieve
-     @param token interim token address
      @param oracle interim token oracle address
+     @param token interim token address     
      */
 
     function oracleAtIndex(uint256 index) external view returns(address oracle, address token) {
         return(oracleContracts[index], interimTokens[index]);
     }
+
 }

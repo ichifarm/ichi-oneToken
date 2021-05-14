@@ -104,22 +104,24 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
         co.update(collateral);
 
         // implied transfer approval and allowance
-        _transfer(msg.sender, address(this), amount);
+        _burn(msg.sender, amount);
 
         uint256 netUsd = amount.sub(amount.mul(redemptionFee).div(PRECISION));
         (uint256 netTokens, /* uint256 volatility */)  = co.amountRequired(collateral, netUsd);
 
-        // netTokens = IOracle(assets[collateral].oracle).normalizedToTokens(collateral, netTokens);
         IERC20(collateral).safeTransfer(msg.sender, netTokens);
         emit Redeemed(msg.sender, collateral, amount);
-        // updates the oracle price history for oneToken, only
+        
+        // updates the oneToken oracle price history
         updateMintingRatio(collateral);
+
+        // periodic automated processes
         IController(controller).periodic();
     }
 
     /**
      @notice governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
     function setMintingFee(uint256 fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
@@ -129,7 +131,7 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
 
     /**
      @notice governance sets the adjustable fee
-     @param fee fee, 18 decimals, e.g. 2% = 0020000000000000000
+     @param fee fee, 18 decimals, e.g. 2% = 20000000000000000
      */
     function setRedemptionFee(uint256 fee) external onlyOwner override {
         require(fee <= PRECISION, "OTV1: fee must be <= 100%");
@@ -140,6 +142,9 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     /**
      @notice adjust the minting ratio
      @dev acceptable for gas-paying external actors to call this function
+     @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
      */
     function updateMintingRatio(address collateralToken) public override returns(uint256 ratio, uint256 maxOrderVolume) {
         return IMintMaster(mintMaster).updateMintingRatio(collateralToken);
@@ -148,6 +153,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
     /**
      @notice read the minting ratio and maximum order volume prescribed by the mintMaster
      @param collateralToken token to use for ratio calculation
+     @param ratio minting ratio
+     @param maxOrderVolume maximum order size
      */
     function getMintingRatio(address collateralToken) external view override returns(uint256 ratio, uint256 maxOrderVolume) {
         return IMintMaster(mintMaster).getMintingRatio(collateralToken);
@@ -157,6 +164,8 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @notice read the vault balance and strategy balance of a given token
      @dev not restricted to registered assets
      @param token ERC20 asset to report
+     @param vaultBalance tokens held in this vault
+     @param strategyBalance tokens in assigned strategy
      */
     function getHoldings(address token) external view override returns(uint256 vaultBalance, uint256 strategyBalance) {   
         IERC20 t = IERC20(token);

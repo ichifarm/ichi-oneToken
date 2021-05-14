@@ -6,7 +6,7 @@ import "../OracleCommon.sol";
 import "../../interface/IERC20Extended.sol";
 
 /**
- @notice Returns 1:1, scaled to the indexToken which is defined on deployment and cannot be changed post-deployment. 
+ @notice Returns 1:1, scaled to 18 
  */
 
 contract ICHIPeggedOracle is OracleCommon {
@@ -28,6 +28,7 @@ contract ICHIPeggedOracle is OracleCommon {
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
      @dev amountTokens:amountUsd is always 1:1, adjusted for normalized scale, and volatility is always 0
+     @param token base token
      @param amountTokens quantity, token native precision
      @param amountUsd US dollar equivalentm, precision 18
      @param volatility metric for future use-cases
@@ -40,8 +41,9 @@ contract ICHIPeggedOracle is OracleCommon {
     /**
      @notice returns the tokens needed to reach a target usd value
      @dev token:usdToken is always 1:1 and volatility is always 1
+     @param token base token
      @param amountUsd Usd required, precision 18
-     @param amountTokens tokens required, index token native precision
+     @param amountTokens tokens required, token native precision
      @param volatility metric for future use-cases
      */
     function amountRequired(address token, uint256 amountUsd) external view override returns(uint256 amountTokens, uint256 volatility) {

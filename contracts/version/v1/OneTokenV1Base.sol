@@ -65,7 +65,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
      @param symbol_ ERC20 symbol value
      @param oneTokenOracle_ a deployed, compatible oracle supporting the minimum interface
      @param controller_ a deployed, compatible controller supporting the minimum interface
-     @param mintMaster_ a deployed, compatible mintMast supporting the minimum interface
+     @param mintMaster_ a deployed, compatible mintMaster supporting the minimum interface
      @param memberToken_ a deployed, registered (in the factory) ERC20 token supporting the minimum interface
      @param collateral_ a deployed, registered (in the factory) usd-pegged ERC20 token supporting the minimum interface
      */
@@ -246,10 +246,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     /**
      @notice governance can close a strategy and return funds to the vault
      @dev strategy remains assigned the asset with allowance set to 0.
-       Emits positionsClosed: false if strategy reports < 100% funds recovery, e.g. funds are locked elsewhere.
-     @param token ERC20 asset with a strategy to close. Sweeps all registered assets. 
+     @param token ERC20 asset with a strategy to close. Strategy should sweep all registered assets. 
      */
-
     function closeStrategy(address token) public override onlyOwnerOrController {
         require(assetSet.exists(token), "OTV1B:cs: unk token");
         Asset storage a = assets[token];
@@ -287,8 +285,6 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice governance can transfer assets from the strategy to this vault
-     @dev funds are normally pushed from strategy. This is an alternative in case of an errant strategy.
-       Relies on allowance that is usually set to infinite when the strategy is assigned
      @param strategy receiving address must match the assigned strategy
      @param token ERC20 asset
      @param amount amount to draw from the strategy
@@ -345,6 +341,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns the local balance and funds held in the assigned strategy, if any
+     @param token to inspect
      */
     function balances(address token) public view override returns(uint256 inVault, uint256 inStrategy) {
         IERC20 asset = IERC20(token);
@@ -362,6 +359,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns the address of an ERC20 token collateral contract at the index
+     @param index row to inspect
      */
     function collateralTokenAtIndex(uint256 index) external view override returns(address) {
         return collateralTokenSet.keyAtIndex(index);
@@ -369,6 +367,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns true if the token contract is recognized collateral
+     @param token token to inspect
      */
     function isCollateral(address token) public view override returns(bool) {
         return collateralTokenSet.exists(token);
@@ -383,6 +382,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns the non-collateral token contract at the index
+     @param index row to inspect
      */
     function otherTokenAtIndex(uint256 index) external view override returns(address) {
         return otherTokenSet.keyAtIndex(index);
@@ -390,6 +390,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns true if the token contract is registered and is not collateral
+     @param token token to inspect
      */
     function isOtherToken(address token) external view override returns(bool) {
         return otherTokenSet.exists(token);
@@ -404,6 +405,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns the ERC20 contract address at the index
+     @param index row to inspect
      */
     function assetAtIndex(uint256 index) external view override returns(address) {
         return assetSet.keyAtIndex(index);
@@ -411,6 +413,7 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
 
     /**
      @notice returns true if the token contract is a registered asset of either type
+     @param token token to inspect
      */
     function isAsset(address token) external view override returns(bool) {
         return assetSet.exists(token);
