@@ -13,7 +13,6 @@ abstract contract OracleCommon is IOracle, ICHIModuleCommon {
 
     event OracleDeployed(address sender, string description, address indexToken);
     event OracleInitialized(address sender, address baseToken, address indexToken);
-    event OracleUpdated(address sender);
     
     /**
      @notice records the oracle description and the index that will be used for all quotes

@@ -349,7 +349,8 @@ contract OneTokenV1Base is IOneTokenV1Base, ICHICommon, ICHIERC20Burnable {
     function balances(address token) public view override returns(uint256 inVault, uint256 inStrategy) {
         IERC20 asset = IERC20(token);
         inVault = asset.balanceOf(address(this));
-        inStrategy = asset.balanceOf(assets[token].strategy);
+        address strategy = assets[token].strategy;
+        if(strategy != NULL_ADDRESS) inStrategy = asset.balanceOf(strategy);
     }
 
     /**point
