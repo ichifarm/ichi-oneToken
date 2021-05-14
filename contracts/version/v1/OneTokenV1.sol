@@ -34,7 +34,6 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param collateralToken a registered ERC20 collateral token contract
      @param oneTokens exact number of oneTokens to receive
      */
-
     function mint(address collateralToken, uint256 oneTokens) external initialized override {
         require(collateralTokenSet.exists(collateralToken), "OTV1: offer a collateral token");
         require(oneTokens > 0, "OTV1: order must be > 0");
@@ -95,7 +94,6 @@ contract OneTokenV1 is IOneTokenV1, OneTokenV1Base {
      @param collateral form of ERC20 stable token to receive
      @param amount oneTokens to redeem equals collateral tokens to receive
      */
-
     function redeem(address collateral, uint256 amount) external override {
         require(isCollateral(collateral), "OTV1: unknown collateral");
         require(amount > 0, "OTV1: amount must be > 0");
