@@ -150,7 +150,7 @@ contract("OneToken V1 Base", accounts => {
 
         msg1 = "ICHIOwnable: caller is not the owner";
         msg2 = "OTV1B: unregistered controller";
-        msg3 = "OTV1B: unk controller";
+        msg3 = "OTV1B: unknown controller";
 
         let tx = await oneToken.changeController(controller.address, { from: governance });
         await truffleAssert.reverts(oneToken.changeController(badAddress, { from: badAddress }), msg1);
@@ -196,7 +196,7 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OTV1B: unregistered mint master",
-            msg3 = "OTV1B: unk mint master",
+            msg3 = "OTV1B: unknown mint master",
             msg4 = "OTV1B: unregistered oneToken oracle";
 
         //await factory.assignOracle(oneToken.address, oracle.address);
@@ -239,8 +239,8 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding an asset", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
-        let msg3 = "OTV1B: COLLAT already exists";
+        let msg2 = "OTV1B: unknown oracle or token";
+        let msg3 = "OTV1B: collateral already exists";
         
         // deploy a new token
         let newToken = await CollateralToken.new();
@@ -345,7 +345,7 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding a non-collateral (other) asset/token", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
+        let msg2 = "OTV1B: unknown oracle or token";
         let msg3 = "OTV1B: token already exists";
         
         // deploy a new token

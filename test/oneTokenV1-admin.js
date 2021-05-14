@@ -8,9 +8,7 @@ const
     MintMasterIncremental = artifacts.require("Incremental"),
     OraclePegged = artifacts.require("ICHIPeggedOracle"),
     MemberToken = artifacts.require("MemberToken"),
-    CollateralToken = artifacts.require("CollateralToken"),
-    NullStrategy = artifacts.require("NullStrategy"),
-    IERC20Extended = artifacts.require("IERC20Extended");
+    CollateralToken = artifacts.require("CollateralToken");
 
 const 
     NULL_ADDRESS = "0x0000000000000000000000000000000000000000",

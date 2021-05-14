@@ -352,9 +352,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 	})
 
 	it("UniswapOracleSimple amountRequired returns correct prices", async () => {
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
-
 		// passing 10 ** 18, expecting 1 memberToken back
 		const value = getBigNumber(1,18).toString();
 		const { amountTokens, volatility } = await memberTokenOracle.amountRequired(memberToken.address, value);
@@ -401,9 +398,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		let reserve2 = 200;
 		await setupUniswapOracle(reserve1, reserve2);
 
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
-
 		// passing 1 memberToken, expecting 2 * 10 ** 18 back, have to account for rounding
 		const value = getBigNumber(2,18).toString();
 		const { amountUsd, volatility } = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
@@ -417,9 +411,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		let reserve1 = 100;
 		let reserve2 = 200;
 		await setupUniswapOracle(reserve1, reserve2);
-
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
 
 		// passing 10 ** 18, expecting 0.5 memberToken back, have to account for rounding
 		const value = getBigNumber(1,18).toString();
@@ -463,14 +454,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const bobCollateralBalanceAfter = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceAfter = await memberToken.balanceOf(bob);
 		const bobOneTokenBalanceAfter = await oneToken.balanceOf(bob);
-
-		/*console.log(bobCollateralBalanceBefore.toString());
-		console.log(bobMemberBalanceBefore.toString());
-		console.log(bobOneTokenBalanceBefore.toString());
-
-		console.log(bobCollateralBalanceAfter.toString());
-		console.log(bobMemberBalanceAfter.toString());
-		console.log(bobOneTokenBalanceAfter.toString());*/
 
 		// should be 90
 		assert.isTrue(Number(bobCollateralBalanceBefore) - Number(bobCollateralBalanceAfter) == 90 * 10 ** 6);

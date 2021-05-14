@@ -1,7 +1,7 @@
-const { assert, expect } = require("chai");
+const { assert } = require("chai");
 const truffleAssert = require('truffle-assertions');
 const { expectEvent } = require("@openzeppelin/test-helpers");
-const { time, prepare, deploy, getBigNumber, ADDRESS_ZERO } = require("./utilities")
+const { time } = require("./utilities")
 
 const
     OneToken = artifacts.require("OneTokenV1"),
@@ -11,9 +11,7 @@ const
     TestMintMaster = artifacts.require("TestMintMaster"),
     OraclePegged = artifacts.require("ICHIPeggedOracle"),
     MemberToken = artifacts.require("MemberToken"),
-    CollateralToken = artifacts.require("CollateralToken"),
-    NullStrategy = artifacts.require("NullStrategy"),
-    IERC20Extended = artifacts.require("IERC20Extended");
+    CollateralToken = artifacts.require("CollateralToken");
 
 const
     NULL_ADDRESS = "0x0000000000000000000000000000000000000000",
