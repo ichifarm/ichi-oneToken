@@ -50,6 +50,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
      */
 
     event OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address oneTokenOracle, address memberToken, address collateral);
+    event OneTokenAdmin(address sender, address newOneTokenProxy, address proxyAdmin);
     event ModuleAdmitted(address sender, address module, ModuleType moduleType, string name, string url);
     event ModuleUpdated(address sender, address module, string name, string url);
     event ModuleRemoved(address sender, address module);
@@ -133,6 +134,7 @@ contract OneTokenFactory is IOneTokenFactory, ICHICommon {
         oneToken.transferOwnership(governance);
 
         emitDeploymentEvent(newOneTokenProxy, name, symbol, governance, version, controller, mintMaster, oneTokenOracle, memberToken, collateral);
+        emit OneTokenAdmin(msg.sender, newOneTokenProxy, proxyAdmin);
     }
 
     function emitDeploymentEvent(

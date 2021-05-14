@@ -47,7 +47,6 @@ interface IOneTokenFactory is InterfaceCommon {
 
     function moduleCount() external view returns(uint256);
     function moduleAtIndex(uint256 index) external view returns(address module);
-    function moduleInfo(address module) external view returns(string memory name, string memory url, ModuleType moduleType);
     function isModule(address module) external view returns(bool);
     function isValidModuleType(address module, ModuleType moduleType) external view returns(bool);
 
