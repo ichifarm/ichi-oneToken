@@ -17,12 +17,6 @@
 
 
 
-### `withdraw(address token, uint256 amount)` (external)
-
-
-
-
-
 ### `mint(address collateral, uint256 oneTokens)` (external)
 
 
@@ -48,18 +42,6 @@
 
 
 ### `updateMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (external)
-
-
-
-
-
-### `userBalances(address, address) → uint256` (external)
-
-
-
-
-
-### `userCreditBlocks(address, address) → uint256` (external)
 
 
 

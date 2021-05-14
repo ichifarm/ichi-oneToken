@@ -5,9 +5,12 @@
 
 
 
-### `constructor(address oneTokenFactory, address oneToken, string description)` (public)
+### `constructor(address oneTokenFactory_, address oneToken_, string description_)` (public)
 
-Supports the minimum interface but does nothing with funds committed to the strategy
+a strategy is dedicated to exactly one oneToken instance
+     @param oneTokenFactory_ bind this instance to oneTokenFactory instance
+     @param oneToken_ bind this instance to one oneToken vault
+     @param description_ metadata has no impact on logic
 
 
 

@@ -6,8 +6,14 @@ import "../StrategyCommon.sol";
 
 contract Arbitrary is StrategyCommon {
 
-    constructor(address oneTokenFactory_, address oneToken, string memory description) 
-        StrategyCommon(oneTokenFactory_, oneToken, description)
+    /**
+     @notice a strategy is dedicated to exactly one oneToken instance
+     @param oneTokenFactory_ bind this instance to oneTokenFactory instance
+     @param oneToken_ bind this instance to one oneToken vault
+     @param description_ metadata has no impact on logic
+     */
+    constructor(address oneTokenFactory_, address oneToken_, string memory description_) 
+        StrategyCommon(oneTokenFactory_, oneToken_, description_)
     {}
 
 

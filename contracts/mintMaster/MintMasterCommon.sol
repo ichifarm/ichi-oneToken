@@ -37,7 +37,8 @@ abstract contract MintMasterCommon is IMintMaster, ICHIModuleCommon{
 
     /**
      @notice sets up the common interface
-     @dev must be called from module init() function while msg.sender is the oneToken client binding to the module
+     @dev only called when msg.sender is the oneToken or the oneToken governance
+     @param oneToken the oneToken context for the multi-tenant MintMaster implementation
      @param oneTokenOracle proposed oracle for the oneToken that intializes the mintMaster
      */
     function _initMintMaster(address oneToken, address oneTokenOracle) internal {

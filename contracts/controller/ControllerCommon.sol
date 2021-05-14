@@ -25,7 +25,6 @@ abstract contract ControllerCommon is IController {
      @notice Controllers rebalance funds and may execute strategies periodically.
      */
     
-    
     /**
      @notice controllers are bound to factories at deployment time
      @param oneTokenFactory_ factory to bind to
