@@ -134,7 +134,7 @@ contract Incremental is MintMasterCommon {
      @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited     
      */    
 
-    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint256 ratio, uint256 maxOrderValue) {
+    function getMintingRatio2(address oneToken, address /* collateralToken */) public view override returns(uint256 ratio, uint256 maxOrderVolume) {
         address oracle = oneTokenOracles[oneToken];
         return getMintingRatio4(oneToken, oracle, NULL_ADDRESS, NULL_ADDRESS);
     }
