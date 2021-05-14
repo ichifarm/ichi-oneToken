@@ -21,8 +21,8 @@ contract TestOracle is OracleCommon {
      */
     bool private adjustUp;
 
-    constructor(address oneTokenFactory, string memory description, address indexToken_) 
-        OracleCommon(oneTokenFactory, description, indexToken_) 
+    constructor(address oneTokenFactory_, string memory description_, address indexToken_) 
+        OracleCommon(oneTokenFactory_, description_, indexToken_) 
     {
         adjustUp = false;
         emit Deployed(msg.sender);

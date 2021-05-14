@@ -43,6 +43,7 @@ contract UniswapOracleSimple is OracleCommon {
     /**
      @notice the indexToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
      @dev deploy multiple instances to support different configurations
+     @param oneTokenFactory_ oneToken factory to bind to
      @param uniswapFactory_ external factory contract needed by the uniswap library
      @param indexToken_ the index token to use for valuations. If not a useToken then the Oracle should not be registed.
      @param period_ the averaging period to use for price smoothing

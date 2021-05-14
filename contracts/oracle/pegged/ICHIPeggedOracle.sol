@@ -11,8 +11,13 @@ import "../../interface/IERC20Extended.sol";
 
 contract ICHIPeggedOracle is OracleCommon {
 
-    constructor(address oneTokenFactory_, string memory description, address indexToken_)
-        OracleCommon(oneTokenFactory_, description, indexToken_) {}
+    /** 
+     @param oneTokenFactory_ oneToken factory to bind to
+     @param description_ description has no bearing on logic
+     @param indexToken_ token to use for price quotes
+     */
+    constructor(address oneTokenFactory_, string memory description_, address indexToken_)
+        OracleCommon(oneTokenFactory_, description_, indexToken_) {}
 
     /**
      @notice update is called when a oneToken wants to persist observations

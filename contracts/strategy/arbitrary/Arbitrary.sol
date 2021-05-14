@@ -6,8 +6,8 @@ import "../StrategyCommon.sol";
 
 contract Arbitrary is StrategyCommon {
 
-    constructor(address oneTokenFactory_, address oneToken, string memory description) 
-        StrategyCommon(oneTokenFactory_, oneToken, description)
+    constructor(address oneTokenFactory_, address oneToken_, string memory description_) 
+        StrategyCommon(oneTokenFactory_, oneToken_, description_)
     {}
 
 
