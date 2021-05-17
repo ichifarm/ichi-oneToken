@@ -30,7 +30,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         deterministicDeployment: false
     })
 
-    const exist = await admin.moduleInfo(controller.address)
+    const exist = await admin.modules(controller.address)
     if (exist['name'] != name) {
         await admin.admitModule(controller.address, moduleType.controller, name, url, {
             from: deployer

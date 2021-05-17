@@ -5,7 +5,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
   
     const chainId = await getChainId()
 
-    await deploy("OneTokenFactory", {
+    const factory = await deploy("OneTokenFactory", {
         from: deployer,
         log: true,
         deterministicDeployment: false

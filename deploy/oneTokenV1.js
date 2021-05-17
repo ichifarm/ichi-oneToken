@@ -31,7 +31,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         deterministicDeployment: false
     })
 
-    const exist = await admin.moduleInfo(oneTokenV1.address)
+    const exist = await admin.modules(oneTokenV1.address)
     if (exist['name'] != name) {
         await admin.admitModule(oneTokenV1.address, moduleType.version, name, url, {
             from: deployer
