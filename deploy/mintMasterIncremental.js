@@ -31,8 +31,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         deterministicDeployment: false
     })
 
-
-    const exist = await admin.moduleInfo(mintMaster.address)
+    const exist = await admin.modules(mintMaster.address)
     if (exist['name'] != name) {
         await admin.admitModule(mintMaster.address, moduleType.mintMaster, name, url, {
             from: deployer
