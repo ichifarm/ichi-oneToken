@@ -1,1 +1,0 @@
-remixd -s /home/rob/projects/oneToken --remix-ide http://remix.ethereum.org

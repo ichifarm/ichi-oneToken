@@ -150,7 +150,7 @@ contract("OneToken V1 Base", accounts => {
 
         msg1 = "ICHIOwnable: caller is not the owner";
         msg2 = "OTV1B: unregistered controller";
-        msg3 = "OTV1B: unk controller";
+        msg3 = "OTV1B: unknown controller";
 
         let tx = await oneToken.changeController(controller.address, { from: governance });
         await truffleAssert.reverts(oneToken.changeController(badAddress, { from: badAddress }), msg1);
@@ -196,7 +196,7 @@ contract("OneToken V1 Base", accounts => {
 
         let msg1 = "ICHIOwnable: caller is not the owner",
             msg2 = "OTV1B: unregistered mint master",
-            msg3 = "OTV1B: unk mint master",
+            msg3 = "OTV1B: unknown mint master",
             msg4 = "OTV1B: unregistered oneToken oracle";
 
         //await factory.assignOracle(oneToken.address, oracle.address);
@@ -239,8 +239,8 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding an asset", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
-        let msg3 = "OTV1B: COLLAT already exists";
+        let msg2 = "OTV1B: unknown oracle or token";
+        let msg3 = "OTV1B: collateral already exists";
         
         // deploy a new token
         let newToken = await CollateralToken.new();
@@ -286,7 +286,7 @@ contract("OneToken V1 Base", accounts => {
         let newCount;
         let delta;
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk token";
+        let msg2 = "OTV1B: unknown token";
 
         await truffleAssert.reverts(oneToken.removeAsset(collateralToken.address, { from: badAddress }), msg1);
         const unknownToken = await CollateralToken.new();
@@ -345,7 +345,7 @@ contract("OneToken V1 Base", accounts => {
     it("should permit adding a non-collateral (other) asset/token", async () => {
 
         let msg1 = "ICHIOwnable: caller is not the owner";
-        let msg2 = "OTV1B: unk oracle or token";
+        let msg2 = "OTV1B: unknown oracle or token";
         let msg3 = "OTV1B: token already exists";
         
         // deploy a new token
@@ -409,11 +409,10 @@ contract("OneToken V1 Base", accounts => {
             erc20Collateral = await IERC20Extended.at(collateral);
 
         let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: unregistered strategy"
-            msg4 = "OTV1B: unk strategy",
+            msg2 = "OTV1B: unknown token",
+            msg3 = "OTV1B: unknown strategy"
             msg5 = "OTV1B: can't assign strategy that doesn't recognize this vault",
-            msg6 = "OTV1B: unk strategy owner",
+            msg6 = "OTV1B: unknown strategy owner",
             msg7 = "OTV1B: not the token strategy",
             msg8 = "OTV1B: can't remove token with vault balance > 0",
             msg9 = "OTV1B: can't remove asset with strategy balance > 0";
@@ -424,7 +423,7 @@ contract("OneToken V1 Base", accounts => {
         await truffleAssert.reverts(oneToken.setStrategy(collateral, strategy.address, allowance, { from: badAddress }), msg1);
         await truffleAssert.reverts(oneToken.setStrategy(badAddress, strategy.address, allowance, { from: governance }), msg2);
         await truffleAssert.reverts(oneToken.setStrategy(collateral, badAddress, allowance, { from: governance }), msg3);
-        await truffleAssert.reverts(oneToken.setStrategy(collateral, mintMaster.address, allowance, { from: governance }), msg4);
+        await truffleAssert.reverts(oneToken.setStrategy(collateral, mintMaster.address, allowance, { from: governance }), msg3);
 
         // this whole section is to test msg5 pre-condition check
         await factory.deployOneTokenProxy(
@@ -553,10 +552,10 @@ contract("OneToken V1 Base", accounts => {
         // assign strategy
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url")
         await factory.admitModule(strategy_2.address, moduleType.strategy, "strategy name 2", "url")
-        await oneToken.setStrategy(collateral, strategy_2.address, allowance, { from: governance });
+        await oneToken.setStrategy(collateral, strategy_2.address, 0, { from: governance });
 
         // set strategy allowance to 10 (to be closed below)
-        await oneToken.setStrategyAllowance(collateral, allowance);
+        await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
 
@@ -566,9 +565,6 @@ contract("OneToken V1 Base", accounts => {
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy_2.address);
         assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the allowance wasn't set to 0 after closure");
 
-        getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the initial allowance should be 0");
-
         expectEvent(tx, 'StrategyClosed', {
 			sender: governance,
             token: collateral,
@@ -576,35 +572,32 @@ contract("OneToken V1 Base", accounts => {
 		})
 
         // access control
-        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, allowance, { from: badAddress }), msg1);
+        await truffleAssert.reverts(oneToken.increaseStrategyAllowance(collateral, allowance, { from: badAddress }), msg1);
 
         // adjust allowance
-        tx = await oneToken.setStrategyAllowance(collateral, allowance);
+        tx = await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance), "the initial allowance was not set");
+        //allowance (set from the start + additional allowance from increaseStrategyAllowance)
+        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(20), "the initial allowance was not set");
 
-        expectEvent(tx, 'StrategyAllowanceSet', {
+        expectEvent(tx, 'StrategyAllowanceIncreased', {
 			sender: governance,
             token: collateral,
             strategy: strategy.address,
             amount: allowance
 		})
 
-        await erc20Collateral.transfer(strategy.address, 1);
-        in_vault_and_strategies = in_vault_and_strategies + 1;
-        await oneToken.setStrategyAllowance(collateral, allowance);
+        // the strategy allowance should not change due to direct transfers to the strategy
+        // it changes only when the strategy itself obtains funds from the vault
+        await erc20Collateral.transfer(strategy.address, 31);
+        in_vault_and_strategies = in_vault_and_strategies + 31;
+        await oneToken.increaseStrategyAllowance(collateral, allowance);
         getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), parseInt(allowance) - 1, "the initial allowance was not set");
-
-        await erc20Collateral.transfer(strategy.address, 20);
-        in_vault_and_strategies = in_vault_and_strategies + 20;
-        await oneToken.setStrategyAllowance(collateral, allowance);
-        getAllowance = await erc20Collateral.allowance(oneToken.address, strategy.address);
-        assert.strictEqual(parseInt(getAllowance.toString(10)), 0, "the initial allowance should be 0");
+        assert.strictEqual(parseInt(getAllowance.toString(10)), 30, "the allowance should be 30");
 
         // quick separate check for strategy balance
         let initialBalance = await oneToken.getHoldings(collateral);
-        assert.strictEqual(parseInt(initialBalance[1].toString(10)), 21, "the strategy balance should be 21");
+        assert.strictEqual(parseInt(initialBalance[1].toString(10)), 31, "the strategy balance should be 31");
 
         // manually closing positions to return funds to the vault
         await strategy.closeAllPositions();
@@ -622,9 +615,9 @@ contract("OneToken V1 Base", accounts => {
             erc20Collateral = await IERC20Extended.at(collateral);
 
         let msg1 = "ICHIOwnable: caller is not the owner",
-            msg2 = "OTV1B: unk token",
-            msg3 = "OTV1B: unregistered strategy",
-            msg4 = "OTV1B:cs: unk token";
+            msg2 = "OTV1B: unknown token",
+            msg3 = "OTV1B: unknown strategy",
+            msg4 = "OTV1B:cs: unknown token";
 
         await factory.admitModule(strategy.address, moduleType.strategy, "strategy name", "url");
 
@@ -752,7 +745,7 @@ contract("OneToken V1 Base", accounts => {
         let msg1 = "OTV1B: no strategy";
         let collateral = await oneToken.collateralTokenAtIndex(0);
 
-        await truffleAssert.reverts(oneToken.setStrategyAllowance(collateral, "1000", { from: governance }), msg1);
+        await truffleAssert.reverts(oneToken.increaseStrategyAllowance(collateral, "1000", { from: governance }), msg1);
     });
     
 });

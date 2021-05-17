@@ -44,7 +44,6 @@ let
 	oneTokenOracle,
 	uniswapV2Factory,
 	memberTokenUsdtUniswapPair,
-	oneTokenAddress,
 	oneToken,
 	oneTokenProxy
 ;

@@ -14,7 +14,7 @@ contract SetTest {
     using AddressSet for AddressSet.Set;
     AddressSet.Set set;
 
-    function count() public view returns(uint) {
+    function count() public view returns(uint256) {
         return set.count();
     }
 
@@ -26,7 +26,7 @@ contract SetTest {
         set.remove(a, errorMsg);
     }
 
-    function keyAtIndex(uint i) public view returns(address) {
+    function keyAtIndex(uint256 i) public view returns(address) {
         return set.keyAtIndex(i);
     }
 }

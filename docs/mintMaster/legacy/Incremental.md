@@ -1,7 +1,6 @@
 ## `Incremental`
 
-Separate ownable instances can be managed by separate governing authorities.
-Immutable windowSize and granularity changes require a new oracle contract.
+Multi-tenant implementation with parameters managed by separate governing authorities.
 
 
 
@@ -29,7 +28,7 @@ changes the oracle used to assess the oneTokens' value in relation to the peg
 
 
 
-### `setParams(address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio)` (external)
+### `setParams(address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio, uint256 maxOrderVolume)` (external)
 
 updates parameters for a given oneToken that uses this module
      @dev inspects the oneToken implementation to establish authority
@@ -45,14 +44,20 @@ updates parameters for a given oneToken that uses this module
 
 returns an adjusted minting ratio
      @dev oneToken contracts call this to get their own minting ratio
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
 
 
 
-### `getMintingRatio2(address oneToken, address) → uint256 ratio, uint256 maxOrderValue` (public)
+### `getMintingRatio2(address oneToken, address) → uint256 ratio, uint256 maxOrderVolume` (public)
 
 returns an adjusted minting ratio. OneTokens use this function and it relies on initialization to select the oracle
      @dev anyone calls this to inspect any oneToken minting ratio based on the oracle chosen at initialization
      @param oneToken oneToken implementation to inspect
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
 
 
 
@@ -62,13 +67,19 @@ returns an adjusted minting ratio
      @dev anyone calls this to inspect any oneToken minting ratio based on arbitry oracles
      @param oneToken oneToken implementation to inspect
      @param oneTokenOracle explicit oracle selection
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
 
 
 
-### `updateMintingRatio(address collateralToken) → uint256 ratio, uint256 maxOrderVolume` (external)
+### `updateMintingRatio(address) → uint256 ratio, uint256 maxOrderVolume` (external)
 
 records and returns an adjusted minting ratio for a oneToken implemtation
      @dev oneToken implementations calls this periodically, e.g. in the minting process
+     // collateralToken argument in the interface supports future-use cases
+     @param ratio the minting ratio
+     @param maxOrderVolume recommended maximum order size, specified by governance. Defaults to unlimited
 
 
 
@@ -117,37 +128,37 @@ sets the current minting ratio
 
 
 
-### `SetParams(address sender, address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio)`
+### `SetParams(address sender, address oneToken, uint256 minRatio, uint256 maxRatio, uint256 stepSize, uint256 initialRatio, uint256 maxOrderVolume)`
 
 
 
 
 
-### `UpdateMintingRatio(address sender, uint256 newRatio, uint256 maxOrderVolume)`
+### `UpdateMintingRatio(address sender, address oneToken, uint256 newRatio, uint256 maxOrderVolume)`
 
 
 
 
 
-### `StepSizeSet(address sender, uint256 stepSize)`
+### `StepSizeSet(address sender, address oneToken, uint256 stepSize)`
 
 
 
 
 
-### `MinRatioSet(address sender, uint256 minRatio)`
+### `MinRatioSet(address sender, address oneToken, uint256 minRatio)`
 
 
 
 
 
-### `MaxRatioSet(address sender, uint256 maxRatio)`
+### `MaxRatioSet(address sender, address oneToken, uint256 maxRatio)`
 
 
 
 
 
-### `RatioSet(address sender, uint256 ratio)`
+### `RatioSet(address sender, address oneToken, uint256 ratio)`
 
 
 

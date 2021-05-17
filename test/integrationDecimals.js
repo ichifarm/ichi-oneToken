@@ -25,7 +25,8 @@ const
 	RATIO_95 = "950000000000000000", // 95%
 	RATIO_90 = "900000000000000000", // 90%
 	RATIO_75 = "750000000000000000", // 75%
-	STEP_002 =   "2000000000000000"  // 0.2%
+	STEP_002 =   "2000000000000000",  // 0.2%
+	MAX_VOL = "9999999999999999999999999999999999999999999999999"; // approximately unlimited
 
 const url = "#"
 
@@ -207,7 +208,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const bobCollateralBalanceBefore = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceBefore = await memberToken.balanceOf(bob);
@@ -267,7 +268,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const mintingAmount = 1;
 		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
@@ -351,9 +352,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 	})
 
 	it("UniswapOracleSimple amountRequired returns correct prices", async () => {
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
-
 		// passing 10 ** 18, expecting 1 memberToken back
 		const value = getBigNumber(1,18).toString();
 		const { amountTokens, volatility } = await memberTokenOracle.amountRequired(memberToken.address, value);
@@ -373,7 +371,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		await transferSomeTokensToBob(amount);
 		
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const mintingAmount = 1;
 		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
@@ -400,9 +398,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		let reserve2 = 200;
 		await setupUniswapOracle(reserve1, reserve2);
 
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
-
 		// passing 1 memberToken, expecting 2 * 10 ** 18 back, have to account for rounding
 		const value = getBigNumber(2,18).toString();
 		const { amountUsd, volatility } = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
@@ -416,9 +411,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		let reserve1 = 100;
 		let reserve2 = 200;
 		await setupUniswapOracle(reserve1, reserve2);
-
-		//let readRes = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9).toString());
-		//console.log("quote from memberTokenOracle = "+readRes[0].toString());
 
 		// passing 10 ** 18, expecting 0.5 memberToken back, have to account for rounding
 		const value = getBigNumber(1,18).toString();
@@ -454,7 +446,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const bobOneTokenBalanceBefore = await oneToken.balanceOf(bob);
 
 		await incrementalMintMaster.setParams(oneToken.address,
-			RATIO_50, RATIO_95, STEP_002, RATIO_90, { from: governance });
+			RATIO_50, RATIO_95, STEP_002, RATIO_90, MAX_VOL, { from: governance });
 		
 		const mintingAmount = 100;
 		await oneToken.mint(collateralToken.address, getBigNumber(mintingAmount,18), { from: bob });
@@ -462,14 +454,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const bobCollateralBalanceAfter = await collateralToken.balanceOf(bob);
 		const bobMemberBalanceAfter = await memberToken.balanceOf(bob);
 		const bobOneTokenBalanceAfter = await oneToken.balanceOf(bob);
-
-		console.log(bobCollateralBalanceBefore.toString());
-		console.log(bobMemberBalanceBefore.toString());
-		console.log(bobOneTokenBalanceBefore.toString());
-
-		console.log(bobCollateralBalanceAfter.toString());
-		console.log(bobMemberBalanceAfter.toString());
-		console.log(bobOneTokenBalanceAfter.toString());
 
 		// should be 90
 		assert.isTrue(Number(bobCollateralBalanceBefore) - Number(bobCollateralBalanceAfter) == 90 * 10 ** 6);

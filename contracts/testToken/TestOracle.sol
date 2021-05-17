@@ -14,14 +14,15 @@ contract TestOracle is OracleCommon {
 
     event Deployed(address sender);
     event Initialized(address sender, address baseToken, address indexToken);
+    event Updated(address sender);
     
     /**
     @dev should the oracle get off center up or down
      */
     bool private adjustUp;
 
-    constructor(address oneTokenFactory, string memory description, address indexToken_) 
-        OracleCommon(oneTokenFactory, description, indexToken_) 
+    constructor(address oneTokenFactory_, string memory description_, address indexToken_) 
+        OracleCommon(oneTokenFactory_, description_, indexToken_) 
     {
         adjustUp = false;
         emit Deployed(msg.sender);
@@ -44,13 +45,15 @@ contract TestOracle is OracleCommon {
      @notice update is called when a oneToken wants to persist observations
      @dev there is nothing to do in this case
      */
-    function update(address /* token */) external override {}
+    function update(address /* token */) external override {
+        emit Updated(msg.sender);
+    }
 
     /**
      @notice returns equivalent amount of index tokens for an amount of baseTokens and volatility metric
      @dev token:usdToken is always 1:1 and valatility is always 0
      */
-    function read(address /* token */, uint amount) public view override returns(uint amountOut, uint volatility) {
+    function read(address /* token */, uint256 amount) public view override returns(uint256 amountOut, uint256 volatility) {
         /// @notice it is always 1:1 with no volatility
         this; // silence mutability warning
         if (adjustUp) {
@@ -65,7 +68,7 @@ contract TestOracle is OracleCommon {
      @notice returns the tokens needed to reach a target usd value
      @dev token:usdToken is always 1:1 and valatility is always 0
      */
-    function amountRequired(address /* token */, uint amountUsd) external view override returns(uint tokens, uint volatility) {
+    function amountRequired(address /* token */, uint256 amountUsd) external view override returns(uint256 tokens, uint256 volatility) {
         /// @notice it is always 1:1 with no volatility
         this; // silence visbility warning
         tokens = amountUsd;

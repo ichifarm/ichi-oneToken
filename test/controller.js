@@ -4,7 +4,6 @@ const { expectEvent } = require("@openzeppelin/test-helpers");
 
 const 
     ArbitraryStrategy = artifacts.require("Arbitrary"),
-	StrategyCommon = artifacts.require("StrategyCommon"),
 	OneTokenV1Base = artifacts.require("OneTokenV1Base"),
     OneToken = artifacts.require("OneTokenV1"),
     Factory = artifacts.require("OneTokenFactory"),
@@ -137,7 +136,7 @@ contract("Controller", accounts => {
     });
 
     it("should call executeStrategy", async () => {
-        let msg1 = "OTV1B:es: unk token";
+        let msg1 = "OTV1B:es: unknown token";
 
         await secondOneToken.changeController(secondController.address, { from: governance });
         await truffleAssert.reverts(secondController.executeStrategy(secondOneToken.address, badAddress, { from: governance }), msg1);

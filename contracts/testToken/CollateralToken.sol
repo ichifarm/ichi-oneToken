@@ -8,7 +8,7 @@ contract CollateralToken is ICHIERC20 {
 
     constructor() {
         initERC20("Collateral Token", "CTTest");
-        _mint(msg.sender, 1000 * 10 ** 18);
+        _mint(msg.sender, 100000 * 10 ** 18);
     }
 
 }
