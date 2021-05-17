@@ -60,7 +60,8 @@ const config: HardhatUserConfig = {
   networks: {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts,
+      accounts: [`0x${process.env.MAINNET_PK}`],
+      saveDeployments: true,
       gasPrice: 120 * 1000000000,
       chainId: 1,
     },
@@ -72,7 +73,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         enabled: process.env.FORKING === "true",
-        url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+        url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       live: false,
       saveDeployments: true,
@@ -110,7 +111,7 @@ const config: HardhatUserConfig = {
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts,
+      accounts: [`0x${process.env.TESTNET_PK}`],
       chainId: 42,
       live: true,
       saveDeployments: true,
