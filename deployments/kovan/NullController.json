@@ -1,0 +1,215 @@
+{
+  "address": "0xE5e6Ba3629DC563942578623992aC08A64142aCF",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "oneTokenFactory_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oneTokenFactory",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "description",
+          "type": "string"
+        }
+      ],
+      "name": "ControllerDeployed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "ControllerInitialized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "ControllerPeriodic",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "MODULE_TYPE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "description",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oneTokenFactory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "periodic",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x6f52f45615cdafc4e9443b189d52eeb60faed8e175c6a5beff765024e9ada268",
+  "receipt": {
+    "to": null,
+    "from": "0x451Efff92a3a1471b7af9DDc1369D9D157E6475A",
+    "contractAddress": "0xE5e6Ba3629DC563942578623992aC08A64142aCF",
+    "transactionIndex": 0,
+    "gasUsed": "304324",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000900100000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x4c4bbce048df95c8210c24f8831222cc3bfb754210bdf8a8a882dc33a6657eef",
+    "transactionHash": "0x6f52f45615cdafc4e9443b189d52eeb60faed8e175c6a5beff765024e9ada268",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 25062768,
+        "transactionHash": "0x6f52f45615cdafc4e9443b189d52eeb60faed8e175c6a5beff765024e9ada268",
+        "address": "0xE5e6Ba3629DC563942578623992aC08A64142aCF",
+        "topics": [
+          "0x2c4a511442c488be13260cd30e57e1e2588d5b1e5e53a773a3aab4646a16f2cb"
+        ],
+        "data": "0x000000000000000000000000451efff92a3a1471b7af9ddc1369d9d157e6475a0000000000000000000000006a47dd32fc2737de5881d63fec9f27670297fbe50000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000f4e756c6c20436f6e74726f6c6c65720000000000000000000000000000000000",
+        "logIndex": 0,
+        "blockHash": "0x4c4bbce048df95c8210c24f8831222cc3bfb754210bdf8a8a882dc33a6657eef"
+      }
+    ],
+    "blockNumber": 25062768,
+    "cumulativeGasUsed": "304324",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x6a47Dd32FC2737De5881d63FeC9f27670297fbE5"
+  ],
+  "solcInputHash": "149543c6066abfe7655600414f329617",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.6+commit.7338295f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"oneTokenFactory_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oneTokenFactory\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"}],\"name\":\"ControllerDeployed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"ControllerInitialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"ControllerPeriodic\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"MODULE_TYPE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"description\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"oneTokenFactory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"periodic\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"constructor\":{\"details\":\"the controller implementation can be extended but must implement the minimum interface\"},\"periodic()\":{\"details\":\"Acceptable access control will vary by implementation. \"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"constructor\":{\"notice\":\"this controller implementation supports the interface but does not intervene in any way\"},\"init()\":{\"notice\":\"OneTokenBase (msg.sender) calls this when the controller is assigned. Must be re-initializeable.\"},\"periodic()\":{\"notice\":\"oneTokens invoke periodic() to trigger periodic processes. Can be trigger externally.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/controller/null controller/NullController.sol\":\"NullController\"},\"evmVersion\":\"istanbul\",\"libraries\":{\":__CACHE_BREAKER__\":\"0x00000000d41867734bbee4c6863d9255b2b06ac1\"},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/controller/ControllerCommon.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\n\\npragma solidity 0.7.6;\\n\\nimport \\\"../interface/IController.sol\\\";\\nimport \\\"../interface/IOneTokenFactory.sol\\\";\\n\\nabstract contract ControllerCommon is IController {\\n\\n    bytes32 constant public override MODULE_TYPE = keccak256(abi.encodePacked(\\\"ICHI V1 Controller\\\"));\\n\\n    address public override oneTokenFactory;\\n    string public override description;\\n\\n    event ControllerDeployed(address sender, address oneTokenFactory, string description);\\n    event ControllerInitialized(address sender);\\n    event ControllerPeriodic(address sender);\\n\\n    modifier onlyKnownToken {\\n        require(IOneTokenFactory(oneTokenFactory).isOneToken(msg.sender), \\\"ICHIModuleCommon: msg.sender is not a known oneToken\\\");\\n        _;\\n    }\\n\\n    /**\\n     @notice Controllers rebalance funds and may execute strategies periodically.\\n     */\\n    \\n    /**\\n     @notice controllers are bound to factories at deployment time\\n     @param oneTokenFactory_ factory to bind to\\n     @param description_ human-readable, description only\\n     */ \\n    constructor(address oneTokenFactory_, string memory description_) {\\n        oneTokenFactory = oneTokenFactory_;\\n        description = description_;\\n        emit ControllerDeployed(msg.sender, oneTokenFactory_, description);\\n    }    \\n    \\n    /**\\n     @notice oneTokens invoke periodic() to trigger periodic processes. Can be trigger externally.\\n     @dev Acceptable access control will vary by implementation. \\n     */  \\n    function periodic() external virtual override {\\n        emit ControllerPeriodic(msg.sender);\\n    }  \\n        \\n    /**\\n     @notice OneTokenBase (msg.sender) calls this when the controller is assigned. Must be re-initializeable.\\n     */\\n    function init() external onlyKnownToken virtual override {\\n        emit ControllerInitialized(msg.sender);\\n    }\\n\\n}\\n\",\"keccak256\":\"0xfc9ac6d420a46a06d094e13437305eaf38b04e85304f70fef74d324f267fdd72\",\"license\":\"BUSL-1.1\"},\"contracts/controller/null controller/NullController.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\n\\npragma solidity 0.7.6;\\n\\nimport \\\"../ControllerCommon.sol\\\";\\n\\ncontract NullController is ControllerCommon {\\n\\n    /**\\n     @notice this controller implementation supports the interface but does not intervene in any way\\n     @dev the controller implementation can be extended but must implement the minimum interface\\n     */\\n    constructor(address oneTokenFactory_)\\n       ControllerCommon(oneTokenFactory_, \\\"Null Controller\\\")\\n     {} \\n\\n}\\n\",\"keccak256\":\"0x50703f12a3522b095c3eacb252d6cda417550b147a47dc904609f00526e3bf5a\",\"license\":\"BUSL-1.1\"},\"contracts/interface/IController.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\n\\npragma solidity 0.7.6;\\n\\ninterface IController {\\n    \\n    function oneTokenFactory() external returns(address);\\n    function description() external returns(string memory);\\n    function init() external;\\n    function periodic() external;\\n    function MODULE_TYPE() external view returns(bytes32);    \\n}\\n\",\"keccak256\":\"0x84e8a9d31344ac4a440361356e0dce2d93cf7c4cfd364da6896fa5d76a4a9a7e\",\"license\":\"BUSL-1.1\"},\"contracts/interface/IOneTokenFactory.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\n\\npragma solidity 0.7.6;\\npragma abicoder v2;\\n\\nimport \\\"./InterfaceCommon.sol\\\";\\n\\ninterface IOneTokenFactory is InterfaceCommon {\\n\\n    function oneTokenProxyAdmins(address) external returns(address);\\n    function deployOneTokenProxy(\\n        string memory name,\\n        string memory symbol,\\n        address governance, \\n        address version,\\n        address controller,\\n        address mintMaster,              \\n        address memberToken, \\n        address collateral,\\n        address oneTokenOracle\\n    ) \\n        external \\n        returns(address newOneTokenProxy, address proxyAdmin);\\n\\n    function admitModule(address module, ModuleType moduleType, string memory name, string memory url) external;\\n    function updateModule(address module, string memory name, string memory url) external;\\n    function removeModule(address module) external;\\n\\n    function admitForeignToken(address foreignToken, bool collateral, address oracle) external;\\n    function updateForeignToken(address foreignToken, bool collateral) external;\\n    function removeForeignToken(address foreignToken) external;\\n\\n    function assignOracle(address foreignToken, address oracle) external;\\n    function removeOracle(address foreignToken, address oracle) external; \\n\\n    /**\\n     * View functions\\n     */\\n    \\n    function MODULE_TYPE() external view returns(bytes32);\\n\\n    function oneTokenCount() external view returns(uint256);\\n    function oneTokenAtIndex(uint256 index) external view returns(address);\\n    function isOneToken(address oneToken) external view returns(bool);\\n \\n    // modules\\n\\n    function moduleCount() external view returns(uint256);\\n    function moduleAtIndex(uint256 index) external view returns(address module);\\n    function isModule(address module) external view returns(bool);\\n    function isValidModuleType(address module, ModuleType moduleType) external view returns(bool);\\n\\n    // foreign tokens\\n\\n    function foreignTokenCount() external view returns(uint256);\\n    function foreignTokenAtIndex(uint256 index) external view returns(address);\\n    function foreignTokenInfo(address foreignToken) external view returns(bool collateral, uint256 oracleCount);\\n    function foreignTokenOracleCount(address foreignToken) external view returns(uint256);\\n    function foreignTokenOracleAtIndex(address foreignToken, uint256 index) external view returns(address);\\n    function isOracle(address foreignToken, address oracle) external view returns(bool);\\n    function isForeignToken(address foreignToken) external view returns(bool);\\n    function isCollateral(address foreignToken) external view returns(bool);\\n}\",\"keccak256\":\"0x058f27f1dc56c298d2f8ffa88d1fb67dc7c421327089bfb3a77ef9ecf943c6e4\",\"license\":\"BUSL-1.1\"},\"contracts/interface/InterfaceCommon.sol\":{\"content\":\"// SPDX-License-Identifier: BUSL-1.1\\n\\npragma solidity 0.7.6;\\npragma abicoder v2;\\n\\ninterface InterfaceCommon {\\n\\n    enum ModuleType { Version, Controller, Strategy, MintMaster, Oracle }\\n\\n}\\n\",\"keccak256\":\"0x818fc764b7da096a438fc9322588d4fbe0fc655d952033a3d2b5d86a863570a2\",\"license\":\"BUSL-1.1\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516105943803806105948339818101604052602081101561003357600080fd5b505160408051808201909152600f8082526e273ab6361021b7b73a3937b63632b960891b60208301908152600080546001600160a01b0319166001600160a01b0386161790558392916100889160019161015a565b5060408051338082526001600160a01b03851660208301526060928201838152600180546002600019610100838516150201909116049484018590527f2c4a511442c488be13260cd30e57e1e2588d5b1e5e53a773a3aab4646a16f2cb9492938793919290916080830190849080156101425780601f1061011757610100808354040283529160200191610142565b820191906000526020600020905b81548152906001019060200180831161012557829003601f168201915b505094505050505060405180910390a15050506101fb565b828054600181600116156101000203166002900490600052602060002090601f01602090048101928261019057600085556101d6565b82601f106101a957805160ff19168380011785556101d6565b828001600101855582156101d6579182015b828111156101d65782518255916020019190600101906101bb565b506101e29291506101e6565b5090565b5b808211156101e257600081556001016101e7565b61038a8061020a6000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c8063032c40271461005c5780635775029f146100665780637284e41614610080578063a2729c23146100fd578063e1c7392a14610121575b600080fd5b610064610129565b005b61006e61015e565b60408051918252519081900360200190f35b61008861019d565b6040805160208082528351818301528351919283929083019185019080838360005b838110156100c25781810151838201526020016100aa565b50505050905090810190601f1680156100ef5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b61010561022a565b604080516001600160a01b039092168252519081900360200190f35b610064610239565b6040805133815290517f7560d1c58eddbe226f8a7a765eb824630c903a64c2876d91cab58312511d3c599181900360200190a1565b60405160200180807124a1a424902b189021b7b73a3937b63632b960711b81525060120190506040516020818303038152906040528051906020012081565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156102225780601f106101f757610100808354040283529160200191610222565b820191906000526020600020905b81548152906001019060200180831161020557829003601f168201915b505050505081565b6000546001600160a01b031681565b600054604080516309de917f60e31b815233600482015290516001600160a01b0390921691634ef48bf891602480820192602092909190829003018186803b15801561028457600080fd5b505afa158015610298573d6000803e3d6000fd5b505050506040513d60208110156102ae57600080fd5b50516102eb5760405162461bcd60e51b81526004018080602001828103825260348152602001806103216034913960400191505060405180910390fd5b6040805133815290517faf6cb4b6bd854745d0a59a68dd9678894a2a8a403d922ed85763badb1548c7149181900360200190a156fe494348494d6f64756c65436f6d6d6f6e3a206d73672e73656e646572206973206e6f742061206b6e6f776e206f6e65546f6b656ea2646970667358221220977df26622f709443c6c49f5e4caf91057e70fddb3418d7d87075aa07d6a3a9f64736f6c63430007060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c8063032c40271461005c5780635775029f146100665780637284e41614610080578063a2729c23146100fd578063e1c7392a14610121575b600080fd5b610064610129565b005b61006e61015e565b60408051918252519081900360200190f35b61008861019d565b6040805160208082528351818301528351919283929083019185019080838360005b838110156100c25781810151838201526020016100aa565b50505050905090810190601f1680156100ef5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b61010561022a565b604080516001600160a01b039092168252519081900360200190f35b610064610239565b6040805133815290517f7560d1c58eddbe226f8a7a765eb824630c903a64c2876d91cab58312511d3c599181900360200190a1565b60405160200180807124a1a424902b189021b7b73a3937b63632b960711b81525060120190506040516020818303038152906040528051906020012081565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156102225780601f106101f757610100808354040283529160200191610222565b820191906000526020600020905b81548152906001019060200180831161020557829003601f168201915b505050505081565b6000546001600160a01b031681565b600054604080516309de917f60e31b815233600482015290516001600160a01b0390921691634ef48bf891602480820192602092909190829003018186803b15801561028457600080fd5b505afa158015610298573d6000803e3d6000fd5b505050506040513d60208110156102ae57600080fd5b50516102eb5760405162461bcd60e51b81526004018080602001828103825260348152602001806103216034913960400191505060405180910390fd5b6040805133815290517faf6cb4b6bd854745d0a59a68dd9678894a2a8a403d922ed85763badb1548c7149181900360200190a156fe494348494d6f64756c65436f6d6d6f6e3a206d73672e73656e646572206973206e6f742061206b6e6f776e206f6e65546f6b656ea2646970667358221220977df26622f709443c6c49f5e4caf91057e70fddb3418d7d87075aa07d6a3a9f64736f6c63430007060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "constructor": {
+        "details": "the controller implementation can be extended but must implement the minimum interface"
+      },
+      "periodic()": {
+        "details": "Acceptable access control will vary by implementation. "
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "constructor": {
+        "notice": "this controller implementation supports the interface but does not intervene in any way"
+      },
+      "init()": {
+        "notice": "OneTokenBase (msg.sender) calls this when the controller is assigned. Must be re-initializeable."
+      },
+      "periodic()": {
+        "notice": "oneTokens invoke periodic() to trigger periodic processes. Can be trigger externally."
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 5758,
+        "contract": "contracts/controller/null controller/NullController.sol:NullController",
+        "label": "oneTokenFactory",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 5761,
+        "contract": "contracts/controller/null controller/NullController.sol:NullController",
+        "label": "description",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_string_storage"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
