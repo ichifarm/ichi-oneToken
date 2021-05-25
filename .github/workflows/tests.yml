@@ -33,6 +33,19 @@ jobs:
       # This is required separately from yarn test because it generates the typechain definitions
       - name: Build
         run: yarn build
+        env: 
+          INFURA_API_KEY: none
+          MAINNET_PK: none
+          TESTNET_PK: none
+          ETHERSCAN_API_KEY: none
+          COINMARKETCAP_API_KEY: none
+
 
       - name: Run unit tests
         run: yarn test
+        env: 
+          INFURA_API_KEY: none
+          MAINNET_PK: none
+          TESTNET_PK: none
+          ETHERSCAN_API_KEY: none
+          COINMARKETCAP_API_KEY: none
