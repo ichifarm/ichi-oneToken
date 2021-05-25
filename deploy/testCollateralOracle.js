@@ -30,17 +30,6 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
             args: [factory.address, name, collateralToken.address],
             log: true
         })
-
-        if (chainId != 31337) { //don't verify contract on localnet
-            await hre.run("verify:verify", {
-                address: oracle.address,
-                constructorArguments: [
-                    factory.address,
-                    name,
-                    collateralToken.address
-                ],
-            })
-        }
     
         await admin.admitModule(oracle.address, moduleType.oracle, name, url, {
             from: deployer
