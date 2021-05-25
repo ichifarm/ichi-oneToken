@@ -31,8 +31,8 @@ jobs:
         run: yarn install --frozen-lockfile
 
       # This is required separately from yarn test because it generates the typechain definitions
-      - name: Compile
-        run: yarn compile
+      - name: Build
+        run: yarn build
 
       - name: Run unit tests
         run: yarn test
