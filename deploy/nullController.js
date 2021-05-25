@@ -15,7 +15,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     }
 
     const 
-        name = "Null Controller"
+        name = "Basic Controller"
         url = "ichi.org"
 
     const
