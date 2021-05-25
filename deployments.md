@@ -1,12 +1,12 @@
 ## Kovan Deployment
 
-- oneTokenFactory: https://kovan.etherscan.io/address/0x84b882BaB66BEC141e5B198B101c8715941Fd681
+- oneTokenFactory: https://kovan.etherscan.io/address/0x6a47Dd32FC2737De5881d63FeC9f27670297fbE5
 
 ### Token Template
-- oneTokenV1: https://kovan.etherscan.io/address/0xC1f0423a153Ce58fe60Cc50efADF443DD4D57f14
+- oneTokenV1: https://kovan.etherscan.io/address/0x7cb704F7CC1A5A526d90Aef263ECd96C35F00332
 
 ### Mint Masters
-- mintMasterIncremental: https://kovan.etherscan.io/address/0x0346735e8feA59AA1e6F89167E2cb78985CCE577
+- mintMasterIncremental: https://kovan.etherscan.io/address/0x17262ba85266FEdbDF3D22Eee5414ef77045Ff0a
 
 ### Controllers
-- nullController: https://kovan.etherscan.io/address/0xf7Bb8Bfdd516d54F9E4005FDF8580A24126E55Af
+- nullController: https://kovan.etherscan.io/address/0xE5e6Ba3629DC563942578623992aC08A64142aCF
