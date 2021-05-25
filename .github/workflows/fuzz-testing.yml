@@ -59,3 +59,9 @@ jobs:
 
       - name: Run ${{ matrix.testName }}
         run: echidna-test . --contract ${{ matrix.testName }} --config echidna.config.yml
+        env: 
+          INFURA_API_KEY: none
+          MAINNET_PK: ${{ secrets.TESTNET }}
+          TESTNET_PK: ${{ secrets.TESTNET }}
+          ETHERSCAN_API_KEY: none
+          COINMARKETCAP_API_KEY: none
