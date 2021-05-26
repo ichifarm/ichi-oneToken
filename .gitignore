@@ -2,7 +2,6 @@
 .DS_Store
 artifacts/
 cache/
-deployments/
 coverage/
 coverage.json
 package-lock.json
