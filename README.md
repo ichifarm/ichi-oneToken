@@ -1,6 +1,6 @@
 # ICHI oneToken Factory
 
-[![Tests](https://github.com/37aces/ichi-oneToken/actions/workflows/tests.yml/badge.svg)](https://github.com/37aces/ichi-oneToken/actions/workflows/tests.yml)
+[![OneToken Tests](https://github.com/ichifarm/ichi-oneToken/actions/workflows/tests.yml/badge.svg)](https://github.com/37aces/ichifarm/actions/workflows/tests.yml)
 
 ### Mainnet Addresses
 
