@@ -53,3 +53,4 @@ jobs:
           TESTNET_PK: ${{ secrets.TESTNET }}
           ETHERSCAN_API_KEY: none
           COINMARKETCAP_API_KEY: none
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}

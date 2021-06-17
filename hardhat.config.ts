@@ -72,8 +72,7 @@ const config: HardhatUserConfig = {
     },
     hardhat: {
       forking: {
-        enabled: process.env.FORKING === "true",
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`
       },
       live: false,
       saveDeployments: true,
