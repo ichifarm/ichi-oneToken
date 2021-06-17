@@ -1,25 +1,14 @@
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { ethers, artifacts } = require("hardhat");
 const truffleAssert = require('truffle-assertions');
-//const { expectEvent } = require("@openzeppelin/test-helpers");
-//const { time } = require("./utilities")
 const { getBigNumber } = require("./utilities");
 
 const Factory = artifacts.require("OneTokenFactory");
 const oracleFactory = artifacts.require("RenFILOracle");
 
-const
-    mainnet_chainlink = '0x1A31D42149e82Eb99777f903C08A2E41A00085d3'
-
-const 
-    name = 'renFILOracle',
-    url = 'https://renproject.io/'
-
-const BASE_TEN = 10
-          
 const ONE_USD = getBigNumber(1,18);
 const ONE_renFIL = getBigNumber(1,18);
-const ALLOWED_PRECISION_LOSS_PER_TOKEN = getBigNumber(1,2);
+const ALLOWED_PRECISION_LOSS_PER_TOKEN = getBigNumber(1,4);
 
 const memberToken = '0xD5147bc8e386d91Cc5DBE72099DAC6C9b99276F5'
 
@@ -54,38 +43,46 @@ contract('RenFILOracle', () => {
     describe('Return Values', async() => {
         it('getPrice should be greater than 1', async() => {
             const price = await oracle.getThePrice()
-            console.log("renFIL Price: "+price.toString())
-            expect(price.isNegative()).to.equal(false)
-            expect(price.isZero()).to.equal(false)
+            assert.isTrue(Number(price) > 1);
         })
 
         it('read should return value of the token in USD for 1 token', async() => {
-            const { amountUsd, volatility } = await oracle.read(memberToken.address, ONE_renFIL)
+            const { amountUsd, volatility } = await oracle.read(memberToken, ONE_renFIL)
             const price = await oracle.getThePrice()
-            expect(amountUsd).to.equal(price)
+            assert.isTrue(Number(price) == Number(amountUsd));
         })
 
         it('read should return value of the token in USD for 100 tokens', async() => {
-            const { amountUsd, volatility } = await oracle.read(memberToken.address, ONE_renFIL.mul(100))
-            const price = (await oracle.getThePrice()).mul(100)
-            expect(amountUsd).to.equal(price)
+            const { amountUsd, volatility } = await oracle.read(memberToken, ONE_renFIL.mul(100))
+            const price = await oracle.getThePrice();
+            const calculatedAmount = Number(price) * 100;
+            //assert.isTrue(Number(price) * 100 == Number(amountUsd));
+            expect(Number(amountUsd)).to.equal(calculatedAmount)
         })
 
         it('read should return value of the token in USD for 100000 tokens', async() => {
-            const { amountUsd, volatility } = await oracle.read(memberToken.address, ONE_renFIL.mul(100000))
-            const price = (await oracle.getThePrice()).mul(100000)
-            expect(amountUsd).to.equal(price)
+            const { amountUsd, volatility } = await oracle.read(memberToken, ONE_renFIL.mul(100000))
+            const price = await oracle.getThePrice();
+            const calculatedAmount = Number(price) * 100000;
+
+            const ALLOWED_PRECISION_LOSS = Number(ALLOWED_PRECISION_LOSS_PER_TOKEN) * 100000;
+
+            if (Number(amountUsd) > calculatedAmount) {
+                expect(Number(amountUsd)).to.be.lessThanOrEqual(calculatedAmount + ALLOWED_PRECISION_LOSS)
+            } else {
+                expect(Number(amountUsd)).to.be.greaterThanOrEqual(calculatedAmount - ALLOWED_PRECISION_LOSS)
+            }
         })
 
         it('amountRequired for 1 USD should be (1 token / price)', async() => {
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, ONE_USD)
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, ONE_USD)
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(ONE_USD) / Number(price) * 10 ** 18;
             expect(Number(amountTokens)).to.equal(calculatedAmount)
         })
 
         it('amountRequired for 1000 USD should be (1000 tokens / price)', async() => {
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, ONE_USD.mul(1000))
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, ONE_USD.mul(1000))
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(ONE_USD.mul(1000)) / Number(price) * 10 ** 18;
 
@@ -101,7 +98,7 @@ contract('RenFILOracle', () => {
         })
 
         it('amountRequired for 1000000 USD should be (1000000 tokens / price)', async() => {
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, ONE_USD.mul(1000000))
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, ONE_USD.mul(1000000))
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(ONE_USD.mul(1000000)) / Number(price) * 10 ** 18;
 
@@ -120,7 +117,7 @@ contract('RenFILOracle', () => {
     describe('Limited discrepancies from precision loss', async() => {
         it('discrepacy should not exceed 1 cent when valuating $1B', async() => {
             const ONE_BILLION = ONE_USD.mul(1000000000);
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, ONE_BILLION)
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, ONE_BILLION)
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(ONE_BILLION) / Number(price) * 10 ** 18;
 
@@ -135,7 +132,7 @@ contract('RenFILOracle', () => {
 
         it('discrepacy should not exceed 1 cent when valuating $1T', async() => {
             const ONE_TRILLION = ONE_USD.mul(1000000000000);
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, ONE_TRILLION)
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, ONE_TRILLION)
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(ONE_TRILLION) / Number(price) * 10 ** 18;
 
@@ -152,7 +149,7 @@ contract('RenFILOracle', () => {
     describe('Edge cases', async() => {
         it('valuating very small amounts - amountRequired (10**3 is a lower limit for renFIL)', async() => {
             const amount = 1000;
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, amount)
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, amount)
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(amount) / Number(price) * 10 ** 18;
 
@@ -164,7 +161,7 @@ contract('RenFILOracle', () => {
 
         it('valuating very small amounts - read (no limit)', async() => {
             const amount = 1;
-            const { amountUsd, volatility } = await oracle.read(memberToken.address, amount)
+            const { amountUsd, volatility } = await oracle.read(memberToken, amount)
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(amount) * Number(price) / 10 ** 18;
 
@@ -179,10 +176,10 @@ contract('RenFILOracle', () => {
             const msg = "VM Exception while processing transaction: revert SafeMath: multiplication overflow";
 
             let amount = getBigNumber(1,60);
-            await truffleAssert.reverts(oracle.amountRequired(memberToken.address, amount), msg);
+            await truffleAssert.reverts(oracle.amountRequired(memberToken, amount), msg);
 
             amount = getBigNumber(1,59);
-            const { amountTokens, volatility } = await oracle.amountRequired(memberToken.address, amount)
+            const { amountTokens, volatility } = await oracle.amountRequired(memberToken, amount)
 
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(amount) / Number(price) * 10 ** 18;
@@ -197,10 +194,10 @@ contract('RenFILOracle', () => {
             const msg = "VM Exception while processing transaction: revert SafeMath: multiplication overflow";
 
             let amount = getBigNumber(1,58);
-            await truffleAssert.reverts(oracle.read(memberToken.address, amount), msg);
+            await truffleAssert.reverts(oracle.read(memberToken, amount), msg);
 
             amount = getBigNumber(1,57);
-            const { amountUsd, volatility } = await oracle.read(memberToken.address, amount)
+            const { amountUsd, volatility } = await oracle.read(memberToken, amount)
 
             const price = await oracle.getThePrice()
             const calculatedAmount = Number(amount) / Number(price) * 10 ** 18;
