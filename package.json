@@ -78,7 +78,6 @@
     "web3-eth-abi": "^1.3.5"
   },
   "dependencies": {
-    "@chainlink/contracts": "^0.1.7",
     "@remix-project/remixd": "^0.3.2",
     "develop": "^1.0.0"
   }

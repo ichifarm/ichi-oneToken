@@ -4,7 +4,7 @@ pragma solidity 0.7.6;
 
 import "../../oracle/OracleCommon.sol";
 import "../../interface/IERC20Extended.sol";
-import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
+import "../../_chainlink/interfaces/AggregatorV3Interface.sol";
 import "../../_openzeppelin/math/SafeMath.sol";
 
 /**
