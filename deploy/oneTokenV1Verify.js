@@ -7,7 +7,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
     const oneTokenV1 = await deployments.get("OneTokenV1")
 
-    if (chainId != 31337) { //don't verify contract on localnet
+    if (chainId == 42 || chainId == 1) { //don't verify contract on localnet
      
                 await hre.run("verify:verify", {
                     address: oneTokenV1.address

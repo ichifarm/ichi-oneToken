@@ -1,16 +1,12 @@
-import { ethers } from 'hardhat'
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
-import { RenFILOracle } from '../typechain/RenFILOracle'
-import { OneTokenFactory } from '../typechain/OneTokenFactory'
-import { factoryFixture, mockTokenFixture, moduleType } from '../lib/fixtures'
-import { RenFIL } from '../typechain/RenFIL'
-import { BigNumber } from 'ethers'
-import { ONE_TOKENS_V1 } from '@ichi.org/sdk'
+const { expect } = require("chai");
+const { ethers, artifacts } = require("hardhat");
 const truffleAssert = require('truffle-assertions');
+//const { expectEvent } = require("@openzeppelin/test-helpers");
+//const { time } = require("./utilities")
+const { getBigNumber } = require("./utilities");
 
-chai.use(solidity);
-const { expect, assert } = chai;
+const Factory = artifacts.require("OneTokenFactory");
+const oracleFactory = artifacts.require("RenFILOracle");
 
 const
     mainnet_chainlink = '0x1A31D42149e82Eb99777f903C08A2E41A00085d3'
@@ -20,36 +16,38 @@ const
     url = 'https://renproject.io/'
 
 const BASE_TEN = 10
-function getBigNumber(amount: number, decimals = 18) {
-    return BigNumber.from(amount).mul(BigNumber.from(BASE_TEN).pow(decimals))
-}
           
 const ONE_USD = getBigNumber(1,18);
 const ONE_renFIL = getBigNumber(1,18);
 const ALLOWED_PRECISION_LOSS_PER_TOKEN = getBigNumber(1,2);
 
-describe('RenFILOracle', () => {
-    let oracle: RenFILOracle
-    let factory: OneTokenFactory
-    let memberToken: RenFIL
+const memberToken = '0xD5147bc8e386d91Cc5DBE72099DAC6C9b99276F5'
+
+contract('RenFILOracle', () => {
+    let oracle, 
+        factory
 
     beforeEach(async () => {
         
         // 1
-        const [deployer, user] = await ethers.getSigners()
+       // const [deployer, user] = await ethers.getSigners()
 
         // 2
-        factory = (await factoryFixture()).factory
-        memberToken = (await mockTokenFixture()).memberToken
 
-        const oracleFactory = await ethers.getContractFactory('RenFILOracle')
+        factory = await Factory.deployed();
+        oracle = await oracleFactory.deployed();
+       // const factoryFactory = await ethers.getContractFactory('OneTokenFactory')
+        //factory = await factoryFactory.deploy()
+        
+
+        //const oracleFactory = await ethers.getContractFactory('RenFILOracle')
     
-        oracle = (await oracleFactory.deploy(factory.address, name, memberToken.address, mainnet_chainlink)) as RenFILOracle
+        //oracle = await oracleFactory.deploy(factory.address, name, memberToken, mainnet_chainlink)
       
-        await oracle.deployed()
+       // await oracle.deployed()
        
         // 3
-        await factory.admitModule(oracle.address, moduleType.oracle, name, url)
+        //await factory.admitModule(oracle.address, moduleType.oracle, name, url)
 
     })
 
