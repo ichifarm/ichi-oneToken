@@ -16,7 +16,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
     const 
         name = "Pegged Oracle indexToken USDC"
-        url = "ichi.org"
+        url = "https://github.com/ichifarm/ichi-oneToken/blob/master/contracts/oracle/pegged/ICHIPeggedOracle.sol"
 
     let USDCAddress
 
