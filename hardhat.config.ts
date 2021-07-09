@@ -62,7 +62,7 @@ const config: HardhatUserConfig = {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [`0x${process.env.MAINNET_PK}`],
       saveDeployments: true,
-      gasPrice: 40 * 1000000000,
+      gasPrice: 12 * 1000000000,
       chainId: 1,
     },
     localhost: {
@@ -72,8 +72,7 @@ const config: HardhatUserConfig = {
     },
     hardhat: {
       forking: {
-        enabled: process.env.FORKING === "true",
-        url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       },
       live: false,
       saveDeployments: true,
