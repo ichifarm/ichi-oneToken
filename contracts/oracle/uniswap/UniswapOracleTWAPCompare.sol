@@ -5,7 +5,6 @@
 pragma solidity 0.7.6;
 
 import "../OracleCommon.sol";
-import "../_chainlink/interfaces/AggregatorV3Interface.sol";
 import "../../_openzeppelin/math/SafeMath.sol";
 import '../../_uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '../../_uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
@@ -19,8 +18,7 @@ import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol';
  Periodicity is fixed at deployment time. Index (usually USD) token is fixed at deployment time.
  A single deployment can be shared by multiple oneToken clients and can observe multiple base tokens.
  Non-USD index tokens are possible. Such deployments can used as interim oracles in Composite Oracles. They should
- NOT be registered because they are not, by definition, valid sources of USD quotes.  This oracle will also use a chainlink oracle
- to calculate indexToken to USD value.  The indexToken will need a chainlink oracle.  
+ NOT be registered because they are not, by definition, valid sources of USD quotes.  
  Example calculation MPH/ETH -> ETH/USD 1hr and MPH/ETH -> ETH/USD 24hr take the lower value and return.  This is a safety net to help 
  prevent price manipulation.  This oracle combines 2 TWAPs to save on gas for keeping seperate oracles for these 2 PERIODS.
  */
@@ -33,7 +31,6 @@ contract UniswapOracleTWAPCompare is OracleCommon {
     uint256 public immutable PERIOD_2;
 
     address public immutable uniswapFactory;
-    address public immutable chainlink;
 
     struct Pair {
         address token0;
@@ -54,11 +51,10 @@ contract UniswapOracleTWAPCompare is OracleCommon {
      @param oneTokenFactory_ oneToken factory to bind to
      @param uniswapFactory_ external factory contract needed by the uniswap library
      @param indexToken_ the index token to use for valuations. If not a usd collateral token then the Oracle should not be registered in the factory but it can be used by CompositeOracles.
-     @param chainlink_ chalink oracle for the index token to USD
      @param period_1_ the averaging period to use for price smoothing
      @param period_2_ the averaging period to use for price smoothing
      */
-    constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, address chainlink_, uint256 period_1_, uint256 period_2_)
+    constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint256 period_1_, uint256 period_2_)
         OracleCommon(oneTokenFactory_, "ICHI Simple Uniswap Oracle", indexToken_)
     {
         require(uniswapFactory_ != NULL_ADDRESS, "UniswapOracleTWAPCompare: uniswapFactory cannot be empty");
@@ -68,7 +64,6 @@ contract UniswapOracleTWAPCompare is OracleCommon {
         PERIOD_1 = period_1_;
         PERIOD_2 = period_2_;
         indexToken = indexToken_;
-        chainlink = chainlink_;
     }
 
     /**
