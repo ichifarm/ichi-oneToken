@@ -4,7 +4,7 @@ const truffleAssert = require('truffle-assertions');
 const { getBigNumber } = require("./utilities");
 
 const Factory = artifacts.require("OneTokenFactory");
-const ChainlinkOracle = artifacts.require("ChainlinkOracle");
+const ChainlinkOracleUSD = artifacts.require("ChainlinkOracleUSD");
 
 const ONE_USD = getBigNumber(1,18);
 const ONE_RENFIL = getBigNumber(1,18);
@@ -23,7 +23,7 @@ const TOKEN_USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7'; // 6 decimals
 let governance,
     commonUser; 
 
-contract('ChainlinkOracle', accounts => {
+contract('ChainlinkOracleUSD', accounts => {
     let oracle, 
         factory
 
@@ -32,7 +32,7 @@ contract('ChainlinkOracle', accounts => {
         commonUser = accounts[2];
 
         factory = await Factory.deployed();
-        oracle = await ChainlinkOracle.deployed();
+        oracle = await ChainlinkOracleUSD.deployed();
 
         await oracle.registerOracle(TOKEN_RENFIL, CHAINLINK_RENFIL_USD, { from: governance });
         await oracle.registerOracle(TOKEN_1INCH, CHAINLINK_1INCH_USD, { from: governance });

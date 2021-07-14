@@ -5,7 +5,7 @@ const { getBigNumber } = require("./utilities");
 const { expectEvent } = require("@openzeppelin/test-helpers");
 
 const Factory = artifacts.require("OneTokenFactory");
-const ChainlinkOracle = artifacts.require("ChainlinkOracle");
+const ChainlinkOracleUSD = artifacts.require("ChainlinkOracleUSD");
 const OracleCommon = artifacts.require("OracleCommon");
 
 const ONE_USD = getBigNumber(1,18);
@@ -32,7 +32,7 @@ let governance,
     badAddress,
     commonUser; 
 
-contract('ChainlinkOracle', accounts => {
+contract('ChainlinkOracleUSD', accounts => {
     let oracle, 
         factory
 
@@ -41,7 +41,7 @@ contract('ChainlinkOracle', accounts => {
         badAddress = accounts[1];
         commonUser = accounts[2];
         factory = await Factory.deployed();
-        oracle = await ChainlinkOracle.deployed();
+        oracle = await ChainlinkOracleUSD.deployed();
     })
 
     describe('In the framework', async() => {

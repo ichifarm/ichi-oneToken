@@ -25,6 +25,6 @@ module.exports = async () => {
 	
 	// console.log("*************************************************************");
 	// console.log("* uniswapV2Factory:", uniswapV2Factory.address);
-	console.log("* uniswapTwapCompareOracle:", uniswapTwapCompareOracle.address);
+	// console.log("* uniswapTwapCompareOracle:", uniswapTwapCompareOracle.address);
 	// console.log("*************************************************************");
 };
