@@ -9,10 +9,10 @@ import "../../_chainlink/interfaces/AggregatorV3Interface.sol";
 import "../../_openzeppelin/math/SafeMath.sol";
 
 /**
- @notice Generic ChainLink Oracle  
+ @notice Generic ChainLink Oracle for USD
  */
 
-contract ChainlinkOracle is OracleCommon {
+contract ChainlinkOracleUSD is OracleCommon {
 
     using SafeMath for uint256;
     using AddressSet for AddressSet.Set;
