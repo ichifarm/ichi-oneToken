@@ -305,19 +305,6 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		
 		const infoAfter = await memberTokenOracle.pair1Info(memberToken.address)
 
-		/*console.log(memberToken.address);
-
-		console.log(infoBefore.token0);
-		console.log(infoBefore.token1);
-		console.log(infoBefore.price0Average.toString());
-		console.log(infoBefore.price1Average.toString());
-
-		console.log(infoAfter.token0);
-		console.log(infoAfter.token1);
-		console.log(infoAfter.price0Average.toString());
-		console.log(infoAfter.price1Average.toString());*/
-
-
 		if (memberToken.address == infoBefore.token1.toString()) {
 			// accounting for possible rounding error in Uniswap oracle
 			assert.isTrue(Number(infoAfter.price1Average) == Number(infoAfter.price0Average) / 10**6 + 1 || 
@@ -420,7 +407,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		assert.equal(volatility.toString(10), 1, "ICHICompositeOracle.amountRequired() should return proper volatility");
 	})
 
-	it("memberToken oracle update update should be called from mint function", async () => {
+	it("memberToken oracle update should be called from mint function", async () => {
 		let reserve1 = 100;
 		let reserve2 = 100;
 		await setupUniswapOracle(reserve1, reserve2);
@@ -434,7 +421,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 		const uniswapPair = await UniswapV2Pair.at(memberTokenUsdtUniswapPair);
 		await uniswapPair.sync();
 		await memberTokenOracle.update(memberToken.address)
-		// not calling update the second time - expect it to ne called from mint
+		// not calling update the second time - expect it to be called from mint
 		await time.increase(TEST_TIME_PERIOD_2);
 		
 		const bobCollateralBalanceBefore = await collateralToken.balanceOf(bob);
@@ -458,5 +445,248 @@ contract("Integration tests with 6/9 decimals", accounts => {
 
 	})
 
+	it("UniswapOracleTWAPCompare should return the lowest price on read", async () => {
+		const ALLOWED_PRECISION_LOSS = 10 ** 17;
+		let reserve1 = 100;
+		let reserve2 = 100;
+		await setupUniswapOracle(reserve1, reserve2);
+
+		//console.log("1 to 1 ratio");		
+		let info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		let info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		assert.equal(info_1.price0Average.toString(), info_2.price0Average.toString(), "TWAPs should be synchronized at this point");
+		assert.equal(info_1.price1Average.toString(), info_2.price1Average.toString(), "TWAPs should be synchronized at this point");
+
+		let amountOut = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 1
+		if (Number(amountOut[0]) > Number(1 * 10 ** 18)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(1 * 10 ** 18) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 18) - ALLOWED_PRECISION_LOSS)
+		}
+
+		let reserve1IncreaseAmount = 100;
+		await memberToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve1IncreaseAmount,9))
+		const uniswapPair = await UniswapV2Pair.at(memberTokenUsdtUniswapPair);
+		await uniswapPair.sync();
+		await time.increase(TEST_TIME_PERIOD_1);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 1 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 0.5
+		if (Number(amountOut[0]) > Number(5 * 10 ** 17)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(5 * 10 ** 17) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(5 * 10 ** 17) - ALLOWED_PRECISION_LOSS)
+		}
+		// price should be based on hourly (pair 1)
+		if (Number(amountOut[0]) > Number(info_1.price1Average.toString()) * 1000) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(info_1.price1Average.toString()) * 1000 + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(info_1.price1Average.toString()) * 1000 - ALLOWED_PRECISION_LOSS)
+		}
+
+		let reserve2IncreaseAmount = 300;
+		await collateralToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve2IncreaseAmount,6))
+		await uniswapPair.sync();
+		await time.increase(TEST_TIME_PERIOD_1);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 4 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 1 (daily wasn't updated yet and is lower)
+		if (Number(amountOut[0]) > Number(1 * 10 ** 18)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(1 * 10 ** 18) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 18) - ALLOWED_PRECISION_LOSS)
+		}
+		// price should be based on daily (pair 2)
+		if (Number(amountOut[0]) > Number(info_2.price1Average.toString()) * 1000) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(info_2.price1Average.toString()) * 1000 + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(info_2.price1Average.toString()) * 1000 - ALLOWED_PRECISION_LOSS)
+		}
+
+		await time.increase(TEST_TIME_PERIOD_2);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 4 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.read(memberToken.address, getBigNumber(1,9))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 2 (daily is now in sycn with hourly)
+		if (Number(amountOut[0]) > Number(2 * 10 ** 18)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(2 * 10 ** 18) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(2 * 10 ** 18) - ALLOWED_PRECISION_LOSS)
+		}
+	})
+
+	it("UniswapOracleTWAPCompare should return the highest price on amountRequired", async () => {
+		const ALLOWED_PRECISION_LOSS = 10 ** 18;
+		let reserve1 = 100;
+		let reserve2 = 100;
+		await setupUniswapOracle(reserve1, reserve2);
+
+		//console.log("1 to 1 ratio");		
+		let info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		let info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		assert.equal(info_1.price0Average.toString(), info_2.price0Average.toString(), "TWAPs should be synchronized at this point");
+		assert.equal(info_1.price1Average.toString(), info_2.price1Average.toString(), "TWAPs should be synchronized at this point");
+
+		let amountOut = await memberTokenOracle.amountRequired(memberToken.address, getBigNumber(1,18))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 1
+		if (Number(amountOut[0]) > Number(1 * 10 ** 9)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(1 * 10 ** 9) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 9) - ALLOWED_PRECISION_LOSS)
+		}
+
+		let reserve1IncreaseAmount = 100;
+		await memberToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve1IncreaseAmount,9))
+		const uniswapPair = await UniswapV2Pair.at(memberTokenUsdtUniswapPair);
+		await uniswapPair.sync();
+		await time.increase(TEST_TIME_PERIOD_1);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 1 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.amountRequired(memberToken.address, getBigNumber(1,18))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 2
+		if (Number(amountOut[0]) > Number(2 * 10 ** 9)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(2 * 10 ** 9) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(2 * 10 ** 9) - ALLOWED_PRECISION_LOSS)
+		}
+		// price should be based on hourly (pair 1)
+		if (Number(amountOut[0]) * 10 ** 12 > Number(info_1.price0Average.toString())) {
+			expect(Number(amountOut[0]) * 10 ** 12).to.be.lessThanOrEqual(Number(info_1.price0Average.toString()) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0]) * 10 ** 12).to.be.greaterThanOrEqual(Number(info_1.price0Average.toString()) - ALLOWED_PRECISION_LOSS)
+		}
+
+		let reserve2IncreaseAmount = 300;
+		await collateralToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve2IncreaseAmount,6))
+		await uniswapPair.sync();
+		await time.increase(TEST_TIME_PERIOD_1);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 4 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.amountRequired(memberToken.address, getBigNumber(1,18))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 1 (daily wasn't updated yet and is lower)
+		if (Number(amountOut[0]) > Number(1 * 10 ** 9)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(1 * 10 ** 9) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 9) - ALLOWED_PRECISION_LOSS)
+		}
+		// price should be based on daily (pair 2)
+		if (Number(amountOut[0]) * 10 ** 12 > Number(info_2.price0Average.toString())) {
+			expect(Number(amountOut[0]) * 10 ** 12).to.be.lessThanOrEqual(Number(info_2.price0Average.toString()) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0]) * 10 ** 12).to.be.greaterThanOrEqual(Number(info_2.price0Average.toString()) - ALLOWED_PRECISION_LOSS)
+		}
+
+		await time.increase(TEST_TIME_PERIOD_2);
+		await memberTokenOracle.update(memberToken.address)
+
+		//console.log("2 to 4 ratio");		
+		info_1 = await memberTokenOracle.pair1Info(memberToken.address)
+		//console.log("hourly");		
+		//console.log(info_1.price0Average.toString());
+		//console.log(info_1.price1Average.toString());
+		info_2 = await memberTokenOracle.pair2Info(memberToken.address)
+		//console.log("daily");		
+		//console.log(info_2.price0Average.toString());
+		//console.log(info_2.price1Average.toString());
+
+		amountOut = await memberTokenOracle.amountRequired(memberToken.address, getBigNumber(1,18))
+		//console.log("price");		
+		//console.log(amountOut[0].toString());		
+
+		// price should be 0.5 (daily is now in sycn with hourly)
+		if (Number(amountOut[0]) > Number(5 * 10 ** 8)) {
+			expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(5 * 10 ** 8) + ALLOWED_PRECISION_LOSS)
+		} else {
+			expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(5 * 10 ** 8) - ALLOWED_PRECISION_LOSS)
+		}
+	})
 
 });
