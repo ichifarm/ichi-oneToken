@@ -8,6 +8,7 @@ const deploy_chainlink_oracle = require('../migrations/43_deploy_chainlink_oracl
 const register_modules_and_deploy_oneToken = require('../migrations/50_register_modules_and_deploy_oneToken.js')
 const recap_deployment = require('../migrations/99_recap_deployment.js')
 const deploy_uniswap_oracle_simple = require('../migrations/100_deploy_uniswap_oracle_simple.js')
+const deploy_twap_compare_uniswap_oracle = require('../migrations/101_deploy_twap_compare_uniswap_oracle.js')
 
 
 module.exports = async () => {
@@ -21,4 +22,5 @@ module.exports = async () => {
 	await register_modules_and_deploy_oneToken()
 	await recap_deployment()
 	await deploy_uniswap_oracle_simple()
+	await deploy_twap_compare_uniswap_oracle()
 };

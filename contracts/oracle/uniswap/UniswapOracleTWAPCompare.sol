@@ -35,8 +35,8 @@ contract UniswapOracleTWAPCompare is OracleCommon {
     struct Pair {
         address token0;
         address token1;
-        uint256    price0CumulativeLast;
-        uint256    price1CumulativeLast;
+        uint256 price0CumulativeLast;
+        uint256 price1CumulativeLast;
         uint32  blockTimestampLast;
         FixedPoint.uq112x112 price0Average;
         FixedPoint.uq112x112 price1Average;
@@ -55,7 +55,7 @@ contract UniswapOracleTWAPCompare is OracleCommon {
      @param period_2_ the averaging period to use for price smoothing
      */
     constructor(address oneTokenFactory_, address uniswapFactory_, address indexToken_, uint256 period_1_, uint256 period_2_)
-        OracleCommon(oneTokenFactory_, "ICHI Simple Uniswap Oracle", indexToken_)
+        OracleCommon(oneTokenFactory_, "ICHI TWAP Compare Uniswap Oracle", indexToken_)
     {
         require(uniswapFactory_ != NULL_ADDRESS, "UniswapOracleTWAPCompare: uniswapFactory cannot be empty");
         require(period_1_ > 0, "UniswapOracleTWAPCompare: period must be > 0");
@@ -195,9 +195,72 @@ contract UniswapOracleTWAPCompare is OracleCommon {
         uint256 p1Out = (token == p1.token0 ? p1.price0Average : p1.price1Average).mul(amountTokens).decode144();
         uint256 p2Out = (token == p2.token0 ? p2.price0Average : p2.price1Average).mul(amountTokens).decode144();
         if (p1Out > p2Out) {
-            amountOut = p1Out;
-        } else {
             amountOut = p2Out;
+        } else {
+            amountOut = p1Out;
         }
     }
+
+    /**
+     @notice discoverable internal state. Returns pair info for period 1
+     @param token baseToken to inspect
+     */
+    function pair1Info(address token) external view
+        returns
+    (
+        address token0,
+        address token1,
+        uint256 price0CumulativeLast,
+        uint256 price1CumulativeLast,
+        uint256 price0Average,
+        uint256 price1Average,
+        uint32  blockTimestampLast,
+        uint256 period
+    )
+    {
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
+        Pair storage p = period_1_pairs[address(_pair)];
+        return(
+            p.token0,
+            p.token1,
+            p.price0CumulativeLast,
+            p.price1CumulativeLast,
+            p.price0Average.mul(PRECISION).decode144(),
+            p.price1Average.mul(PRECISION).decode144(),
+            p.blockTimestampLast,
+            PERIOD_1
+        );
+    }
+
+    /**
+     @notice discoverable internal state. Returns pair info for period 2
+     @param token baseToken to inspect
+     */
+    function pair2Info(address token) external view
+        returns
+    (
+        address token0,
+        address token1,
+        uint256 price0CumulativeLast,
+        uint256 price1CumulativeLast,
+        uint256 price0Average,
+        uint256 price1Average,
+        uint32  blockTimestampLast,
+        uint256 period
+    )
+    {
+        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(uniswapFactory, token, indexToken));
+        Pair storage p = period_2_pairs[address(_pair)];
+        return(
+            p.token0,
+            p.token1,
+            p.price0CumulativeLast,
+            p.price1CumulativeLast,
+            p.price0Average.mul(PRECISION).decode144(),
+            p.price1Average.mul(PRECISION).decode144(),
+            p.blockTimestampLast,
+            PERIOD_2
+        );
+    }
+
 }
