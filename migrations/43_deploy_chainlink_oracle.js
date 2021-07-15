@@ -5,8 +5,7 @@ const
     OracleName = "ChainlinkOracle";
 
 module.exports = async () => {
-    const collateralToken = await CollateralToken.new();
-    CollateralToken.setAsDeployed(collateralToken);
+    const collateralToken = await CollateralToken.deployed();
     const factory = await Factory.deployed();
     const chainlinkOracle = await ChainlinkOracleUSD.new(factory.address, OracleName, collateralToken.address);
     ChainlinkOracleUSD.setAsDeployed(chainlinkOracle);
