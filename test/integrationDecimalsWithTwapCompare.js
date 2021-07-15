@@ -504,11 +504,9 @@ contract("uniswapOracleTWAPCompare", accounts => {
 				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(5 * 10 ** 17) - ALLOWED_PRECISION_LOSS)
 			}
 			// price should be based on hourly (pair 1)
-			if (Number(amountOut[0]) > Number(info_1.price1Average.toString()) * 1000) {
-				expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(info_1.price1Average.toString()) * 1000 + ALLOWED_PRECISION_LOSS)
-			} else {
-				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(info_1.price1Average.toString()) * 1000 - ALLOWED_PRECISION_LOSS)
-			}
+			let delta1 = Math.abs(Number(amountOut[0]) - Number(info_1.price0Average.toString()) * 1000);
+			let delta2 = Math.abs(Number(amountOut[0]) - Number(info_1.price1Average.toString()) * 1000);
+			assert.isTrue(Number(delta1) <= ALLOWED_PRECISION_LOSS || Number(delta2) <= ALLOWED_PRECISION_LOSS);
 
 			let reserve2IncreaseAmount = 300;
 			await collateralToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve2IncreaseAmount,6))
@@ -537,11 +535,9 @@ contract("uniswapOracleTWAPCompare", accounts => {
 				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 18) - ALLOWED_PRECISION_LOSS)
 			}
 			// price should be based on daily (pair 2)
-			if (Number(amountOut[0]) > Number(info_2.price1Average.toString()) * 1000) {
-				expect(Number(amountOut[0])).to.be.lessThanOrEqual(Number(info_2.price1Average.toString()) * 1000 + ALLOWED_PRECISION_LOSS)
-			} else {
-				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(info_2.price1Average.toString()) * 1000 - ALLOWED_PRECISION_LOSS)
-			}
+			delta1 = Math.abs(Number(amountOut[0]) - Number(info_2.price0Average.toString()) * 1000);
+			delta2 = Math.abs(Number(amountOut[0]) - Number(info_2.price1Average.toString()) * 1000);
+			assert.isTrue(Number(delta1) <= ALLOWED_PRECISION_LOSS || Number(delta2) <= ALLOWED_PRECISION_LOSS);
 
 			await time.increase(TEST_TIME_PERIOD_2);
 			await memberTokenOracle.update(memberToken.address)
@@ -626,11 +622,9 @@ contract("uniswapOracleTWAPCompare", accounts => {
 				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(2 * 10 ** 9) - ALLOWED_PRECISION_LOSS)
 			}
 			// price should be based on hourly (pair 1)
-			if (Number(amountOut[0]) * 10 ** 12 > Number(info_1.price0Average.toString())) {
-				expect(Number(amountOut[0]) * 10 ** 12).to.be.lessThanOrEqual(Number(info_1.price0Average.toString()) + ALLOWED_PRECISION_LOSS)
-			} else {
-				expect(Number(amountOut[0]) * 10 ** 12).to.be.greaterThanOrEqual(Number(info_1.price0Average.toString()) - ALLOWED_PRECISION_LOSS)
-			}
+			let delta1 = Math.abs(Number(amountOut[0]) * 10 ** 12 - Number(info_1.price0Average.toString()));
+			let delta2 = Math.abs(Number(amountOut[0]) * 10 ** 12 - Number(info_1.price1Average.toString()));
+			assert.isTrue(Number(delta1) <= ALLOWED_PRECISION_LOSS || Number(delta2) <= ALLOWED_PRECISION_LOSS);
 
 			let reserve2IncreaseAmount = 300;
 			await collateralToken.transfer(memberTokenUsdtUniswapPair, getBigNumber(reserve2IncreaseAmount,6))
@@ -659,11 +653,9 @@ contract("uniswapOracleTWAPCompare", accounts => {
 				expect(Number(amountOut[0])).to.be.greaterThanOrEqual(Number(1 * 10 ** 9) - ALLOWED_PRECISION_LOSS)
 			}
 			// price should be based on daily (pair 2)
-			if (Number(amountOut[0]) * 10 ** 12 > Number(info_2.price0Average.toString())) {
-				expect(Number(amountOut[0]) * 10 ** 12).to.be.lessThanOrEqual(Number(info_2.price0Average.toString()) + ALLOWED_PRECISION_LOSS)
-			} else {
-				expect(Number(amountOut[0]) * 10 ** 12).to.be.greaterThanOrEqual(Number(info_2.price0Average.toString()) - ALLOWED_PRECISION_LOSS)
-			}
+			delta1 = Math.abs(Number(amountOut[0]) * 10 ** 12 - Number(info_2.price0Average.toString()));
+			delta2 = Math.abs(Number(amountOut[0]) * 10 ** 12 - Number(info_2.price1Average.toString()));
+			assert.isTrue(Number(delta1) <= ALLOWED_PRECISION_LOSS || Number(delta2) <= ALLOWED_PRECISION_LOSS);
 
 			await time.increase(TEST_TIME_PERIOD_2);
 			await memberTokenOracle.update(memberToken.address)
