@@ -12,9 +12,7 @@ module.exports = async () => {
 	
 	const [governance] = await ethers.getSigners();
 	
-	const uniswapV2Factory = await UniswapV2Factory.new(governance.address);
-	await UniswapV2Factory.setAsDeployed(uniswapV2Factory);
-	
+	const uniswapV2Factory = await UniswapV2Factory.deployed();
 	const memberToken = await MemberToken.deployed();
 	const collateralToken = await CollateralToken.deployed();
 

@@ -131,7 +131,14 @@ contract('ChainlinkOracleUSD', accounts => {
             const { amountTokens, volatility } = await oracle.amountRequired(TOKEN_USDT, ONE_USD)
             const price = await oracle.getThePrice(TOKEN_USDT)
             const calculatedAmount = Number(ONE_USD) / Number(price) * 10 ** 6;
-            expect(Number(amountTokens)).to.equal(calculatedAmount)
+
+            const ALLOWED_PRECISION_LOSS = Number(ALLOWED_PRECISION_LOSS_PER_TOKEN);
+
+            if (Number(amountTokens) > calculatedAmount) {
+                expect(Number(amountTokens)).to.be.lessThanOrEqual(calculatedAmount + ALLOWED_PRECISION_LOSS)
+            } else {
+                expect(Number(amountTokens)).to.be.greaterThanOrEqual(calculatedAmount - ALLOWED_PRECISION_LOSS)
+            }
         })
 
         it('amountRequired for 1000 USD should be (1000 tokens / price) (6 dec)', async() => {
@@ -190,8 +197,8 @@ contract('ChainlinkOracleUSD', accounts => {
 
         })
 
-        it('valuating very small amounts - amountRequired (10**12 is a lower limit for 6 dec token)', async() => {
-            const amount = 10 ** 12;
+        it('valuating very small amounts - amountRequired (10**13 is a lower limit for 6 dec token)', async() => {
+            const amount = 10 ** 13;
             const { amountTokens, volatility } = await oracle.amountRequired(TOKEN_USDT, amount)
             const price = await oracle.getThePrice(TOKEN_USDT)
             const calculatedAmount = Number(amount) / Number(price) * 10 ** 6;
