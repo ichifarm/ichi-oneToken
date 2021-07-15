@@ -152,7 +152,7 @@ contract UniswapOracleTWAPCompare is OracleCommon {
             // ensure that at least one full period has passed since the last update
             ///@ dev require() was dropped in favor of if() to make this safe to call when unsure about elapsed time
 
-            if(timeElapsed_1 >= PERIOD_1) {
+            if(timeElapsed_1 >= PERIOD_1 || p1.price0Average.mul(PRECISION).decode144() == 0) {
                 // overflow is desired, casting never truncates
                 // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
                 p1.price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - p1.price0CumulativeLast) / timeElapsed_1));
@@ -162,7 +162,7 @@ contract UniswapOracleTWAPCompare is OracleCommon {
                 p1.price1CumulativeLast = price1Cumulative;
                 p1.blockTimestampLast = blockTimestamp;
             }
-            if(timeElapsed_2 >= PERIOD_2) {
+            if(timeElapsed_2 >= PERIOD_2 || p2.price0Average.mul(PRECISION).decode144() == 0) {
                 // overflow is desired, casting never truncates
                 // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
                 p2.price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - p2.price0CumulativeLast) / timeElapsed_2));
