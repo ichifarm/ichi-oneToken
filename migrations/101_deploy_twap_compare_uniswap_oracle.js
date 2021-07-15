@@ -5,9 +5,9 @@ const
 	MemberToken = artifacts.require("MemberToken"),
 	CollateralToken = artifacts.require("CollateralToken");
 
-const TEST_TIME_PERIOD_1 = 60000
-const TEST_TIME_PERIOD_2 = 1440000
-
+const TEST_TIME_PERIOD_1 = 3600
+const TEST_TIME_PERIOD_2 = 86400
+	
 module.exports = async () => {
 	
 	const [governance] = await ethers.getSigners();

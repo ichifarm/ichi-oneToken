@@ -17,8 +17,8 @@ const ArbitraryStrategy = artifacts.require("Arbitrary");
 const UniswapV2Pair = artifacts.require("UniswapV2Pair")
 const NullController = artifacts.require("NullController");
 
-const TEST_TIME_PERIOD_1 = 60000
-const TEST_TIME_PERIOD_2 = 1440000
+const TEST_TIME_PERIOD_1 = 3600
+const TEST_TIME_PERIOD_2 = 86400
 
 const
 	PRECISION = getBigNumber(1,18),  // 10 ** 18
@@ -568,7 +568,7 @@ contract("Integration tests with 6/9 decimals", accounts => {
 	})
 
 	it("UniswapOracleTWAPCompare should return the highest price on amountRequired", async () => {
-		const ALLOWED_PRECISION_LOSS = 10 ** 18;
+		const ALLOWED_PRECISION_LOSS = 10 ** 19;
 		let reserve1 = 100;
 		let reserve2 = 100;
 		await setupUniswapOracle(reserve1, reserve2);
