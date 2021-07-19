@@ -9,6 +9,7 @@ const register_modules_and_deploy_oneToken = require('../migrations/50_register_
 const recap_deployment = require('../migrations/99_recap_deployment.js')
 const deploy_uniswap_oracle_simple = require('../migrations/100_deploy_uniswap_oracle_simple.js')
 const deploy_twap_compare_uniswap_oracle = require('../migrations/101_deploy_twap_compare_uniswap_oracle.js')
+const deploy_twap_compare_uniswap_oracle_v2 = require('../migrations/102_deploy_twap_compare_uniswap_oracle_v2.js')
 
 
 module.exports = async () => {
@@ -23,4 +24,5 @@ module.exports = async () => {
 	await recap_deployment()
 	await deploy_uniswap_oracle_simple()
 	await deploy_twap_compare_uniswap_oracle()
+	await deploy_twap_compare_uniswap_oracle_v2()
 };

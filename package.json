@@ -9,6 +9,7 @@
     "test": "hardhat test --deploy-fixture",
     "test:oracleSimple": "yarn test test/uniswapOracleSimple.js",
     "test:oracleTwapCompare": "yarn test test/uniswapTwapCompareOracle.js",
+    "test:oracleTwapCompareV2": "yarn test test/uniswapTwapCompareOracleV2.js",
     "test:ichiPeggedOracle": "yarn test test/ichiPeggedOracle.js",
     "test:ichiCompositeOracle": "yarn test test/ichiCompositeOracle.js",
     "test:ichiCompositeOracleDecimals": "yarn test test/ichiCompositeOracleDecimals.js",
