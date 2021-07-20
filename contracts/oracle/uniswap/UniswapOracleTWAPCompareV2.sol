@@ -10,7 +10,6 @@ import '../../_uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '../../_uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '../../_uniswap/lib/contracts/libraries/FixedPoint.sol';
 import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2OracleLibrary.sol';
-import '../../_uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol';
 
 /**
  @notice A oracle that uses 2 TWAP periods and uses the lower of the 2 values. This oracle can be used for both Uniswap and Sushi V2 pairs. 
@@ -121,25 +120,12 @@ contract UniswapOracleTWAPCompareV2 is OracleCommon {
      */
     function pairFor(address factory, address tokenA, address tokenB) internal view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        uint chainId;
-        assembly {
-            chainId := chainid()
-        }
-        if (chainId == 1) {
-            pair = address(uint256(keccak256(abi.encodePacked(
-                hex'ff',
-                factory,
-                keccak256(abi.encodePacked(token0, token1)),
-                INIT_HASH
-            ))));
-        } else {
-            pair = address(uint256(keccak256(abi.encodePacked(
-                hex'ff',
-                factory,
-                keccak256(abi.encodePacked(token0, token1)),
-                UniswapV2Library.getInitHash()
-            ))));
-        }
+        pair = address(uint256(keccak256(abi.encodePacked(
+            hex'ff',
+            factory,
+            keccak256(abi.encodePacked(token0, token1)),
+            INIT_HASH
+        ))));
     }
 
     /**

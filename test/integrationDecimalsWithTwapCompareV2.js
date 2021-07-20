@@ -13,14 +13,13 @@ const IncrementalMintMaster = artifacts.require("Incremental");
 const ICHIPeggedOracle = artifacts.require("ICHIPeggedOracle");
 const UniswapOracleTWAPCompareV2 = artifacts.require("UniswapOracleTWAPCompareV2");
 const UniswapV2Factory = artifacts.require("UniswapV2Factory");
-const UniswapV2Library = artifacts.require("UniswapV2Library");
 const ArbitraryStrategy = artifacts.require("Arbitrary");
 const UniswapV2Pair = artifacts.require("UniswapV2Pair");
 const NullController = artifacts.require("NullController");
 
 const TEST_TIME_PERIOD_1 = 3600
 const TEST_TIME_PERIOD_2 = 86400
-const UNI_HASH = "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+const UNI_HASH = "0x61cacdcfab7852747f947cc6dfc5dacf92028ee947eba084a5309e71a2b2203f"
 
 const
 	PRECISION = getBigNumber(1,18),  // 10 ** 18
@@ -58,7 +57,6 @@ let
 	nullController,
 	oneTokenOracle,
 	uniswapV2Factory,
-	uniswapV2Library,
 	memberTokenUsdtUniswapPair,
 	oneToken,
 	oneTokenProxy
@@ -125,8 +123,7 @@ contract("uniswapOracleTWAPCompareV2", accounts => {
 		
 		memberTokenArbitraryStrategy = await ArbitraryStrategy.new(oneTokenFactory.address, newOneTokenProxy, "memberTokenArbitraryStrategy");
 		collateralTokenArbitraryStrategy = await ArbitraryStrategy.new(oneTokenFactory.address, newOneTokenProxy, "collateralTokenArbitraryStrategy");
-		
-		
+				
 		await memberToken.approve(oneToken.address, getBigNumber(1000,9), { from: bob });
 		await collateralToken.approve(oneToken.address, getBigNumber(1000,6), { from: bob });
 		
@@ -134,9 +131,6 @@ contract("uniswapOracleTWAPCompareV2", accounts => {
 	
     describe('Integration tests with 6/9 decimals', async() => {
 		it("should be deployed", async () => {
-			uniswapV2Library = await UniswapV2Library.deployed();
-			try { await UniswapOracleTWAPCompareV2.link(uniswapV2Library); } catch (e) {};
-
 			assert.isNotNull(oneTokenFactory.address, "oneTokenFactory must be deployed");
 			assert.isNotNull(memberToken.address, "memberToken must be deployed");
 			assert.isNotNull(collateralToken.address, "collateralToken must be deployed");

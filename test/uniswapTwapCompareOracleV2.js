@@ -6,7 +6,6 @@ const truffleAssert = require('truffle-assertions');
 const
 	UniswapOracleTWAPCompareV2 = artifacts.require("UniswapOracleTWAPCompareV2"),
 	UniswapV2Factory = artifacts.require("UniswapV2Factory"),
-	UniswapV2Library = artifacts.require("UniswapV2Library"),
 	OneTokenFactory = artifacts.require("OneTokenFactory"),
     MintMasterIncremental = artifacts.require("Incremental"),
     OraclePegged = artifacts.require("ICHIPeggedOracle"),
@@ -28,12 +27,11 @@ const moduleType = {
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 const TEST_TIME_PERIOD_1 = 3600
 const TEST_TIME_PERIOD_2 = 86400
-const UNI_HASH = "0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+const UNI_HASH = "0x61cacdcfab7852747f947cc6dfc5dacf92028ee947eba084a5309e71a2b2203f"
 
 let governance,
 	badAddress,
 	uniswapV2Factory,
-	uniswapV2Library,
 	uniswapOracleTWAPCompareV2,
 	oneTokenFactory,
 	oneToken,
@@ -54,7 +52,6 @@ contract("uniswapOracleTWAPCompareV2", accounts => {
 		governance = accounts[0];
 		badAddress = accounts[1];
 		uniswapV2Factory = await UniswapV2Factory.deployed();
-		uniswapV2Library = await UniswapV2Library.deployed();
 		uniswapOracleTWAPCompareV2 = await UniswapOracleTWAPCompareV2.deployed();
 		oneTokenFactory = await OneTokenFactory.deployed();
 		oneTokenAddress = await oneTokenFactory.oneTokenAtIndex(0);
@@ -100,7 +97,6 @@ contract("uniswapOracleTWAPCompareV2", accounts => {
 		});
 		
 		it("should emit event when being deployed", async () => {
-			try { await UniswapOracleTWAPCompareV2.link(uniswapV2Library); } catch (e) {};
 			let tempOracle = await UniswapOracleTWAPCompareV2.new(oneTokenFactory.address,
 								uniswapV2Factory.address, 
 								tempToken.address, 

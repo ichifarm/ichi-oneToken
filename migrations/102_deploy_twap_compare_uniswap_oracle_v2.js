@@ -13,10 +13,6 @@ module.exports = async () => {
 	
 	const [governance] = await ethers.getSigners();
 	
-	const uniswapV2Library = await UniswapV2Library.new(governance.address);
-	await UniswapV2Library.setAsDeployed(uniswapV2Library);
-	try { await UniswapOracleTWAPCompareV2.link(uniswapV2Library); } catch (e) {};
-
 	const uniswapV2Factory = await UniswapV2Factory.deployed();
 	const memberToken = await MemberToken.deployed();
 	const collateralToken = await CollateralToken.deployed();
@@ -28,7 +24,7 @@ module.exports = async () => {
 		collateralToken.address, 
 		TEST_TIME_PERIOD_1, 
 		TEST_TIME_PERIOD_2,
-		"0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f");
+		"0x61cacdcfab7852747f947cc6dfc5dacf92028ee947eba084a5309e71a2b2203f");
 	await UniswapOracleTWAPCompareV2.setAsDeployed(uniswapTwapCompareOracleV2);
 	
 	// console.log("*************************************************************");
