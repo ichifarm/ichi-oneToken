@@ -1,8 +1,10 @@
-const { expect } = require("hardhat")
+const { expect, artifacts } = require("hardhat")
 
 const UniswapV2LibraryTest = artifacts.require("UniswapV2LibraryTest")
+const UniswapV2Library = artifacts.require('UniswapV2Library')
 
-let library
+let library,
+    uniswapV2Library
 
 const uni_factory = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
 const fuse = '0x970B9bB2C0444F5E81e9d0eFb84C8ccdcdcAf84d'
@@ -17,6 +19,8 @@ contract("Test UniswapV2Libray forPair call", accounts => {
     beforeEach(async() => {
         deployer = accounts[0]
 
+        uniswapV2Library = await UniswapV2Library.new();
+        try { await UniswapV2LibraryTest.link(uniswapV2Library); } catch (e) {};
         library = await UniswapV2LibraryTest.new();
     })
 
@@ -27,5 +31,9 @@ contract("Test UniswapV2Libray forPair call", accounts => {
     it('sushi LP test', async() => {
         const sushi_pair = await library.pairForSushi(sushi_factory, mph, weth)
         expect(sushi_pair).eq(mph_weth_sushi)
+    })
+    it('get test hash', async() => {
+        const hash = await library.getTestHash()
+        console.log(hash)
     })
 })
