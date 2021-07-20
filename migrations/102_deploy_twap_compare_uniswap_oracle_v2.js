@@ -15,7 +15,7 @@ module.exports = async () => {
 	
 	const uniswapV2Library = await UniswapV2Library.new(governance.address);
 	await UniswapV2Library.setAsDeployed(uniswapV2Library);
-	await UniswapOracleTWAPCompareV2.link(uniswapV2Library);
+	try { await UniswapOracleTWAPCompareV2.link(uniswapV2Library); } catch (e) {};
 
 	const uniswapV2Factory = await UniswapV2Factory.deployed();
 	const memberToken = await MemberToken.deployed();

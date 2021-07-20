@@ -100,7 +100,7 @@ contract("uniswapOracleTWAPCompareV2", accounts => {
 		});
 		
 		it("should emit event when being deployed", async () => {
-			await UniswapOracleTWAPCompareV2.link(uniswapV2Library);
+			try { await UniswapOracleTWAPCompareV2.link(uniswapV2Library); } catch (e) {};
 			let tempOracle = await UniswapOracleTWAPCompareV2.new(oneTokenFactory.address,
 								uniswapV2Factory.address, 
 								tempToken.address, 
