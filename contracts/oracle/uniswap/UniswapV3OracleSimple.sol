@@ -15,10 +15,10 @@ import '../../lib/SafeUint128.sol';
  The oracle supports one hop routes (token/indexToken) and two hops routes (token/ETH - ETH/indexToken). 
  Note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period,
  Periodicity and Uniswap V3 pool fee setting are passed along during the token's registration. 
- Index (usually USD) token and Uniswap V3 ETH/indexToken pool fee setting are fixed at deployment time.
+ Index token (usually a USD token) and Uniswap V3 ETH/indexToken pool fee setting are fixed at deployment time.
  A single deployment can be shared by multiple oneToken clients and can observe multiple base tokens.
- Non-USD index tokens are possible. Such deployments can used as interim oracles in Composite Oracles. They should
- NOT be registered because they are not, by definition, valid sources of USD quotes.  
+ Non-USD index tokens are possible. Such deployments can be used as interim oracles in Composite Oracles. They should
+ NOT be registered in teh Factory because they are not, by definition, valid sources of USD quotes.  
  Example calculation MPH/ETH -> ETH/USD spot and MPH/ETH -> ETH/USD 24hr take the lower value and return.  This is a safety net to help 
  prevent price manipulation.
  For the ETH/indexToken pool only the spot price is checked. TWAP is used only for token/ETH and token/indexToken pools.
@@ -41,7 +41,7 @@ contract UniswapV3OracleSimple is OracleCommon {
 
     // token address => Settings
     // Settings.oneStep flag specifies whether it's one step or two step oracle (with ETH as an intermetiatery)
-    // Settings.poolFee is used to select between avaulable V3 pools for the token
+    // Settings.poolFee is used to select between available V3 pools for the token
     // Settings.period value (in seconds) specifies desired time period for TWAP obsersation
     // If Setting.period == 0, only spot price is used
     mapping(address => Settings) public registeredTokens; 
@@ -59,11 +59,14 @@ contract UniswapV3OracleSimple is OracleCommon {
      @param indexToken_ the index token to use for valuations. If not a usd collateral token then the Oracle should not be registered in the factory but it can be used by CompositeOracles.
      @param ethPoolFee_ fee setting for ETH/indexToken uniswap V3 pool to be used by this oracle. Main options: 10000, 3000 and 500 (1%, 0.3%. 0.05%)
      */
-    constructor(address oneTokenFactory_, 
-                address uniswapFactory_, 
-                address indexToken_, 
-                uint24 ethPoolFee_)
-        OracleCommon(oneTokenFactory_, "ICHI Simple Uniswap V3 Oracle", indexToken_)
+    constructor(
+        address oneTokenFactory_, 
+        address uniswapFactory_, 
+        address indexToken_, 
+        uint24 ethPoolFee_)
+    OracleCommon(
+        oneTokenFactory_, 
+        "ICHI Simple Uniswap V3 Oracle", indexToken_)
     {
         require(uniswapFactory_ != NULL_ADDRESS, "UniswapV3OracleSimple: uniswapFactory cannot be empty");
         require(ethPoolFee_ > 0, "UniswapV3OracleSimple: ethPoolFee must be > 0");
@@ -122,18 +125,26 @@ contract UniswapV3OracleSimple is OracleCommon {
         int24 tick = poolValues(pool);
 
         p1Tokens = _fetchSpot(indexToken, token, tick, amountUsd);
+        /*
         p2Tokens = p1Tokens;
 
         // if period == 0, we use spot price. Otherwise look for TWAP
         if (period > 0) {
             p2Tokens = _fetchTwap(pool, indexToken, token, period, amountUsd);
         }
+        */
 
+        p2Tokens = (period > 0) ? _fetchTwap(pool, indexToken, token, period, amountUsd) : p1Tokens;
+
+        /*
         if (p1Tokens > p2Tokens) {  //want to take the lower price which is more larger amount of tokens
             amountTokens = p1Tokens;
         } else {
             amountTokens = p2Tokens;
         }
+        */
+
+        amountTokens = (p1Tokens > p2Tokens) ? p1Tokens: p2Tokens;
         volatility = 1;
     }
 
@@ -161,28 +172,35 @@ contract UniswapV3OracleSimple is OracleCommon {
         tick = poolValues(pool);
 
         p1Tokens = _fetchSpot(WETH, token, tick, amountTokensStepOne);
+        /*
         p2Tokens = p1Tokens;
 
         // if period == 0, we use spot price. Otherwise look for TWAP
         if (period > 0) {
             p2Tokens = _fetchTwap(pool, WETH, token, period, amountTokensStepOne);
         }
+        */
 
+        p2Tokens = (period > 0) ? _fetchTwap(pool, WETH, token, period, amountTokensStepOne) : p1Tokens;
+
+        /*
         if (p1Tokens > p2Tokens) {  //want to take the lower price which is more larger amount of tokens
             amountTokens = p1Tokens;
         } else {
             amountTokens = p2Tokens;
         }
+        */
+        amountTokens = (p1Tokens > p2Tokens) ? p1Tokens : p2Tokens;
+
         volatility = 1;
     }
 
     /**
-     @notice updates price observation history, if necessary. Not required for this oracle.
+     @notice updates record price observation history. Not required for this oracle, so nothing to do but the interface must be supported. 
      @dev it is permissible for anyone to supply gas and update the oracle's price history.
      @param token baseToken to update
      */
-    function update(address token) external override {
-    }
+    function update(address token) external override {}
 
     /**
      @notice returns equivalent indexTokens for amountTokens, token
@@ -232,15 +250,17 @@ contract UniswapV3OracleSimple is OracleCommon {
         p2Out = p1Out;
 
         // if period == 0, we use spot price. Otherwise look for TWAP
-        if (period > 0) {
-            p2Out = _fetchTwap(pool, token, indexToken, period, amountTokens);
-        }
+        if (period > 0) p2Out = _fetchTwap(pool, token, indexToken, period, amountTokens);
 
+        /*
         if (p1Out > p2Out) {
             amountOut = p2Out;
         } else {
             amountOut = p1Out;
         }
+        */
+
+        amountOut = (p1Out > p2Out) ? p2Out : p1Out;
     }
 
     /**
@@ -272,11 +292,14 @@ contract UniswapV3OracleSimple is OracleCommon {
             p2Out = _fetchSpot(WETH, indexToken, tick, p2amountOneStepOne);
         }
 
+        /*
         if (p1Out > p2Out) {
             amountOut = p2Out;
         } else {
             amountOut = p1Out;
         }
+        */
+        amountOut = (p1Out > p2Out) ? p2Out : p1Out;
     }
 
     /**
@@ -319,7 +342,7 @@ contract UniswapV3OracleSimple is OracleCommon {
         address _tokenOut,
         int24 _tick,
         uint256 _amountIn
-    ) internal pure returns (uint256 amountOut) {
+    ) internal pure returns (uint256 amountOut) { // TODO: This can be private until this oracle will be inherited by another contract that will access it directly. 
         return
             OracleLibrary.getQuoteAtTick(
                 _tick,
@@ -366,6 +389,11 @@ contract UniswapV3OracleSimple is OracleCommon {
 
         emit RegisterToken(msg.sender, token, oneStep, period, poolFee);
     }
+
+    // TODO: Carefully consider the user stories and the effect of doing this. 
+    // Can removing a registered and used token cause a oneToken to fail or freeze up?
+    // Is it necessary to have this capability if the oracle can be delisted as an elligable oracle at the factory level?
+    // Recall that delisting at the factory level does not intervene in oneTokens where it's used because that would cause failure.
 
     /**
      * @notice unregister a token
