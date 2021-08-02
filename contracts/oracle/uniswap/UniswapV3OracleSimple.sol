@@ -8,6 +8,7 @@ import "../../_openzeppelin/math/SafeMath.sol";
 import '../../_uniswap_v3/v3-periphery/contracts/libraries/OracleLibrary.sol';
 import '../../_uniswap_v3/v3-periphery/contracts/libraries/PoolAddress.sol';
 import '../../_uniswap_v3/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import '../../_uniswap_v3/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '../../lib/SafeUint128.sol';
 
 /**
@@ -27,6 +28,7 @@ import '../../lib/SafeUint128.sol';
 contract UniswapV3OracleSimple is OracleCommon {
 
     address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address constant UNI_V3_FACTORY = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
     using AddressSet for AddressSet.Set;
 
@@ -110,6 +112,8 @@ contract UniswapV3OracleSimple is OracleCommon {
      @param volatility metric for future use-cases
      */
     function amountRequired(address token, uint256 amountUsd) external view override returns(uint256 amountTokens, uint256 volatility) {
+        require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
+
         Settings storage s = registeredTokens[token];
         if (s.oneStep) {
             ( amountTokens, volatility ) = amountRequiredOneStep(token, amountUsd, s.period, s.poolFee);
@@ -191,6 +195,8 @@ contract UniswapV3OracleSimple is OracleCommon {
      @param amountOut equivalent amount in indexTokens
      */
     function consult(address token, uint256 amountTokens) public view returns (uint256 amountOut) {
+        require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
+
         Settings storage s = registeredTokens[token];
         if (s.oneStep) {
             amountOut = consultOneStep(token, amountTokens, s.period, s.poolFee);
@@ -322,6 +328,17 @@ contract UniswapV3OracleSimple is OracleCommon {
      *********************************/
 
     /**
+     * @notice utility function that checks whether there is an existing pool for the specified tokens. Returns true if the pool exists
+     * @param token0 address of the first token
+     * @param token1 address of the second token
+     * @param poolFee fee setting for the pool
+     */
+    function poolExists(address token0, address token1, uint24 poolFee) private view returns (bool) {
+        IUniswapV3Factory factory = IUniswapV3Factory(UNI_V3_FACTORY);
+        return factory.getPool(token0, token1, poolFee) != NULL_ADDRESS;
+    }
+
+    /**
      * @notice check settings and pools for a token being registered with the oracle
      * @param token address of the token to be registered
      * @param oneStep bool flag that indicates whether to use one step or two steps route (via ETH)
@@ -335,14 +352,12 @@ contract UniswapV3OracleSimple is OracleCommon {
         if (!oneStep) {
             tokenToCheck = WETH;
 
-            // check if the second pair is available
-            address ethPool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(WETH, indexToken, ethPoolFee));
-            require(address(ethPool) != NULL_ADDRESS, "UniswapV3OracleSimple: unknown ETH/indexToken pair");
+            // check if there is a pool for the second pair
+            require(poolExists(WETH, indexToken, ethPoolFee), "UniswapV3OracleSimple: unknown ETH/indexToken pair");
         }
 
-        // check if the main pair is available
-        address pool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(token, tokenToCheck, poolFee));
-        require(address(pool) != NULL_ADDRESS, "UniswapV3OracleSimple: unknown pair");
+        // check if there is a pool for the main pair
+        require(poolExists(token, tokenToCheck, poolFee), "UniswapV3OracleSimple: unknown pair");
     }
 
     /**
