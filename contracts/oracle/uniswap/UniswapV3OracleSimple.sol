@@ -78,6 +78,17 @@ contract UniswapV3OracleSimple is OracleCommon {
     }
 
     /**
+     @notice checks is the oracle is ready to be used with the base token, If yes, emits OracleInitialized event
+     @dev initialized from the Factory when assigned to an asset.
+     @param token the base token. index is established at deployment time and cannot be changed
+     */
+    function init(address token) external onlyModuleOrFactory override {
+        require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: token must be registered with the Oracle before it's iniialized from the Factory");
+
+        emit OracleInitialized(msg.sender, token, indexToken);
+    }
+
+    /**
      @notice returns equivalent indexTokens for amountIn, token
      @dev index token is established at deployment time
      @param token ERC20 token
