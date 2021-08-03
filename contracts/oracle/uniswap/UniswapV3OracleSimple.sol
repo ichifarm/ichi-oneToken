@@ -86,7 +86,6 @@ contract UniswapV3OracleSimple is OracleCommon {
      */
     function init(address token) external onlyModuleOrFactory override {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: token must be registered with the Oracle before it's iniialized from the Factory");
-
         emit OracleInitialized(msg.sender, token, indexToken);
     }
 
@@ -115,11 +114,16 @@ contract UniswapV3OracleSimple is OracleCommon {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
 
         Settings storage s = registeredTokens[token];
+        /*
         if (s.oneStep) {
             ( amountTokens, volatility ) = amountRequiredOneStep(token, amountUsd, s.period, s.poolFee);
         } else {
             ( amountTokens, volatility ) = amountRequiredTwoSteps(token, amountUsd, s.period, s.poolFee);
         }
+        */
+        amountTokens = (s.oneStep) ?
+            amountRequiredOneStep (token, amountUsd, s.period, s.poolFee) :
+            amountRequiredTwoSteps(token, amountUsd, s.period, s.poolFee);
     }
 
     /**
@@ -136,15 +140,10 @@ contract UniswapV3OracleSimple is OracleCommon {
         uint256 p1Tokens = 0;
         uint256 p2Tokens = 0;
         amountUsd = normalizedToTokens(indexToken, amountUsd);
-
         address pool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(indexToken, token, poolFee));
-
         int24 tick = poolValues(pool);
-
         p1Tokens = _fetchSpot(indexToken, token, tick, amountUsd);
-
         p2Tokens = (period > 0) ? _fetchTwap(pool, indexToken, token, period, amountUsd) : p1Tokens;
-
         amountTokens = (p1Tokens > p2Tokens) ? p1Tokens: p2Tokens;
         volatility = 1;
     }
@@ -163,21 +162,14 @@ contract UniswapV3OracleSimple is OracleCommon {
         uint256 p1Tokens = 0;
         uint256 p2Tokens = 0;
         amountUsd = normalizedToTokens(indexToken, amountUsd);
-
         address pool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(indexToken, WETH, ethPoolFee));
         int24 tick = poolValues(pool);
-        
         uint256 amountTokensStepOne = _fetchSpot(indexToken, WETH, tick, amountUsd);
-
         pool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(WETH, token, poolFee));
         tick = poolValues(pool);
-
         p1Tokens = _fetchSpot(WETH, token, tick, amountTokensStepOne);
-
         p2Tokens = (period > 0) ? _fetchTwap(pool, WETH, token, period, amountTokensStepOne) : p1Tokens;
-
         amountTokens = (p1Tokens > p2Tokens) ? p1Tokens : p2Tokens;
-
         volatility = 1;
     }
 
@@ -198,11 +190,16 @@ contract UniswapV3OracleSimple is OracleCommon {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
 
         Settings storage s = registeredTokens[token];
+        /*
         if (s.oneStep) {
             amountOut = consultOneStep(token, amountTokens, s.period, s.poolFee);
         } else {
             amountOut = consultTwoSteps(token, amountTokens, s.period, s.poolFee);
         }
+        */
+        amountOut = (s.oneStep) ? 
+            consultOneStep (token, amountTokens, s.period, s.poolFee) : 
+            consultTwoSteps(token, amountTokens, s.period, s.poolFee);
     }
 
     /**
@@ -213,9 +210,7 @@ contract UniswapV3OracleSimple is OracleCommon {
     function poolValues(address pool) internal view returns (int24 tick) {
         IUniswapV3Pool oracle = IUniswapV3Pool(pool);
         (, int24 tick_, , , , , bool unlocked_) = oracle.slot0();
-
         require(unlocked_, "UniswapV3OracleSimple: the pool is locked");
-
         tick = tick_;
     }
 
@@ -230,14 +225,10 @@ contract UniswapV3OracleSimple is OracleCommon {
     function consultOneStep(address token, uint256 amountTokens, uint32 period, uint24 poolFee) internal view returns (uint256 amountOut) {
         uint256 p1Out = 0;
         uint256 p2Out = 0;
-
         address pool = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(token, indexToken, poolFee));
         int24 tick = poolValues(pool);
-
         p1Out = _fetchSpot(token, indexToken, tick, amountTokens);
-
         p2Out = (period > 0) ? _fetchTwap(pool, token, indexToken, period, amountTokens) : p1Out;
-
         amountOut = (p1Out > p2Out) ? p2Out : p1Out;
     }
 
@@ -252,15 +243,11 @@ contract UniswapV3OracleSimple is OracleCommon {
     function consultTwoSteps(address token, uint256 amountTokens, uint32 period, uint24 poolFee) internal view returns (uint256 amountOut) {
         uint256 p1Out = 0;
         uint256 p2Out = 0;
-
         address pool1 = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(token, WETH, poolFee));
         int24 tick = poolValues(pool1);
-        
         uint256 p1amountOneStepOne = _fetchSpot(token, WETH, tick, amountTokens);
-
         address pool2 = PoolAddress.computeAddress(uniswapFactory, PoolAddress.getPoolKey(WETH, indexToken, ethPoolFee));
         tick = poolValues(pool2);
-
         p1Out = _fetchSpot(WETH, indexToken, tick, p1amountOneStepOne);
         p2Out = p1Out;
 
@@ -369,14 +356,11 @@ contract UniswapV3OracleSimple is OracleCommon {
      */
     function registerToken(address token, bool oneStep, uint32 period, uint24 poolFee) external onlyOwner {
         checkTokenSettings(token, oneStep, poolFee);
-
         registeredTokensSet.insert(token, "UniswapV3OracleSimple: token is already registered");
-
         Settings storage s = registeredTokens[token];
         s.oneStep = oneStep;
         s.period = period;
         s.poolFee = poolFee;
-
         emit RegisterToken(msg.sender, token, oneStep, period, poolFee);
     }
 
@@ -389,9 +373,7 @@ contract UniswapV3OracleSimple is OracleCommon {
      */
     function reregisterToken(address token, bool oneStep, uint32 period, uint24 poolFee) external onlyOwner {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: token hasn't been registered before");
-
         checkTokenSettings(token, oneStep, poolFee);
-
         Settings storage s = registeredTokens[token];
         s.oneStep = oneStep;
         s.period = period;
