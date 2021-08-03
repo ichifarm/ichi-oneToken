@@ -52,7 +52,6 @@ contract UniswapV3OracleSimple is OracleCommon {
 
     event RegisterToken(address sender, address token, bool oneStep, uint32 period, uint24 poolFee);
     event ReregisterToken(address sender, address token, bool oneStep, uint32 period, uint24 poolFee);
-    event UnregisterToken(address sender, address token);
 
     /**
      @notice the indexToken (index token), averaging period and uniswapfactory cannot be changed post-deployment
@@ -114,15 +113,8 @@ contract UniswapV3OracleSimple is OracleCommon {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
 
         Settings storage s = registeredTokens[token];
-        /*
-        if (s.oneStep) {
-            ( amountTokens, volatility ) = amountRequiredOneStep(token, amountUsd, s.period, s.poolFee);
-        } else {
-            ( amountTokens, volatility ) = amountRequiredTwoSteps(token, amountUsd, s.period, s.poolFee);
-        }
-        */
-        amountTokens = (s.oneStep) ?
-            amountRequiredOneStep (token, amountUsd, s.period, s.poolFee) :
+        ( amountTokens, volatility ) = (s.oneStep) ?
+            amountRequiredOneStep(token, amountUsd, s.period, s.poolFee) :
             amountRequiredTwoSteps(token, amountUsd, s.period, s.poolFee);
     }
 
@@ -190,13 +182,6 @@ contract UniswapV3OracleSimple is OracleCommon {
         require(registeredTokensSet.exists(token), "UniswapV3OracleSimple: unknown token");
 
         Settings storage s = registeredTokens[token];
-        /*
-        if (s.oneStep) {
-            amountOut = consultOneStep(token, amountTokens, s.period, s.poolFee);
-        } else {
-            amountOut = consultTwoSteps(token, amountTokens, s.period, s.poolFee);
-        }
-        */
         amountOut = (s.oneStep) ? 
             consultOneStep (token, amountTokens, s.period, s.poolFee) : 
             consultTwoSteps(token, amountTokens, s.period, s.poolFee);
@@ -380,15 +365,5 @@ contract UniswapV3OracleSimple is OracleCommon {
         s.poolFee = poolFee;
 
         emit ReregisterToken(msg.sender, token, oneStep, period, poolFee);
-    }
-
-    /**
-     * @notice unregister a token
-     * @param token address of the token to be unregistered
-     */
-    function unregisterToken(address token) external onlyOwner {
-        registeredTokensSet.remove(token, "UniswapV3OracleSimple: unknown token");
-        delete registeredTokens[token];
-        emit UnregisterToken(msg.sender, token);
     }
 }

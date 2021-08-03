@@ -125,25 +125,12 @@ contract("UniswapV3OracleSimple", accounts => {
 		await uniswapOracleSimple.update(memberTokenAddress);
 	});
 
-	it("cannot unregister tokens that hasn't been registered before", async () => {
-		let msg1 = "UniswapV3OracleSimple: unknown token";
-
-		await truffleAssert.reverts(uniswapOracleSimple.unregisterToken(fuse), msg1);
-
-		await uniswapOracleSimple.unregisterToken(gtc);
-		await uniswapOracleSimple.registerToken(gtc, false, DAY_PERIOD, POOL_FEE);
-	});
-
 	it("cannot use the oracle with unregistered tokens", async () => {
 		let msg1 = "UniswapV3OracleSimple: unknown token";
 
-		await uniswapOracleSimple.unregisterToken(gtc);
-
-		await truffleAssert.reverts(uniswapOracleSimple.read(gtc, ONE_TOKEN), msg1);
-		await truffleAssert.reverts(uniswapOracleSimple.consult(gtc, ONE_TOKEN), msg1);
-		await truffleAssert.reverts(uniswapOracleSimple.amountRequired(gtc, ONE_USD), msg1);
-
-		await uniswapOracleSimple.registerToken(gtc, false, DAY_PERIOD, POOL_FEE);
+		await truffleAssert.reverts(uniswapOracleSimple.read(ichi, ONE_TOKEN), msg1);
+		await truffleAssert.reverts(uniswapOracleSimple.consult(ichi, ONE_TOKEN), msg1);
+		await truffleAssert.reverts(uniswapOracleSimple.amountRequired(ichi, ONE_USD), msg1);
 	});
 
 	it("should check input values during token registration and re-registration", async () => {
