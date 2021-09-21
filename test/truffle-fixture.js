@@ -10,6 +10,7 @@ const recap_deployment = require('../migrations/99_recap_deployment.js')
 const deploy_uniswap_oracle_simple = require('../migrations/100_deploy_uniswap_oracle_simple.js')
 const deploy_twap_compare_uniswap_oracle = require('../migrations/101_deploy_twap_compare_uniswap_oracle.js')
 const deploy_twap_compare_uniswap_oracle_v2 = require('../migrations/102_deploy_twap_compare_uniswap_oracle_v2.js')
+const deploy_uniswap_v3_oracle_simple = require('../migrations/103_deploy_uniswap_v3_oracle_simple.js')
 
 
 module.exports = async () => {
@@ -25,4 +26,5 @@ module.exports = async () => {
 	await deploy_uniswap_oracle_simple()
 	await deploy_twap_compare_uniswap_oracle()
 	await deploy_twap_compare_uniswap_oracle_v2()
+	await deploy_uniswap_v3_oracle_simple()
 };

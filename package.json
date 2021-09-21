@@ -8,6 +8,7 @@
     "console": "hardhat console",
     "test": "hardhat test --deploy-fixture",
     "test:oracleSimple": "yarn test test/uniswapOracleSimple.js",
+    "test:oracleSimpleV3": "yarn test test/uniswapV3OracleSimple.js",
     "test:oracleTwapCompare": "yarn test test/uniswapTwapCompareOracle.js",
     "test:oracleTwapCompareV2": "yarn test test/uniswapTwapCompareOracleV2.js",
     "test:ichiPeggedOracle": "yarn test test/ichiPeggedOracle.js",
