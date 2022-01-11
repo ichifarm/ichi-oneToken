@@ -20,14 +20,15 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
     if (chainId != 1) { //don't deploy to mainnet
         const 
-            collateralToken = await deployments.get("Token6")
+            //collateralToken = await deployments.get("Token6")
             factory = await deployments.get("OneTokenFactory")
             Admin = await ethers.getContractFactory("OneTokenFactory")
             admin = Admin.attach(factory.address)
+            usdc = "0xE491A18E0338e7C9edc806F951AE4948f302360F"
 
         const oracle = await deploy("ICHIPeggedOracle", {
             from: deployer,
-            args: [factory.address, name, collateralToken.address],
+            args: [factory.address, name, usdc],
             log: true
         })
 
@@ -37,7 +38,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
                 constructorArguments: [
                     factory.address,
                     name,
-                    collateralToken.address
+                    usdc
                 ],
             })
         }
@@ -51,4 +52,4 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 }
 
 module.exports.tags = ["testMemberTokenOracle","testToken"]
-module.exports.dependencies = ["testTokens","oneTokenFactory"]
+module.exports.dependencies = ["oneTokenFactory"]
