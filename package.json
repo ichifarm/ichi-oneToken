@@ -78,5 +78,8 @@
   "dependencies": {
     "@remix-project/remixd": "^0.3.2",
     "develop": "^1.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@supremesingh"
   }
 }
