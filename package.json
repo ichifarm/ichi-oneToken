@@ -80,5 +80,8 @@
     "@typechain/ethers-v5": "^9.0.0",
     "develop": "^1.0.0",
     "typechain-target-ethers-v5": "^5.0.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@supremesingh"
   }
 }
