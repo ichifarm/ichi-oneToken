@@ -57,3 +57,7 @@ This repository is subject to the ICHI bug bounty program, per the terms defined
 ### Licensing
 
 The primary license for ICHI V2 oneToken is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE`](./LICENSE).
+
+### Deploying to NPM 
+
+https://itnext.io/create-your-first-github-package-9b5033d9bdd3 

@@ -1,5 +1,5 @@
 {
-  "name": "onetoken",
+  "name": "@ichifarm/onetoken",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -82,6 +82,6 @@
     "typechain-target-ethers-v5": "^5.0.1"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@supremesingh"
+    "registry": "https://npm.pkg.github.com/@ichifarm"
   }
 }
