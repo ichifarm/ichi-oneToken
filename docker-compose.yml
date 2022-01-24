@@ -8,7 +8,8 @@ services:
       - 8545:8545
     restart: unless-stopped
     environment:
-      FORK_URL: "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+      MNEMONIC: "test test test test test test test test test test test junk"
+      FORK_URL: "${MAINNET_ALCHEMY_API_ENDPOINT}"
       FORK_BLOCK_NUMBER: 14068798
       CHAIN_ID: 1
 
@@ -20,6 +21,7 @@ services:
       - 8546:8545
     restart: unless-stopped
     environment:
-      FORK_URL: "https://polygon-mainnet.g.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+      MNEMONIC: "test test test test test test test test test test test junk"
+      FORK_URL: "${POLYGON_ALCHEMY_API_ENDPOINT}"
       FORK_BLOCK_NUMBER: 24108240
       CHAIN_ID: 137

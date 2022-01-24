@@ -85,4 +85,5 @@ typings/
 
 deployments/docker-mainnet
 deployments/docker-polygon
+deployments/localhost
 

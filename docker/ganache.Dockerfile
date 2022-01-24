@@ -1,8 +1,12 @@
-FROM node:16
+FROM node:12
 
-RUN npm install --global ganache@beta
+WORKDIR /app
 
-ADD docker/ganache.entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY yarn.lock /app
+COPY package.json /app
+
+RUN yarn install
+
+COPY . /app
 
 ENTRYPOINT ["/entrypoint.sh"]
