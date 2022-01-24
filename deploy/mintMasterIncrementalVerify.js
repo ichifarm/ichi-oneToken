@@ -12,16 +12,19 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         factory = await deployments.get("OneTokenFactory")
         mintMaster = await deployments.get("Incremental")
 
-    if (chainId != 31337) { //don't verify contract on localnet
-        await hre.run("verify:verify", {
-            address: mintMaster.address,
-            constructorArguments: [
-                factory.address,
-                mintMasterDesc
-            ],
-        })
-    }
+    await hre.run("verify:verify", {
+        address: mintMaster.address,
+        constructorArguments: [
+            factory.address,
+            mintMasterDesc
+        ],
+    })
 }
 
 module.exports.tags = ["mintMasterIncrementalVerify","verify"]
 module.exports.dependencies = ["oneTokenFactory","mintMasterIncremental"]
+
+// don't verify contract on localnet
+module.exports.skip = async()=>{
+    ["31337", "1337"].includes(await getChainId())
+}

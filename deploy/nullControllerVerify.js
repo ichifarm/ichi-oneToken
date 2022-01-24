@@ -18,16 +18,18 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         factory = await deployments.get("OneTokenFactory")
         controller = await deployments.get("NullController")
     
-    if (chainId != 31337) { //don't verify contract on localnet
-        await hre.run("verify:verify", {
-            address: controller.address,
-            constructorArguments: [
-                factory.address
-            ],
-        })
-    }
+    await hre.run("verify:verify", {
+        address: controller.address,
+        constructorArguments: [
+            factory.address
+        ],
+    })
 
 }
 
-module.exports.tags = ["nullControllerVerify","verify"]
+module.exports.tags = ["nullControllerVerify","verify","polygon"]
 module.exports.dependencies = ["oneTokenFactory","nullController"]
+
+// don't verify contract on localnet
+module.exports.skip = async() =>
+    ["31337", "1337"].includes(await getChainId())

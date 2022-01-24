@@ -83,4 +83,6 @@ typings/
 .env
 .env.test
 
+deployments/docker-mainnet
+deployments/docker-polygon
 

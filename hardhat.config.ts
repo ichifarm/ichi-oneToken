@@ -1,13 +1,12 @@
 // hardhat.config.ts
 
-import 'dotenv/config'
+import "dotenv/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-solhint";
 import "@tenderly/hardhat-tenderly";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-abi-exporter";
 import "hardhat-deploy";
-import "hardhat-deploy-ethers";
 import "hardhat-gas-reporter";
 import "hardhat-spdx-license-identifier";
 import "hardhat-typechain";
@@ -21,9 +20,11 @@ import { HardhatUserConfig } from "hardhat/types";
 import { removeConsoleLog } from "hardhat-preprocessor";
 
 const accounts = {
-  mnemonic: process.env.MNEMONIC || "test test test test test test test test test test test junk",
+  mnemonic:
+    process.env.MNEMONIC ||
+    "test test test test test test test test test test test junk",
   // accountsBalance: "990000000000000000000",
-}
+};
 
 const config: HardhatUserConfig = {
   abiExporter: {
@@ -48,14 +49,14 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: {
-      default: 0
+      default: 0,
     },
     dev: {
       // Default to 1
       default: 1,
       // dev address mainnet
       // 1: "",
-    }
+    },
   },
   networks: {
     mainnet: {
@@ -70,9 +71,19 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["local"],
     },
+    "docker-mainnet": {
+      url: "http://localhost:8545",
+      live: false,
+      tags: ["local"],
+    },
+    "docker-polygon": {
+      url: "http://localhost:8546",
+      live: false,
+      tags: ["local"],
+    },
     hardhat: {
       forking: {
-       url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`
+        url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       },
       live: false,
       saveDeployments: true,
@@ -86,7 +97,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["staging"],
       gasPrice: 5000000000,
-      gasMultiplier: 2
+      gasMultiplier: 2,
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -96,7 +107,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["staging"],
       gasPrice: 5000000000,
-      gasMultiplier: 2
+      gasMultiplier: 2,
     },
     goerli: {
       url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -106,7 +117,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["staging"],
       gasPrice: 5000000000,
-      gasMultiplier: 2
+      gasMultiplier: 2,
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -116,7 +127,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["staging"],
       gasPrice: 20000000000,
-      gasMultiplier: 2
+      gasMultiplier: 2,
     },
   },
   paths: {
@@ -129,7 +140,10 @@ const config: HardhatUserConfig = {
     tests: "test",
   },
   preprocess: {
-    eachLine: removeConsoleLog((bre) => bre.network.name !== "hardhat" && bre.network.name !== "localhost"),
+    eachLine: removeConsoleLog(
+      (bre) =>
+        bre.network.name !== "hardhat" && bre.network.name !== "localhost"
+    ),
   },
   solidity: {
     compilers: [
@@ -163,6 +177,6 @@ const config: HardhatUserConfig = {
       verbose: true,
     },
   },
-}
+};
 
 export default config;

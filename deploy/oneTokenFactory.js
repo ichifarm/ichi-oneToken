@@ -13,4 +13,4 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
 }
 
-module.exports.tags = ["oneTokenFactory","init"]
+module.exports.tags = ["oneTokenFactory","init","mainnet","polygon"]

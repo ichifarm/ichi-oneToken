@@ -40,5 +40,5 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
 }
 
-module.exports.tags = ["oneTokenV1","init"]
+module.exports.tags = ["oneTokenV1","init","mainnet","polygon"]
 module.exports.dependencies = ["oneTokenFactory"]
