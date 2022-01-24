@@ -60,3 +60,6 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
 module.exports.tags = ["chainlinkOracleUSD"]
 module.exports.dependencies = ["oneTokenFactory"]
+
+module.exports.skip = async() =>
+    !["1", "137"].includes(await getChainId())

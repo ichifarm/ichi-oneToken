@@ -65,5 +65,6 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 module.exports.tags = ["testOneToken","testToken"]
 module.exports.dependencies = ["oneTokenFactory","nullController","mintMasterIncremental","testTokens","testMemberTokenOracle","testCollateralTokenOracle"]
 
+// don't deploy to mainnet nor polygon
 module.exports.skip = async() =>
     ["1", "137"].includes(await getChainId())
