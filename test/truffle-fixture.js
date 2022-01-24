@@ -4,9 +4,13 @@ const deploy_testContracts = require('../migrations/30_deploy_testContracts.js')
 const deploy_pegged_oracle = require('../migrations/40_deploy_pegged_oracle.js')
 const deploy_test_oracle = require('../migrations/41_deploy_test_oracle.js')
 const deploy_test_mint_master = require('../migrations/42_deploy_test_mint_master.js')
+const deploy_chainlink_oracle = require('../migrations/43_deploy_chainlink_oracle.js')
 const register_modules_and_deploy_oneToken = require('../migrations/50_register_modules_and_deploy_oneToken.js')
 const recap_deployment = require('../migrations/99_recap_deployment.js')
 const deploy_uniswap_oracle_simple = require('../migrations/100_deploy_uniswap_oracle_simple.js')
+const deploy_twap_compare_uniswap_oracle = require('../migrations/101_deploy_twap_compare_uniswap_oracle.js')
+const deploy_twap_compare_uniswap_oracle_v2 = require('../migrations/102_deploy_twap_compare_uniswap_oracle_v2.js')
+const deploy_uniswap_v3_oracle_simple = require('../migrations/103_deploy_uniswap_v3_oracle_simple.js')
 
 
 module.exports = async () => {
@@ -16,7 +20,11 @@ module.exports = async () => {
 	await deploy_pegged_oracle()
 	await deploy_test_oracle()
 	await deploy_test_mint_master()
+	await deploy_chainlink_oracle()
 	await register_modules_and_deploy_oneToken()
 	await recap_deployment()
 	await deploy_uniswap_oracle_simple()
+	await deploy_twap_compare_uniswap_oracle()
+	await deploy_twap_compare_uniswap_oracle_v2()
+	await deploy_uniswap_v3_oracle_simple()
 };
