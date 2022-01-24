@@ -26,5 +26,5 @@ module.exports.dependencies = ["oneTokenFactory","mintMasterIncremental"]
 
 // don't verify contract on localnet
 module.exports.skip = async()=>{
-    ["31337", "1337"].includes(await getChainId())
+    !["1", "137"].includes(await getChainId())
 }

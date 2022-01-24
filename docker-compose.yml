@@ -10,6 +10,7 @@ services:
     environment:
       FORK_URL: "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
       FORK_BLOCK_NUMBER: 14068798
+      CHAIN_ID: 1
 
   polygon:
     build:
@@ -19,5 +20,6 @@ services:
       - 8546:8545
     restart: unless-stopped
     environment:
-      FORK_URL: "https://polygon-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+      FORK_URL: "https://polygon-mainnet.g.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
       FORK_BLOCK_NUMBER: 24108240
+      CHAIN_ID: 137
