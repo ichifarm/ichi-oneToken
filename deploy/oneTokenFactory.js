@@ -1,16 +1,15 @@
-module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
-    const { deploy } = deployments
-  
-    const { deployer, dev } = await getNamedAccounts()
-  
-    const chainId = await getChainId()
+const { getCurrentConfig } = require('../scripts/deployConfigs')
 
-    const factory = await deploy("OneTokenFactory", {
+module.exports = async function({ getNamedAccounts, deployments }) {
+    const { deploy, execute } = deployments
+    const { deployer } = await getNamedAccounts()
+    const config = getCurrentConfig();
+  
+    await deploy("OneTokenFactory", {
         from: deployer,
         log: true,
         deterministicDeployment: false
     })
-
 }
 
 module.exports.tags = ["oneTokenFactory","init","polygon"]

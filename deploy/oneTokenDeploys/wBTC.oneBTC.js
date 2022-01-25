@@ -1,22 +1,13 @@
-const { network } = require('hardhat')
-// example deploy of a oneToken from the factory
+const { ethers, network } = require('hardhat')
 
-const configs = {
-    137: {
-        wbtc: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
-        usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-        governance: 'TODO'
-    }
-}
+const { getCurrentConfig } = require('../../scripts/deployConfigs')
 
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
-    const { deploy, execute } = deployments
+    const { execute, get, getOrNull, save } = deployments
   
-    const { deployer, dev } = await getNamedAccounts()
+    const { deployer } = await getNamedAccounts()
   
-    const chainId = await getChainId()
-
-    const config = configs[network.config.chainId];
+    const config = getCurrentConfig()
 
     const moduleType = {
         version: 0,
@@ -32,26 +23,57 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         url = "ichi.org"
         symbol = "oneBTC"
 
-    const version = await deployments.get('OneTokenV1')
-    const controller = await deployments.get('NullController')
-    const factory = await deployments.get('OneTokenFactory')
-    const mintMaster = await deployments.get('Incremental')
-    const oneTokenOracle = await deployments.get("ICHIPeggedOracle")
+    const version = await get('OneTokenV1')
+    const controller = await get('NullController')
+    const mintMaster = await get('Incremental')
+    const oneTokenOracle = await get("ICHIPeggedOracle")
+    const factory = await get('OneTokenFactory')
+    const OneTokenProxy = ethers.getContractFactory('OneTokenProxy')
 
-    execute(
-        factory,
-        'deployOneTokenProxy',
-        { from: deployer, log: true},
-        name,
-        symbol,
-        config.governance,
-        version.address,
-        controller.address,
-        mintMaster.address,
-        oneTokenOracle.address,
-        config.wbtc,
-        config.usdc
-    )
+    const existing = await getOrNull('oneBTC')
+
+    if (!existing) {
+        const usdOracle = await get('ChainlinkOracleUSD')
+
+        // admit the token
+        await execute(
+            'OneTokenFactory',
+            { from: deployer, log: true},
+            'admitForeignToken',
+            config.wbtc,
+            false,
+            usdOracle.address
+        )
+
+        // deploy one token
+        const tx=await execute(
+            'OneTokenFactory',
+            { from: deployer, log: true},
+            'deployOneTokenProxy',
+            name,
+            symbol,
+            config.governance,
+            version.address,
+            controller.address,
+            mintMaster.address,
+            oneTokenOracle.address,
+            config.wbtc,
+            config.usdc
+        )
+
+
+        let deployAbi = new ethers.utils.Interface([
+            'event OneTokenDeployed(address sender, address newOneTokenProxy, string name, string symbol, address governance, address version, address controller, address mintMaster, address oneTokenOracle, address memberToken, address collateral)'
+        ])
+        let deployEvent = deployAbi.getEventTopic('OneTokenDeployed')
+
+        const [log] = tx.logs.filter((l) => l.address == factory.address && l.topics[0] == deployEvent);
+        const event = deployAbi.parseLog(log)
+
+
+        await save('oneBTC', {address: event.args.newOneTokenProxy, abi: OneTokenProxy.aby})
+    }
+
 
 
     console.log('*************************************************************')
@@ -83,7 +105,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 }
 
 module.exports.tags = ["oneBTC","polygon"]
-module.exports.dependencies = ["mintMasterIncremental", "nullController", "oneTokenFactory", "oneTokenV1", "oneBTCOracle"]
+module.exports.dependencies = ["mintMasterIncremental", "nullController", "oneTokenFactory", "oneTokenV1", "oneBTCOracle", "oneTokenOracle", "chainlinkOracleUSD", "ICHIPeggedOracle"]
 
 // deploy only on polygon
 module.exports.skip = () => ![137].includes(network.config.chainId)

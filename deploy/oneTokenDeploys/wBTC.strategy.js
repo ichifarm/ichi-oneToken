@@ -37,6 +37,6 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 }
 
 module.exports.tags = ["oneBTCStrategy","polygon"]
-module.exports.dependencies = ["oneTokenFactory"]
+module.exports.dependencies = ["oneTokenFactory", "oneBTC"]
 
 module.exports.skip = () => ![137].includes(network.config.chainId)
