@@ -63,7 +63,9 @@ const config: HardhatUserConfig = {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [`0x${process.env.MAINNET_PK}`],
       saveDeployments: true,
-      gasPrice: 30 * 1000000000,
+
+      gasPrice: 95 * 1000000000,
+
       chainId: 1,
     },
     localhost: {
@@ -92,7 +94,7 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts,
+      accounts: [`0x${process.env.TESTNET_PK}`],
       chainId: 4,
       live: true,
       saveDeployments: true,
