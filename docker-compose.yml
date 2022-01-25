@@ -3,7 +3,7 @@ services:
   ethereum:
     build:
       context: ./
-      dockerfile: docker/ganache.Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
       - 8545:8545
     restart: unless-stopped
@@ -12,11 +12,17 @@ services:
       FORK_URL: "${MAINNET_ALCHEMY_API_ENDPOINT}"
       FORK_BLOCK_NUMBER: 14068798
       CHAIN_ID: 1
+      DEPLOY_TAGS: "ethereum"
+      # these keys need to exist because hardhat.config.ts demands it
+      # they're not really used here
+      ALCHEMY_API_KEY: "${MAINNET_ALCHEMY_API_KEY}"
+      MAINNET_PK: "0000000000000000000000000000000000000000000000000000000000000001"
+      TESTNET_PK: "0000000000000000000000000000000000000000000000000000000000000001"
 
   polygon:
     build:
       context: ./
-      dockerfile: docker/ganache.Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
       - 8546:8545
     restart: unless-stopped
@@ -25,3 +31,9 @@ services:
       FORK_URL: "${POLYGON_ALCHEMY_API_ENDPOINT}"
       FORK_BLOCK_NUMBER: 24108240
       CHAIN_ID: 137
+      DEPLOY_TAGS: "polygon"
+      # these keys need to exist because hardhat.config.ts demands it
+      # they're not really used here
+      ALCHEMY_API_KEY: "${POLYGON_ALCHEMY_API_KEY}"
+      MAINNET_PK: "0000000000000000000000000000000000000000000000000000000000000001"
+      TESTNET_PK: "0000000000000000000000000000000000000000000000000000000000000001"

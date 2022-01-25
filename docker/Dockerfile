@@ -1,5 +1,6 @@
 FROM node:12
 
+RUN mkdir /app
 WORKDIR /app
 
 COPY yarn.lock /app
@@ -9,4 +10,4 @@ RUN yarn install
 
 COPY . /app
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
