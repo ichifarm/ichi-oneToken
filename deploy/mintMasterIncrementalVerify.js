@@ -1,3 +1,5 @@
+const { network } = require('hardhat')
+
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
     const { deploy } = deployments
   
@@ -25,5 +27,5 @@ module.exports.tags = ["mintMasterIncrementalVerify","verify"]
 module.exports.dependencies = ["oneTokenFactory","mintMasterIncremental"]
 
 // don't verify contract on localnet
-module.exports.skip = async()=>
-    !["1", "137"].includes(await getChainId())
+module.exports.skip = async() =>
+    ['hardhat', 'localhost'].includes(network.config.name)

@@ -34,7 +34,9 @@
     "dev:deployTestToken": "hardhat --network hardhat deploy --tags init,testToken",
     "kovan:deploy": "hardhat --network kovan deploy --tags init",
     "kovan:export": "hardhat --network kovan export",
-    "kovan:verify": "hardhat --network kovan deploy --tags verify"
+    "kovan:verify": "hardhat --network kovan deploy --tags verify",
+    "polygon:deploy": "hardhat --network polygon deploy --tags polygon",
+    "mumbai:deploy": "hardhat --network polygon deploy --tags polygon"
   },
   "repository": {
     "type": "git",
