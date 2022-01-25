@@ -32,8 +32,6 @@
     "test:gas": "cross-env REPORT_GAS=true yarn test",
     "dev:deploy": "hardhat --network hardhat deploy --tags init",
     "dev:deployTestToken": "hardhat --network hardhat deploy --tags init,testToken",
-    "docker-mainnet:deploy": "hardhat --network docker-mainnet deploy --tags mainnet",
-    "docker-polygon:deploy": "hardhat --network docker-polygon deploy --tags polygon",
     "kovan:deploy": "hardhat --network kovan deploy --tags init",
     "kovan:export": "hardhat --network kovan export",
     "kovan:verify": "hardhat --network kovan deploy --tags verify"

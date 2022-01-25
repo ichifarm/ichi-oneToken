@@ -71,32 +71,14 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       tags: ["local"],
     },
-    // "docker-mainnet": {
-    //   url: "http://localhost:8545",
-    //   live: false,
-    //   tags: ["local"],
-    // },
-    // "docker-polygon": {
-    //   url: "http://localhost:8546",
-    //   live: false,
-    //   tags: ["local"],
-    // },
     hardhat: {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       },
       live: false,
       saveDeployments: true,
+      chainId: parseInt(process.env.CHAIN_ID) || 31337,
       tags: ["test", "local", "mainnet"],
-    },
-    hardhat_polygon: {
-      url: "http://localhost:8546",
-      forking: {
-        url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-      },
-      live: false,
-      saveDeployments: true,
-      tags: ["test", "local", "polygon"],
     },
     ropsten: {
       url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,

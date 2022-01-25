@@ -2,11 +2,11 @@ const { network } = require('hardhat')
 const { factory } = require("typescript")
 
 const configs = {
-    mainnet: {
+    "1": {
         usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         chainlinkAddress: "0xf4030086522a5beea4988f8ca5b36dbc97bee88c"
     },
-    polygon: {
+    "137": {
         usdc: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
         chainlinkAddress: "0xA338e0492B2F944E9F8C0653D3AD1484f2657a37"
     }
@@ -18,7 +18,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     const { deployer, dev } = await getNamedAccounts()
   
     const chainId = await getChainId()
-    const config = configs[network.name];
+    const config = configs[chainId];
 
     const moduleType = {
         version: 0,
