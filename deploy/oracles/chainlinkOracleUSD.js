@@ -40,16 +40,6 @@ module.exports = async function({ getNamedAccounts, deployments }) {
         name,
         url
     )
-
-    // admit usdc as collateral
-    await execute(
-        'OneTokenFactory',
-        { from: deployer, log: true },
-        'admitForeignToken',
-        config.usdc,
-        true,
-        oracle.address
-    )
 }
 
 module.exports.tags = ["chainlinkOracleUSD", "polygon"]

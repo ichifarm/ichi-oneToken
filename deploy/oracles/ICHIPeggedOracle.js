@@ -36,6 +36,15 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         log: true
     })
 
+    await execute(
+        'OneTokenFactory',
+        { from: deployer, log: true },
+        'admitForeignToken',
+        config.usdc,
+        true,
+        oracle.address
+    )
+
     await admin.admitModule(oracle.address, moduleType.oracle, name, url, {
         from: deployer
     })
