@@ -3,7 +3,7 @@ const { network } = require('hardhat')
 const { getCurrentConfig } = require('../../scripts/deployConfigs')
 
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
-    const { deploy } = deployments
+    const { deploy, execute } = deployments
   
     const { deployer, dev } = await getNamedAccounts()
   
@@ -39,15 +39,21 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     await execute(
         'OneTokenFactory',
         { from: deployer, log: true },
+        'admitModule',
+        oracle.address,
+        moduleType.oracle,
+        name,
+        url
+    )
+
+    await execute(
+        'OneTokenFactory',
+        { from: deployer, log: true },
         'admitForeignToken',
         config.usdc,
         true,
         oracle.address
     )
-
-    await admin.admitModule(oracle.address, moduleType.oracle, name, url, {
-        from: deployer
-    })
 }
 
 module.exports.tags = ["ICHIPeggedOracle", "polygon"]
