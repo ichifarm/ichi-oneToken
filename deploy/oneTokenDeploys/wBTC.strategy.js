@@ -22,8 +22,9 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     const token = await deployments.get('oneBTC')
     const factory = await deployments.get("OneTokenFactory")
 
-    const strategy = await deploy('Arbitrary', {
+    const strategy = await deploy('oneBTCArbitrary', {
         from: deployer,
+        contract: 'Arbitrary',
         args: [factory.address, token.address, description],  
         log: true
     })

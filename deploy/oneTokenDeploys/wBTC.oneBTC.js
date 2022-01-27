@@ -1,6 +1,6 @@
 const { ethers, network } = require('hardhat')
 
-const { getCurrentConfig } = require('../../scripts/deployConfigs')
+const { getCurrentConfig } = require('../../src/deployConfigs')
 
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
     const { execute, get, getOrNull, save } = deployments
@@ -28,7 +28,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     const mintMaster = await get('Incremental')
     const oneTokenOracle = await get("ICHIPeggedOracle")
     const factory = await get('OneTokenFactory')
-    const OneTokenProxy = ethers.getContractFactory('OneTokenProxy')
+    const OneTokenProxy = await ethers.getContractFactory('OneTokenProxy')
 
     const existing = await getOrNull('oneBTC')
 
@@ -52,7 +52,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
             'deployOneTokenProxy',
             name,
             symbol,
-            config.governance,
+            deployer, // TODO should we set this to governance right away/
             version.address,
             controller.address,
             mintMaster.address,
@@ -71,7 +71,9 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         const event = deployAbi.parseLog(log)
 
 
-        await save('oneBTC', {address: event.args.newOneTokenProxy, abi: OneTokenProxy.aby})
+        console.log(event);
+        console.log(OneTokenProxy.interface.format(ethers.utils.FormatTypes.json))
+        await save('oneBTC', {address: event.args.newOneTokenProxy, abi: OneTokenProxy.interface})
     }
 
 

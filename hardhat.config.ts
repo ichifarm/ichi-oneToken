@@ -71,6 +71,7 @@ const config: HardhatUserConfig = {
     localhost: {
       live: false,
       saveDeployments: true,
+      chainId: 137,
       tags: ["local"],
     },
     hardhat: {
@@ -81,6 +82,10 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       chainId: parseInt(process.env.CHAIN_ID) || 31337,
       tags: ["test", "local", "mainnet"],
+    },
+    hardhat_polygon: {
+      url: "http://0.0.0.0:8546",
+      chainId: 137
     },
     ropsten: {
       url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,

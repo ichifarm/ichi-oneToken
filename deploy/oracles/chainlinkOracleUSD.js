@@ -1,6 +1,6 @@
 const { network } = require('hardhat')
 
-const { getCurrentConfig } = require('../../scripts/deployConfigs')
+const { getCurrentConfig } = require('../../src/deployConfigs')
 
 module.exports = async function({ getNamedAccounts, deployments }) {
     const { deploy, execute, get } = deployments
