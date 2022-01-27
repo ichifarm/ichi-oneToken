@@ -83,10 +83,6 @@ const config: HardhatUserConfig = {
       chainId: parseInt(process.env.CHAIN_ID) || 31337,
       tags: ["test", "local", "mainnet"],
     },
-    hardhat_polygon: {
-      url: "http://0.0.0.0:8546",
-      chainId: 137
-    },
     ropsten: {
       url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts,
@@ -126,6 +122,12 @@ const config: HardhatUserConfig = {
       tags: ["staging"],
       gasPrice: 20000000000,
       gasMultiplier: 2,
+    },
+    polygon: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.POLYGON_ALCHEMY_API_KEY}`,
+    },
+    mumbai: {
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.POLYGON_ALCHEMY_API_KEY}`,
     },
   },
   paths: {
