@@ -52,7 +52,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
             'deployOneTokenProxy',
             name,
             symbol,
-            deployer, // TODO should we set this to governance right away/
+            deployer, // TODO should we set this to governance right away?
             version.address,
             controller.address,
             mintMaster.address,
