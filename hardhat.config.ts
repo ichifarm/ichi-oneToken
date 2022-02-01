@@ -129,6 +129,7 @@ const config: HardhatUserConfig = {
     mumbai: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.POLYGON_ALCHEMY_API_KEY}`,
     },
+    chainId: 80001
   },
   paths: {
     artifacts: "artifacts",
