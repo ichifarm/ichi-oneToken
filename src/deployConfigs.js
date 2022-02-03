@@ -14,8 +14,10 @@ const configs = {
     governance: 'TODO' // TODO
   },
   80001: {
-    usdc: "0xe6b8a5cf854791412c1f6efc7caf629f5df1c747"
-    wbtc: ""
+    usdc: "0xe6b8a5cf854791412c1f6efc7caf629f5df1c747",
+    wbtc: "0x13EDD87281803AF4178E7b30631ab7Cbb6819441", // this is actuall TestToken6
+    wbtcUsdChainlinkOracle: '0x007A22900a3B98143368Bd5906f8E17e9867581b',
+    governance: '0x6D41E0096f332Af1Fab2ba21936ce120dE9244f2'
   },
 }
 

@@ -3,7 +3,7 @@ const { ethers, network } = require('hardhat')
 const { getCurrentConfig } = require('../../src/deployConfigs')
 
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
-    const { execute, get, getOrNull, save } = deployments
+    const { execute, get, getOrNull, save, read } = deployments
   
     const { deployer } = await getNamedAccounts()
   
@@ -35,18 +35,23 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     if (!existing) {
         const usdOracle = await get('ChainlinkOracleUSD')
 
-        // admit the token
-        await execute(
-            'OneTokenFactory',
-            { from: deployer, log: true},
-            'admitForeignToken',
-            config.wbtc,
-            false,
-            usdOracle.address
-        )
+        const tokenAlreadyAdmited = await read('OneTokenFactory', 'isForeignToken', config.wbtc);
+
+        if(!tokenAlreadyAdmited) {
+            // admit the token
+            await execute(
+                'OneTokenFactory',
+                { from: deployer, log: true},
+                'admitForeignToken',
+                config.wbtc,
+                false,
+                usdOracle.address
+            )
+
+        }
 
         // deploy one token
-        const tx=await execute(
+        const tx = await execute(
             'OneTokenFactory',
             { from: deployer, log: true},
             'deployOneTokenProxy',
@@ -67,12 +72,9 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         ])
         let deployEvent = deployAbi.getEventTopic('OneTokenDeployed')
 
-        const [log] = tx.logs.filter((l) => l.address == factory.address && l.topics[0] == deployEvent);
+        const [log] = tx.logs.filter((l) => l.address.toLowerCase() == factory.address.toLowerCase() && l.topics[0] == deployEvent);
         const event = deployAbi.parseLog(log)
 
-
-        console.log(event);
-        console.log(OneTokenProxy.interface.format(ethers.utils.FormatTypes.json))
         await save('oneBTC', {address: event.args.newOneTokenProxy, abi: OneTokenProxy.interface})
     }
 
@@ -110,4 +112,4 @@ module.exports.tags = ["oneBTC","polygon"]
 module.exports.dependencies = ["mintMasterIncremental", "nullController", "oneTokenFactory", "oneTokenV1", "oneBTCOracle", "oneTokenOracle", "chainlinkOracleUSD", "ICHIPeggedOracle"]
 
 // deploy only on polygon
-module.exports.skip = () => ![137].includes(network.config.chainId)
+module.exports.skip = () => ![137, 80001].includes(network.config.chainId)

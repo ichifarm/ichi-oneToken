@@ -3,7 +3,7 @@ const { network } = require('hardhat')
 const { getCurrentConfig } = require('../../src/deployConfigs')
 
 module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, deployments }) {
-    const { deploy, execute } = deployments
+    const { deploy, execute, read } = deployments
   
     const { deployer, dev } = await getNamedAccounts()
   
@@ -36,27 +36,35 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         log: true
     })
 
-    await execute(
-        'OneTokenFactory',
-        { from: deployer, log: true },
-        'admitModule',
-        oracle.address,
-        moduleType.oracle,
-        name,
-        url
-    )
+    const oracleAlreadyAdmited = await read('OneTokenFactory', 'isModule', oracle.address);
 
-    await execute(
-        'OneTokenFactory',
-        { from: deployer, log: true },
-        'admitForeignToken',
-        config.usdc,
-        true,
-        oracle.address
-    )
+    if(!oracleAlreadyAdmited) {
+        await execute(
+            'OneTokenFactory',
+            { from: deployer, log: true },
+            'admitModule',
+            oracle.address,
+            moduleType.oracle,
+            name,
+            url
+        )
+    }
+
+    const tokenAlreadyAdmited = await read('OneTokenFactory', 'isForeignToken', config.usdc);
+
+    if(!tokenAlreadyAdmited) {
+        await execute(
+            'OneTokenFactory',
+            { from: deployer, log: true },
+            'admitForeignToken',
+            config.usdc,
+            true,
+            oracle.address
+        )
+    }
 }
 
 module.exports.tags = ["ICHIPeggedOracle", "polygon"]
 module.exports.dependencies = ["oneTokenFactory"]
 
-module.exports.skip = () => ![137].includes(network.config.chainId)
+module.exports.skip = () => ![137, 80001].includes(network.config.chainId)

@@ -5,7 +5,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
   
     const chainId = await getChainId()
 
-    if (chainId != 1) { //don't deploy to mainnet
+    if (chainId != 1 && chainId != 137) { //don't deploy to mainnet
         await deploy("Token6", {
             from: deployer,
             log: true

@@ -3,7 +3,7 @@ const { network } = require('hardhat')
 const { getCurrentConfig } = require('../../src/deployConfigs')
 
 module.exports = async function({ getNamedAccounts, deployments }) {
-    const { deploy, execute, get } = deployments
+    const { deploy, execute, get, read } = deployments
   
     const { deployer } = await getNamedAccounts()
 
@@ -30,16 +30,20 @@ module.exports = async function({ getNamedAccounts, deployments }) {
         log: true
     })
 
-    // admit oracle
-    await execute(
-        'OneTokenFactory',
-        { from: deployer, log: true },
-        'admitModule',
-        oracle.address,
-        moduleType.oracle,
-        name,
-        url
-    )
+    const alreadyAdmited = await read('OneTokenFactory', 'isModule', oracle.address);
+
+    if(!alreadyAdmited) {
+        // admit oracle
+        await execute(
+            'OneTokenFactory',
+            { from: deployer, log: true },
+            'admitModule',
+            oracle.address,
+            moduleType.oracle,
+            name,
+            url
+        )
+    }
 }
 
 module.exports.tags = ["chainlinkOracleUSD", "polygon"]

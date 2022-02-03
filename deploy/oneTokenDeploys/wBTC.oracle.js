@@ -27,4 +27,4 @@ module.exports.tags = ["oneBTCOracle","polygon"]
 module.exports.dependencies = ["chainlinkOracleUSD"]
 
 // deploy only on polygon
-module.exports.skip = () => ![137].includes(network.config.chainId)
+module.exports.skip = () => ![137, 80001].includes(network.config.chainId)
