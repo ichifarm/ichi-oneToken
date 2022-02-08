@@ -1,0 +1,5 @@
+#!/bin/bash -ue
+
+address="0x8E9700392F9246a6c5B32eE3EcEF586F156Ed683"
+apikey="FTK2TWI4B3WIX5MZGQTZD8ZK2TUZXFHMD8"
+curl "https://api.polygonscan.com/api?module=account&action=balance&address=${address}&apikey=${apikey}"

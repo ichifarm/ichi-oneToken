@@ -29,7 +29,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
 }
 
-module.exports.tags = ["nullControllerVerify","verify"]
+module.exports.tags = ["nullControllerVerify","verify", "polygon-verify"]
 module.exports.dependencies = ["oneTokenFactory","nullController"]
 
 // don't verify contract on localnet

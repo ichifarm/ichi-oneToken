@@ -18,5 +18,5 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
 
 }
 
-module.exports.tags = ["oneTokenV1Verify","verify"]
+module.exports.tags = ["oneTokenV1Verify","verify", "polygon-verify"]
 module.exports.dependencies = ["oneTokenV1"]

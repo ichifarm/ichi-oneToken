@@ -23,7 +23,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     })
 }
 
-module.exports.tags = ["mintMasterIncrementalVerify","verify"]
+module.exports.tags = ["mintMasterIncrementalVerify","verify", "polygon-verify"]
 module.exports.dependencies = ["oneTokenFactory","mintMasterIncremental"]
 
 // don't verify contract on localnet
