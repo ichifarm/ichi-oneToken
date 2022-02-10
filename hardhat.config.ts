@@ -88,6 +88,13 @@ const config: HardhatUserConfig = {
       chainId: parseInt(process.env.CHAIN_ID) || 31337,
       tags: ["test", "local", "mainnet"],
     },
+    docker_polygon: {
+      url: `http://localhost:8546`,
+      accounts,
+      chainId: 137,
+      live: false,
+      tags: ["polygon"]
+    },
     ropsten: {
       url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts,
