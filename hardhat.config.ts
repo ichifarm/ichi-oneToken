@@ -62,7 +62,7 @@ const config: HardhatUserConfig = {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [`0x${process.env.MAINNET_PK}`],
       saveDeployments: true,
-      gasPrice: 95 * 1000000000,
+      gasPrice: 90 * 1000000000,
       chainId: 1,
     },
     localhost: {
