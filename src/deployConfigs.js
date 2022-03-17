@@ -8,10 +8,11 @@ const configs = {
     usdc: "0xE491A18E0338e7C9edc806F951AE4948f302360F"
   },
   137: {
-    usdc: "TODO",
+    usdc: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     wbtc: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
     wbtcUsdChainlinkOracle: '0xDE31F8bFBD8c84b5360CFACCa3539B938dd78ae6',
-    governance: 'TODO' // TODO
+    governance: '0x0768A75F616B98ee0937673bD83B7aBF142236Ea',
+    oneBTC_gov: '0x50114c0B0EE1eB0D6e534f76eB3e9C5408dEF663'
   },
   80001: {
     usdc: "0x0FA8781a83E46826621b3BC094Ea2A0212e71B23",

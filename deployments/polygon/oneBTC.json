@@ -1,0 +1,430 @@
+{
+  "address": "0x1f194578e7510A350fb517a9ce63C40Fa1899427",
+  "abi": {
+    "fragments": [
+      {
+        "name": null,
+        "type": "constructor",
+        "inputs": [
+          {
+            "name": "_logic",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "admin_",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "_data",
+            "type": "bytes",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "bytes",
+            "_isParamType": true
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      {
+        "name": "AdminChanged",
+        "anonymous": false,
+        "inputs": [
+          {
+            "name": "previousAdmin",
+            "type": "address",
+            "indexed": false,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "newAdmin",
+            "type": "address",
+            "indexed": false,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "type": "event",
+        "_isFragment": true
+      },
+      {
+        "name": "Upgraded",
+        "anonymous": false,
+        "inputs": [
+          {
+            "name": "implementation",
+            "type": "address",
+            "indexed": true,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "type": "event",
+        "_isFragment": true
+      },
+      {
+        "type": "function",
+        "name": "admin",
+        "constant": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "admin_",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      {
+        "type": "function",
+        "name": "changeAdmin",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newAdmin",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      {
+        "type": "function",
+        "name": "implementation",
+        "constant": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "implementation_",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      {
+        "type": "function",
+        "name": "upgradeTo",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newImplementation",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      {
+        "type": "function",
+        "name": "upgradeToAndCall",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newImplementation",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "data",
+            "type": "bytes",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "bytes",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "gas": null,
+        "_isFragment": true
+      }
+    ],
+    "_abiCoder": {
+      "coerceFunc": null
+    },
+    "functions": {
+      "admin()": {
+        "type": "function",
+        "name": "admin",
+        "constant": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "admin_",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      "changeAdmin(address)": {
+        "type": "function",
+        "name": "changeAdmin",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newAdmin",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      "implementation()": {
+        "type": "function",
+        "name": "implementation",
+        "constant": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "implementation_",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      "upgradeTo(address)": {
+        "type": "function",
+        "name": "upgradeTo",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newImplementation",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "gas": null,
+        "_isFragment": true
+      },
+      "upgradeToAndCall(address,bytes)": {
+        "type": "function",
+        "name": "upgradeToAndCall",
+        "constant": false,
+        "inputs": [
+          {
+            "name": "newImplementation",
+            "type": "address",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "data",
+            "type": "bytes",
+            "indexed": null,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "bytes",
+            "_isParamType": true
+          }
+        ],
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "gas": null,
+        "_isFragment": true
+      }
+    },
+    "errors": {},
+    "events": {
+      "AdminChanged(address,address)": {
+        "name": "AdminChanged",
+        "anonymous": false,
+        "inputs": [
+          {
+            "name": "previousAdmin",
+            "type": "address",
+            "indexed": false,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          },
+          {
+            "name": "newAdmin",
+            "type": "address",
+            "indexed": false,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "type": "event",
+        "_isFragment": true
+      },
+      "Upgraded(address)": {
+        "name": "Upgraded",
+        "anonymous": false,
+        "inputs": [
+          {
+            "name": "implementation",
+            "type": "address",
+            "indexed": true,
+            "components": null,
+            "arrayLength": null,
+            "arrayChildren": null,
+            "baseType": "address",
+            "_isParamType": true
+          }
+        ],
+        "type": "event",
+        "_isFragment": true
+      }
+    },
+    "structs": {},
+    "deploy": {
+      "name": null,
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "_logic",
+          "type": "address",
+          "indexed": null,
+          "components": null,
+          "arrayLength": null,
+          "arrayChildren": null,
+          "baseType": "address",
+          "_isParamType": true
+        },
+        {
+          "name": "admin_",
+          "type": "address",
+          "indexed": null,
+          "components": null,
+          "arrayLength": null,
+          "arrayChildren": null,
+          "baseType": "address",
+          "_isParamType": true
+        },
+        {
+          "name": "_data",
+          "type": "bytes",
+          "indexed": null,
+          "components": null,
+          "arrayLength": null,
+          "arrayChildren": null,
+          "baseType": "bytes",
+          "_isParamType": true
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "gas": null,
+      "_isFragment": true
+    },
+    "_isInterface": true
+  },
+  "numDeployments": 1
+}

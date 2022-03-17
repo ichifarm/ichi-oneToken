@@ -19,7 +19,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
     }
 
     const 
-        name = "Collateral Pegged Test Oracle"
+        name = "Collateral Pegged Oracle"
         url = "ichi.org"
 
     const factory = await deployments.get("OneTokenFactory")

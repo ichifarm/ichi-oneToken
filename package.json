@@ -69,7 +69,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.1.0",
     "ganache-cli": "^6.12.2",
-    "hardhat": "^2.6.0",
+    "hardhat": "^2.9.1",
     "hardhat-abi-exporter": "^2.1.2",
     "hardhat-deploy": "^0.10.5",
     "hardhat-gas-reporter": "^1.0.4",
