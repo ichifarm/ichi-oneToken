@@ -47,7 +47,7 @@ This repository is subject to the ICHI bug bounty program, per the terms defined
 - App: https://www.ichi.farm/#/farm
 - Medium: https://medium.com/ichifarm
 - Twitter: https://twitter.com/ichifarm
-- Discord: https://discord.com/invite/Bm6pUHjHUC
+- Discord: https://discord.gg/ichi-ichi-org-766688709814124595
 - Snapshot (Voting): https://snapshot.page/#/ichi.eth
 
 ### 💻 TECHNICAL
