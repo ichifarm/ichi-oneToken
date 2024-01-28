@@ -38,20 +38,15 @@ deploying "TestOracle" (tx: 0x930c32c4500b855f6dd5e7fb40786abee555245a925fda237b
 ✨  Done in 15.71s.
 ```
 
-### Bug bounty
-
-This repository is subject to the ICHI bug bounty program, per the terms defined [here](https://medium.com/ichifarm/ichi-farm-bug-bounties-d3a042e8088a).
-
 ### 🧐 RESOURCES
 - Website: https://www.ichi.org/
-- App: https://www.ichi.farm/#/farm
+- App: https://app.ichi.org
 - Medium: https://medium.com/ichifarm
-- Twitter: https://twitter.com/ichifarm
+- Twitter: https://twitter.com/ichifoundation
 - Discord: https://discord.gg/ichi-ichi-org-766688709814124595
-- Snapshot (Voting): https://snapshot.page/#/ichi.eth
 
 ### 💻 TECHNICAL
-- Docs: https://docs.ichi.farm/
+- Docs: https://docs.ichi.org/home/
 - GitHub: https://github.com/ichifarm
 
 ### Licensing
