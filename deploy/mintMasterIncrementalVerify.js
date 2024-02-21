@@ -12,7 +12,7 @@ module.exports = async function({ ethers: { getNamedSigner }, getNamedAccounts, 
         factory = await deployments.get("OneTokenFactory")
         mintMaster = await deployments.get("Incremental")
 
-    if (chainId != 31337) { //don't verify contract on localnet
+    if (chainId == 42 || chainId == 1) { //don't verify contract on localnet
         await hre.run("verify:verify", {
             address: mintMaster.address,
             constructorArguments: [
